@@ -1,8 +1,760 @@
 ﻿@{
     ViewData["Title"] = "Home Page";
 }
+<!DOCTYPE html>
+<html lang="vi">
 
-<div class="text-center">
-    <h1 class="display-4">Welcome</h1>
-    <p>Learn about <a href="https://learn.microsoft.com/aspnet/core">building Web apps with ASP.NET Core</a>.</p>
-</div>
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="Chợ Tốt Xe - Mua bán xe ô tô, xe máy, xe điện uy tín hàng đầu Việt Nam">
+    <title>Chợ Tốt Xe - Mua Bán Xe Uy Tín Hàng Đầu Việt Nam</title>
+
+    <!-- Bootstrap 5 CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Roboto:wght@400;500;700;900&display=swap"
+          rel="stylesheet">
+
+    <!-- Custom CSS (Minimal) -->
+    <link rel="stylesheet" href="../css/style.css">
+</head>
+
+<body class="bg-light overflow-x-hidden">
+    <!-- Header -->
+    <!-- Header -->
+    <header class="sticky-top bg-white shadow-sm">
+
+
+        <!-- Mobile Menu -->
+        <div class="mobile-menu" id="mobileMenu">
+            <div class="mobile-menu-content">
+                <button class="btn-close-menu" id="closeMobileMenu">
+                    <i class="fas fa-times"></i>
+                </button>
+
+            </div>
+        </div>
+    </header>
+
+    <!-- Hero Section -->
+    <section class="hero-section position-relative overflow-hidden">
+        <!-- Header Top moved here -->
+        <div class="container">
+            <div class="d-flex align-items-center justify-content-between py-2">
+                <!-- Logo -->
+                <a href="#" class="logo d-flex align-items-center gap-0 ">
+                    <img src="/img/logo_Wings/rsz_wings__2_-removebg-preview.png" alt="" class="logo-icon">
+                    <img src="/img/logo_Wings/WINGS-removebg-preview (1).png" alt="" class="logo-text">
+                </a>
+                <div class="container-fluid">
+                    <!-- Secondary Navigation -->
+                    <div class=" d-none d-lg-block">
+                        <div class="container">
+                            <div class="py-2">
+                                <a href="#" class="text-decoration-none text-dark">
+                                    Dành cho người bán <i class="fas fa-chevron-down ms-1"></i>
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <!-- Action Buttons -->
+                <div class="d-flex align-items-center gap-2">
+                    <button class="btn-icon d-none d-md-inline-flex" aria-label="Yêu thích">
+                        <i class="far fa-heart"></i>
+                    </button>
+                    <button class="btn-icon d-none d-md-inline-flex" aria-label="Tin nhắn">
+                        <i class="far fa-comment-dots"></i>
+                    </button>
+                    <button class="btn-icon d-none d-md-inline-flex" aria-label="Thông báo">
+                        <i class="far fa-bell"></i>
+                    </button>
+                    <button class="btn btn-outline-primary d-none d-md-inline-flex">Đăng nhập</button>
+                    <button class="btn btn-primary">Bán xe</button>
+                    <button class="btn-icon d-none d-md-inline-flex">
+                        <i class="fas fa-user-circle"></i>
+                        <i class="fas fa-chevron-down ms-1 fs-6"></i>
+                    </button>
+                    <button class="btn-icon d-lg-none" id="mobileMenuToggle">
+                        <i class="fas fa-bars"></i>
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <div class="container">
+            <div class="text-center">
+                <h1 class="hero-title mb-0">&#34;Xe&#34; mới toanh. Khám phá nhanh!</h1>
+            </div>
+        </div>
+        <div class="hero-illustration-left">🚗🌳</div>
+        <div class="hero-illustration-right">🚚🚐</div>
+    </section>
+
+    <!-- Search Bar Section -->
+    <section class="search-section">
+        <div class="container">
+            <div class="search-bar-container">
+                <div class="search-bar">
+                    <div class="search-input-group">
+                        <i class="fas fa-search search-icon"></i>
+                        <input type="text" class="search-input" id="searchInput" placeholder="Tìm xe cộ...">
+                    </div>
+                    <div class="search-divider d-none d-md-block"></div>
+                    <div class="search-select-group">
+                        <i class="fas fa-map-marker-alt select-icon"></i>
+                        <select class="search-select" id="locationSelect">
+                            <option selected>Chọn khu vực</option>
+                            <option value="hn">Hà Nội</option>
+                            <option value="hcm">Hồ Chí Minh</option>
+                            <option value="dn">Đà Nẵng</option>
+                            <option value="hp">Hải Phòng</option>
+                            <option value="ct">Cần Thơ</option>
+                        </select>
+                    </div>
+                    <div class="search-divider d-none d-md-block"></div>
+                    <div class="search-select-group">
+                        <i class="fas fa-car select-icon"></i>
+                        <select class="search-select" id="vehicleTypeSelect">
+                            <option selected>Tất cả Xe cộ</option>
+                            <option value="car">Ô tô</option>
+                            <option value="motorbike">Xe máy</option>
+                            <option value="truck">Xe tải, xe ben</option>
+                            <option value="electric">Xe điện</option>
+                            <option value="bicycle">Xe đạp</option>
+                            <option value="parts">Phụ tùng xe</option>
+                        </select>
+                    </div>
+                    <button class="btn btn-search" id="searchBtn">Tìm xe</button>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Category Strip -->
+    <section class="py-0">
+        <div class="container">
+            <div class="category-strip">
+                <div class="category-item text-center">
+                    <div class="category-icon">🚗</div>
+                    <div class="category-label">Ô tô</div>
+                </div>
+                <div class="category-item text-center">
+                    <div class="category-icon">🏍️</div>
+                    <div class="category-label">Xe máy</div>
+                </div>
+                <div class="category-item text-center">
+                    <div class="category-icon">🚚</div>
+                    <div class="category-label">Xe tải, xe ben</div>
+                </div>
+                <div class="category-item text-center">
+                    <div class="category-icon">🛵</div>
+                    <div class="category-label">Xe điện</div>
+                </div>
+                <div class="category-item text-center">
+                    <div class="category-icon">🚲</div>
+                    <div class="category-label">Xe đạp</div>
+                </div>
+                <div class="category-item text-center">
+                    <div class="category-icon">🚜</div>
+                    <div class="category-label">Phương tiện khác</div>
+                </div>
+                <div class="category-item text-center">
+                    <div class="category-icon">⚙️</div>
+                    <div class="category-label">Phụ tùng xe</div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Latest Listings -->
+    <section class="py-5">
+        <div class="container">
+            <h2 class="section-title">Tin đăng mới nhất</h2>
+            <div class="position-relative">
+                <button class="carousel-nav carousel-nav-prev d-none d-lg-flex" data-carousel="latestListings">
+                    <i class="fas fa-chevron-left"></i>
+                </button>
+                <div class="carousel-wrapper" id="latestListingsCarousel">
+                    <!-- Xe 1 -->
+                    <div class="product-card" data-id="1">
+                        <div class="product-image-container">
+                            <img src="https://images.unsplash.com/photo-1558981806-ec527fa84c39?w=400&h=300&fit=crop"
+                                 alt="WAVE 2013, Nguyên Zin, Bán Rẻ Bảo" class="product-image" loading="lazy">
+                            <div class="product-badge">29 giây trước</div>
+                            <button class="product-favorite" data-id="1" aria-label="Yêu thích">
+                                <i class="far fa-heart"></i>
+                            </button>
+                        </div>
+                        <div class="product-content">
+                            <h3 class="product-title">WAVE 2013, Nguyên Zin, Bán Rẻ Bảo</h3>
+                            <div class="product-meta">2013 • Xe số • Đã dùng</div>
+                            <div class="product-price">9.800.000</div>
+                            <div class="product-location">
+                                <i class="fas fa-map-marker-alt"></i> Quận 12
+                            </div>
+                        </div>
+                    </div>
+                    <!-- Xe 2 -->
+                    <div class="product-card" data-id="2">
+                        <div class="product-image-container">
+                            <img src="https://images.unsplash.com/photo-1593941707882-a5bba14938c7?w=400&h=300&fit=crop"
+                                 alt="VF8 PLUS HỖ TRỢ VAY LÊN ĐẾN 90%" class="product-image" loading="lazy">
+                            <div class="product-badge">Tin tiêu biểu</div>
+                            <button class="product-favorite" data-id="2" aria-label="Yêu thích">
+                                <i class="far fa-heart"></i>
+                            </button>
+                            <div class="product-badge" style="right:12px; left: auto; background: #FF3B3B;">
+                                Tin tiêu
+                                biểu
+                            </div>
+                        </div>
+                        <div class="product-content">
+                            <h3 class="product-title">VF8 PLUS HỖ TRỢ VAY LÊN ĐẾN 90% NHẬN XE</h3>
+                            <div class="product-meta">2025 • Ô tô • Tự động</div>
+                            <div class="product-price">978.000.000</div>
+                            <div class="product-location">
+                                <i class="fas fa-map-marker-alt"></i> Quận 5
+                            </div>
+                        </div>
+                    </div>
+                    <!-- Xe 3 -->
+                    <div class="product-card" data-id="3">
+                        <div class="product-image-container">
+                            <img src="https://images.unsplash.com/photo-1568772684723-dc07fcb3e9c0?w=400&h=300&fit=crop"
+                                 alt="SH MODE BẢN CAO CẤP ABS - THU CŨ ĐỔI MỚI" class="product-image" loading="lazy">
+                            <div class="product-badge">39 giây trước</div>
+                            <button class="product-favorite" data-id="3" aria-label="Yêu thích">
+                                <i class="far fa-heart"></i>
+                            </button>
+                        </div>
+                        <div class="product-content">
+                            <h3 class="product-title">SH MODE BẢN CAO CẤP ABS - THU CŨ ĐỔI MỚI</h3>
+                            <div class="product-meta">2025 • Tay ga • Mới</div>
+                            <div class="product-price">61.720.000</div>
+                            <div class="product-location">
+                                <i class="fas fa-map-marker-alt"></i> Quận 7
+                            </div>
+                        </div>
+                    </div>
+                    <!-- ... Thêm các xe khác tương tự ... -->
+                </div>
+                <button class="carousel-nav carousel-nav-next d-none d-lg-flex" data-carousel="latestListings">
+                    <i class="fas fa-chevron-right"></i>
+                </button>
+            </div>
+            <div class="text-center mt-4">
+                <button class="btn btn-outline-secondary">Xem thêm 72.016 tin đăng</button>
+            </div>
+        </div>
+    </section>
+
+    <!-- Official Stores -->
+    <section class="py-5 bg-white">
+        <div class="container">
+            <h2 class="section-title">Đặt Xe Online <span class="text-danger fw-black">CHÍNH HÃNG</span></h2>
+            <div class="features-row">
+                <div class="feature-badge">
+                    <i class="fas fa-check-circle"></i>
+                    <span>Đổi trả miễn phí</span>
+                </div>
+                <div class="feature-badge">
+                    <i class="fas fa-check-circle"></i>
+                    <span>Hàng chính hãng 100%</span>
+                </div>
+                <div class="feature-badge">
+                    <i class="fas fa-check-circle"></i>
+                    <span>Hỗ trợ mua trả góp</span>
+                </div>
+            </div>
+            <div class="position-relative mt-4">
+                <button class="carousel-nav carousel-nav-prev d-none d-lg-flex" data-carousel="officialStores">
+                    <i class="fas fa-chevron-left"></i>
+                </button>
+                <div class="carousel-wrapper" id="officialStoresCarousel">
+                    <!-- Store 1 -->
+                    <div class="official-store-card">
+                        <div class="store-header">
+                            <img src="https://ui-avatars.com/api/?name=VF&background=0D8ABC&color=fff&size=48"
+                                 alt="VinFast Official Store" class="store-logo">
+                            <div class="store-name">
+                                VinFast Official Store
+                                <i class="fas fa-check-circle verified-badge"></i>
+                            </div>
+                        </div>
+                        <img src="https://images.unsplash.com/photo-1617814076367-b759c7d7e738?w=600&h=200&fit=crop"
+                             alt="VinFast Official Store banner" class="store-banner" loading="lazy">
+                        <div class="store-products">
+                            <div class="store-product-item">
+                                <img src="https://images.unsplash.com/photo-1568772684723-dc07fcb3e9c0?w=150&h=150&fit=crop"
+                                     alt="VinFast Motio" class="store-product-image" loading="lazy">
+                                <div class="store-product-name">VinFast Motio</div>
+                                <div class="store-product-price">10.560.000 đ</div>
+                            </div>
+                            <div class="store-product-item">
+                                <img src="https://images.unsplash.com/photo-1558980664-769d59546b3d?w=150&h=150&fit=crop"
+                                     alt="VinFast Feliz Neo" class="store-product-image" loading="lazy">
+                                <div class="store-product-name">VinFast Feliz Neo</div>
+                                <div class="store-product-price">19.712.000 đ</div>
+                            </div>
+                            <div class="store-product-item">
+                                <img src="https://images.unsplash.com/photo-1609630875171-b1321377ee65?w=150&h=150&fit=crop"
+                                     alt="VinFast Evo Neo" class="store-product-image" loading="lazy">
+                                <div class="store-product-name">VinFast Evo Neo</div>
+                                <div class="store-product-price">15.664.000 đ</div>
+                            </div>
+                        </div>
+                    </div>
+                    <!-- Store 2 -->
+                    <div class="official-store-card">
+                        <div class="store-header">
+                            <img src="https://ui-avatars.com/api/?name=HP&background=e74c3c&color=fff&size=48"
+                                 alt="Head Phát Tiến" class="store-logo">
+                            <div class="store-name">
+                                Head Phát Tiến
+                                <i class="fas fa-check-circle verified-badge"></i>
+                            </div>
+                        </div>
+                        <img src="https://images.unsplash.com/photo-1558981806-ec527fa84c39?w=600&h=200&fit=crop"
+                             alt="Head Phát Tiến banner" class="store-banner" loading="lazy">
+                        <div class="store-products">
+                            <div class="store-product-item">
+                                <img src="https://images.unsplash.com/photo-1568772684723-dc07fcb3e9c0?w=150&h=150&fit=crop"
+                                     alt="Xe máy Honda ..." class="store-product-image" loading="lazy">
+                                <div class="store-product-name">Xe máy Honda ...</div>
+                                <div class="store-product-price">19.230.000 đ</div>
+                            </div>
+                            <div class="store-product-item">
+                                <img src="https://images.unsplash.com/photo-1558980664-769d59546b3d?w=150&h=150&fit=crop"
+                                     alt="Xe máy Honda ..." class="store-product-image" loading="lazy">
+                                <div class="store-product-name">Xe máy Honda ...</div>
+                                <div class="store-product-price">19.730.000 đ</div>
+                            </div>
+                            <div class="store-product-item">
+                                <img src="https://images.unsplash.com/photo-1609630875171-b1321377ee65?w=150&h=150&fit=crop"
+                                     alt="Xe máy Honda ..." class="store-product-image" loading="lazy">
+                                <div class="store-product-name">Xe máy Honda ...</div>
+                                <div class="store-product-price">19.350.000 đ</div>
+                            </div>
+                        </div>
+                    </div>
+                    <!-- ... lặp tiếp các store ... -->
+                </div>
+
+                <button class="carousel-nav carousel-nav-next d-none d-lg-flex" data-carousel="officialStores">
+                    <i class="fas fa-chevron-right"></i>
+                </button>
+            </div>
+            <div class="text-center mt-4">
+                <button class="btn btn-outline-secondary">Xem thêm cửa hàng</button>
+            </div>
+        </div>
+    </section>
+
+    <!-- Featured Stores -->
+    <section class="py-5">
+        <div class="container">
+            <h2 class="section-title">Cửa hàng xe nổi bật</h2>
+            <div class="d-flex flex-wrap gap-2 mb-4">
+                <button class="tab-chip active" data-tab="all">Tất cả</button>
+                <button class="tab-chip" data-tab="car">Ô tô</button>
+                <button class="tab-chip" data-tab="motorbike">Xe máy</button>
+                <button class="tab-chip" data-tab="truck">Xe tải, xe ben</button>
+                <button class="tab-chip" data-tab="electric">Xe điện</button>
+                <button class="tab-chip" data-tab="bicycle">Xe đạp</button>
+                <button class="tab-chip" data-tab="parts">Phụ tùng</button>
+            </div>
+            <div class="position-relative">
+                <button class="carousel-nav carousel-nav-prev d-none d-lg-flex" data-carousel="featuredStores">
+                    <i class="fas fa-chevron-left"></i>
+                </button>
+                <div class="carousel-wrapper" id="featuredStoresCarousel">
+                    <!-- Store 1 -->
+                    <div class="featured-store-card">
+                        <img src="https://images.unsplash.com/photo-1558981806-ec527fa84c39?w=400&h=200&fit=crop"
+                             alt="TONG MOTOR" class="store-cover" loading="lazy">
+                        <div class="store-avatar-container">
+                            <img src="https://ui-avatars.com/api/?name=TM&background=random&size=80" alt="TONG MOTOR"
+                                 class="store-avatar">
+                        </div>
+                        <div class="store-info">
+                            <div class="store-title">
+                                TONG MOTOR
+                                <i class="fas fa-check-circle verified-badge"></i>
+                            </div>
+                            <div class="store-rating">
+                                <span class="stars">★★★☆☆</span>
+                                <span class="rating-text">3.7 (61 đánh giá)</span>
+                            </div>
+                            <div class="store-stats">Đang bán: 695 | Đã bán: 1</div>
+                            <div class="store-location">
+                                <i class="fas fa-map-marker-alt"></i>
+                                Quận Cầu Giấy, Hà Nội
+                            </div>
+                            <button class="btn-follow">Theo dõi</button>
+                        </div>
+                    </div>
+                    <!-- Store 2 -->
+                    <div class="featured-store-card">
+                        <img src="https://images.unsplash.com/photo-1568772684723-dc07fcb3e9c0?w=400&h=200&fit=crop"
+                             alt="TÂN TỰ QUÝ" class="store-cover" loading="lazy">
+                        <div class="store-avatar-container">
+                            <img src="https://ui-avatars.com/api/?name=TQ&background=random&size=80" alt="TÂN TỰ QUÝ"
+                                 class="store-avatar">
+                        </div>
+                        <div class="store-info">
+                            <div class="store-title">TÂN TỰ QUÝ</div>
+                            <div class="store-rating">
+                                <span class="stars">★★★★★</span>
+                                <span class="rating-text">5.0 (4 đánh giá)</span>
+                            </div>
+                            <div class="store-stats">Đang bán: 499 | Đã bán: 221</div>
+                            <div class="store-location">
+                                <i class="fas fa-map-marker-alt"></i>
+                                Quận 1, Tp. Hồ Chí Minh
+                            </div>
+                            <button class="btn-follow">Theo dõi</button>
+                        </div>
+                    </div>
+                    <!-- Store 3 -->
+                    <div class="featured-store-card">
+                        <img src="https://images.unsplash.com/photo-1558980664-769d59546b3d?w=400&h=200&fit=crop"
+                             alt="Cửa hàng Tuanduy" class="store-cover" loading="lazy">
+                        <div class="store-avatar-container">
+                            <img src="https://ui-avatars.com/api/?name=TD&background=random&size=80"
+                                 alt="Cửa hàng Tuanduy" class="store-avatar">
+                        </div>
+                        <div class="store-info">
+                            <div class="store-title">
+                                Cửa hàng Tuanduy
+                                <i class="fas fa-check-circle verified-badge"></i>
+                            </div>
+                            <div class="store-rating">
+                                <span class="stars">★★★★☆</span>
+                                <span class="rating-text">4.6 (284 đánh giá)</span>
+                            </div>
+                            <div class="store-stats">Đang bán: 358 | Đã bán: 9265</div>
+                            <div class="store-location">
+                                <i class="fas fa-map-marker-alt"></i>
+                                Quận Tân Phú, Tp. Hồ Chí Minh
+                            </div>
+                            <button class="btn-follow">Theo dõi</button>
+                        </div>
+                    </div>
+                    <!-- ... Lặp tiếp với các cửa hàng còn lại ... -->
+                </div>
+
+                <button class="carousel-nav carousel-nav-next d-none d-lg-flex" data-carousel="featuredStores">
+                    <i class="fas fa-chevron-right"></i>
+                </button>
+            </div>
+            <div class="text-center mt-4">
+                <button class="btn btn-outline-secondary">Xem thêm cửa hàng xe</button>
+            </div>
+        </div>
+    </section>
+
+    <!-- Store Activities -->
+    <section class="py-5 bg-white">
+        <div class="container">
+            <h2 class="section-title">Hoạt động nổi bật của cửa hàng</h2>
+            <div class="position-relative">
+                <button class="carousel-nav carousel-nav-prev d-none d-lg-flex" data-carousel="activities">
+                    <i class="fas fa-chevron-left"></i>
+                </button>
+                <div class="carousel-wrapper" id="activitiesCarousel">
+                    <!-- Activity 1 -->
+                    <div class="activity-card" data-activity-id="1" role="button" tabindex="0">
+                        <div class="activity-header">
+                            <img src="https://ui-avatars.com/api/?name=CD&background=random&size=48"
+                                 alt="Cầm Q8 - Thanh Lý Trao Đổi Xe Máy Cũ" class="activity-avatar">
+                            <div class="activity-info">
+                                <div class="activity-store-name">
+                                    Cầm Q8 - Thanh Lý Trao Đổi Xe Máy Cũ
+                                    <i class="fas fa-check-circle verified-badge"></i>
+                                </div>
+                                <div class="activity-meta">9 giờ trước • Quận 8, Tp HCM</div>
+                            </div>
+                        </div>
+                        <div class="activity-content">
+                            <div class="activity-text">1 nhất 📌 cho e zai nhanh lẹ</div>
+                            <div class="activity-images">
+                                <img src="https://images.unsplash.com/photo-1558981806-ec527fa84c39?w=600&h=600&fit=crop"
+                                     alt="Activity" class="activity-image" loading="lazy">
+                                <img src="https://images.unsplash.com/photo-1568772684723-dc07fcb3e9c0?w=600&h=600&fit=crop"
+                                     alt="Activity" class="activity-image" loading="lazy">
+                            </div>
+                            <div class="activity-actions">
+                                <div class="activity-action">
+                                    <i class="far fa-thumbs-up"></i>
+                                    <span>0</span>
+                                </div>
+                                <div class="activity-action">
+                                    <i class="far fa-comment"></i>
+                                    <span>0</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <!-- Activity 2 -->
+                    <div class="activity-card" data-activity-id="2" role="button" tabindex="0">
+                        <div class="activity-header">
+                            <img src="https://ui-avatars.com/api/?name=SC&background=random&size=48"
+                                 alt="Xe Máy Sang Cường" class="activity-avatar">
+                            <div class="activity-info">
+                                <div class="activity-store-name">
+                                    Xe Máy Sang Cường
+                                    <i class="fas fa-check-circle verified-badge"></i>
+                                </div>
+                                <div class="activity-meta">6 giờ trước</div>
+                            </div>
+                        </div>
+                        <div class="activity-content">
+                            <div class="activity-text">EXCITER - LÍ LẮN Mẩn mê Exciter 155VVA đời 2021...</div>
+                            <div class="activity-images">
+                                <img src="https://images.unsplash.com/photo-1558980664-769d59546b3d?w=300&h=200&fit=crop"
+                                     alt="Activity" class="activity-image" loading="lazy">
+                                <img src="https://images.unsplash.com/photo-1609630875171-b1321377ee65?w=300&h=200&fit=crop"
+                                     alt="Activity" class="activity-image" loading="lazy">
+                            </div>
+                            <div class="activity-actions">
+                                <div class="activity-action">
+                                    <i class="far fa-thumbs-up"></i>
+                                    <span>5</span>
+                                </div>
+                                <div class="activity-action">
+                                    <i class="far fa-comment"></i>
+                                    <span>2</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <!-- ... Tiếp tục với các activity khác ... -->
+                </div>
+
+                <button class="carousel-nav carousel-nav-next d-none d-lg-flex" data-carousel="activities">
+                    <i class="fas fa-chevron-right"></i>
+                </button>
+            </div>
+            <div class="text-center mt-4">
+                <button class="btn btn-outline-secondary">Xem thêm hoạt động của cửa hàng</button>
+            </div>
+        </div>
+    </section>
+
+    <!-- Q&A Articles -->
+    <section class="py-5">
+        <div class="container">
+            <h2 class="section-title">Hỏi đáp mua xe</h2>
+            <div class="d-flex flex-wrap gap-2 mb-4">
+                <button class="tab-chip active" data-tab="featured">Tin nổi bật</button>
+                <button class="tab-chip" data-tab="advice">Tư vấn kinh nghiệm</button>
+                <button class="tab-chip" data-tab="choose">Chọn Xe</button>
+                <button class="tab-chip" data-tab="understand">Hiểu Về Xe</button>
+            </div>
+            <div class="position-relative">
+                <button class="carousel-nav carousel-nav-prev d-none d-lg-flex" data-carousel="qaArticles">
+                    <i class="fas fa-chevron-left"></i>
+                </button>
+                <div class="carousel-wrapper" id="qaArticlesCarousel">
+                    <!-- Article 1 -->
+                    <div class="article-card">
+                        <img src="https://images.unsplash.com/photo-1617814076367-b759c7d7e738?w=300&h=200&fit=crop"
+                             alt="Top các mẫu xe ô tô tiết kiệm xăng nhất 2025" class="article-image" loading="lazy">
+                        <div class="article-content">
+                            <h3 class="article-title">Top các mẫu xe ô tô tiết kiệm xăng nhất 2025</h3>
+                            <p class="article-excerpt">
+                                Tiêu chí tiết kiệm nhiên liệu ngày càng được quan tâm. Xem ngay
+                                top mẫu ô tô tiết kiệm...
+                            </p>
+                        </div>
+                    </div>
+                    <!-- Article 2 -->
+                    <div class="article-card">
+                        <img src="https://images.unsplash.com/photo-1621007947382-bb3c3994e3fb?w=300&h=200&fit=crop"
+                             alt="Xe ô tô ngập nước Cách xử lý hiệu quả cho từng mức ngập" class="article-image"
+                             loading="lazy">
+                        <div class="article-content">
+                            <h3 class="article-title">Xe ô tô ngập nước Cách xử lý hiệu quả cho từng mức ngập</h3>
+                            <p class="article-excerpt">
+                                Xe ô tô ngập nước phải làm sao? Tìm hiểu các mức ngập và cách xử
+                                lý oto ngập nước...
+                            </p>
+                        </div>
+                    </div>
+                    <!-- Article 3 -->
+                    <div class="article-card">
+                        <img src="https://images.unsplash.com/photo-1593941707882-a5bba14938c7?w=300&h=200&fit=crop"
+                             alt="So sánh giá iPhone 17 và xe máy điện cùng tầm giá" class="article-image"
+                             loading="lazy">
+                        <div class="article-content">
+                            <h3 class="article-title">So sánh giá iPhone 17 và xe máy điện cùng tầm giá</h3>
+                            <p class="article-excerpt">
+                                So sánh giá iPhone 17 với các mẫu xe máy điện cùng tầm giá. Khám
+                                phá giá trị thực tế của cua...
+                            </p>
+                        </div>
+                    </div>
+                    <!-- Article 4 -->
+                    <div class="article-card">
+                        <img src="https://images.unsplash.com/photo-1609521263047-f8f205293f24?w=300&h=200&fit=crop"
+                             alt="Top 15 dòng xe SUV 5 chỗ đáng mua nhất 2025" class="article-image" loading="lazy">
+                        <div class="article-content">
+                            <h3 class="article-title">Top 15 dòng xe SUV 5 chỗ đáng mua nhất 2025</h3>
+                            <p class="article-excerpt">
+                                Cập nhật top 15 mẫu SUV/CUV 5 chỗ đáng mua nhất 2025. Xem 15 mẫu
+                                SUV/CUV 5 chỗ gồm cao...
+                            </p>
+                        </div>
+                    </div>
+                    <!-- Article 5 -->
+                    <div class="article-card">
+                        <img src="https://images.unsplash.com/photo-1617814076367-b759c7d7e738?w=300&h=200&fit=crop"
+                             alt="Chính sách đổi xe xăng sang xe điện của VinFast hỗ trợ đến 90 triệu đồng"
+                             class="article-image" loading="lazy">
+                        <div class="article-content">
+                            <h3 class="article-title">
+                                Chính sách đổi xe xăng sang xe điện của VinFast hỗ trợ đến 90
+                                triệu đồng
+                            </h3>
+                            <p class="article-excerpt">
+                                Chính sách đổi xe xăng sang xe điện của VinFast hỗ trợ đến 90
+                                triệu đồng, thu mua xe cũ...
+                            </p>
+                        </div>
+                    </div>
+                    <!-- ... thêm các bài QA tiếp theo ... -->
+                </div>
+
+                <button class="carousel-nav carousel-nav-next d-none d-lg-flex" data-carousel="qaArticles">
+                    <i class="fas fa-chevron-right"></i>
+                </button>
+            </div>
+            <div class="text-center mt-4">
+                <button class="btn btn-outline-secondary">Xem thêm</button>
+            </div>
+        </div>
+    </section>
+
+    <!-- Popular Keywords -->
+    <section class="py-5 bg-white">
+        <div class="container">
+            <h2 class="section-title">Các từ khóa phổ biến</h2>
+            <div class="row g-4" id="keywordsGrid">
+                <!-- Keywords will be inserted by JavaScript -->
+            </div>
+        </div>
+    </section>
+
+    <!-- Activity Detail Modal -->
+    <div class="activity-modal" id="activityModal">
+        <div class="activity-modal-overlay" id="activityModalOverlay"></div>
+        <div class="activity-modal-content">
+            <button class="activity-modal-close" id="activityModalClose">
+                <i class="fas fa-times"></i>
+            </button>
+
+            <div class="activity-modal-header">
+                <h2 class="activity-modal-title">Bài viết</h2>
+            </div>
+
+            <div class="activity-modal-body" id="activityModalBody">
+                <!-- Content will be inserted by JavaScript -->
+            </div>
+        </div>
+    </div>
+
+    <!-- Footer -->
+    <footer class="main-footer">
+        <div class="container">
+            <div class="row g-4">
+                <div class="col-lg-3 col-md-6">
+                    <h5 class="footer-title">Tải ứng dụng Chợ Tốt</h5>
+                    <div class="mb-3">
+                        <div class="qr-placeholder">
+                            <i class="fas fa-qrcode fa-3x"></i>
+                        </div>
+                    </div>
+                    <div class="app-badges">
+                        <a href="#" class="app-badge">
+                            <i class="fab fa-apple"></i> App Store
+                        </a>
+                        <a href="#" class="app-badge">
+                            <i class="fab fa-google-play"></i> Google Play
+                        </a>
+                    </div>
+                </div>
+                <div class="col-lg-3 col-md-6">
+                    <h5 class="footer-title">Hỗ trợ khách hàng</h5>
+                    <ul class="footer-links">
+                        <li><a href="#">Trung tâm trợ giúp</a></li>
+                        <li><a href="#">An toàn mua bán</a></li>
+                        <li><a href="#">Quy định đăng tin</a></li>
+                        <li><a href="#">Liên hệ hỗ trợ</a></li>
+                    </ul>
+                </div>
+                <div class="col-lg-3 col-md-6">
+                    <h5 class="footer-title">Về Chợ Tốt</h5>
+                    <ul class="footer-links">
+                        <li><a href="#">Giới thiệu</a></li>
+                        <li><a href="#">Quy chế hoạt động sàn</a></li>
+                        <li><a href="#">Chính sách bảo mật</a></li>
+                        <li><a href="#">Giải quyết tranh chấp</a></li>
+                        <li><a href="#">Tuyển dụng</a></li>
+                        <li><a href="#">Truyền thông</a></li>
+                        <li><a href="#">Blog</a></li>
+                    </ul>
+                </div>
+                <div class="col-lg-3 col-md-6">
+                    <h5 class="footer-title">Liên kết</h5>
+                    <div class="social-links mb-3">
+                        <a href="#" aria-label="LinkedIn"><i class="fab fa-linkedin"></i></a>
+                        <a href="#" aria-label="YouTube"><i class="fab fa-youtube"></i></a>
+                        <a href="#" aria-label="Facebook"><i class="fab fa-facebook"></i></a>
+                    </div>
+                    <div class="contact-info">
+                        <p class="mb-2"><strong>Email:</strong> trogiup@chotot.vn</p>
+                        <p class="mb-2"><strong>CSKH:</strong> 19003003 (1000đ/phút)</p>
+                        <p class="small mb-0">
+                            Địa chỉ: Tầng 18, Toà nhà UOA, Số 6 đường Tân Trào, Phường Tân Mỹ, Thành
+                            phố Hồ Chí Minh, Việt Nam
+                        </p>
+                    </div>
+                </div>
+            </div>
+            <div class="footer-bottom">
+                <div class="d-flex flex-column flex-md-row justify-content-between align-items-center gap-3">
+                    <p class="mb-0 small text-secondary">
+                        CÔNG TY TNHH CHỢ TỐT - Người đại diện theo pháp luật: Nguyễn
+                        Trọng Tấn; GPDKKD: 0312120782 do Sở KH & ĐT TPHCM cấp ngày 11/01/2013; GPMXH: 185/GP-BTTTT do Bộ
+                        Thông tin và Truyền thông cấp ngày 09/07/2024 - Chịu trách nhiệm nội dung: Trần Hoàng Ly. <a href="#" class="text-decoration-none">Chính sách sử dụng</a>
+                    </p>
+                    <div class="certification-badge">
+                        <img src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='120' height='45' viewBox='0 0 120 45'%3E%3Crect fill='%23e74c3c' width='120' height='45' rx='5'/%3E%3Ctext x='60' y='25' font-family='Arial' font-size='12' fill='white' text-anchor='middle' font-weight='bold'%3EĐÃ ĐĂNG KÝ%3C/text%3E%3Ctext x='60' y='38' font-family='Arial' font-size='8' fill='white' text-anchor='middle'%3EBỘ CÔNG THƯƠNG%3C/text%3E%3C/svg%3E"
+                             alt="Đã đăng ký Bộ Công Thương">
+                    </div>
+                </div>
+            </div>
+        </div>
+    </footer>
+
+    <div class="activity-modal" id="activityModal" aria-hidden="true"></div>
+
+    <!-- Bootstrap 5 JS -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+
+    <!-- Bootstrap 5 JS -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+
+    <!-- Custom JS -->
+    <script src="../js/main.js"></script>
+</body>
+
+</html>

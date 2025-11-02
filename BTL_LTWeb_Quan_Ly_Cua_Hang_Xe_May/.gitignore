@@ -1,0 +1,12 @@
+﻿# Visual Studio temporary files
+.vs/
+bin/
+obj/
+*.user
+*.suo
+*.userosscache
+*.sln.docstates
+
+# ASP.NET specific
+wwwroot/lib/
+appsettings.Development.json
