@@ -1,0 +1,908 @@
+﻿@{
+    ViewData["Title"] = "Online Motorbike";
+}
+<!DOCTYPE html>
+<html lang="vi">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>TÂN TỰ QUÝ - Dealership Store Profile</title>
+
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+    <link rel="stylesheet" href="/css/MotorBikeOnline.css">
+    <link href="/css/MotorBikeOnline.css" rel="stylesheet" />
+</head>
+
+<body>
+    <a href="#main-content" class="sr-only">Skip to main content</a>
+
+    <div class="container">
+        <div class="main-layout">
+            <!-- ==================== SIDEBAR ==================== -->
+            <aside class="sidebar" role="complementary">
+                <div class="store-banner-card">
+                    <!-- Banner Section -->
+                    <div class="banner-wrapper">
+                        <img src="https://images.unsplash.com/photo-1562519819-016a2e1c8ff8?w=800&h=400&fit=crop"
+                             alt="TÂN TỰ QUÝ Showroom" class="banner-image" loading="lazy">
+
+                        <div class="banner-overlay">
+                            <div class="banner-badge">THU MUA NHANH: 0914 454749</div>
+                            <div class="banner-badge">CẦM KẾ XE ĐẸP</div>
+                        </div>
+
+                        <div class="status-badge">
+                            <i class="fa-solid fa-circle" style="font-size: 8px; color: #00B96B;"></i>
+                            Hoạt động 5 ngày trước
+                        </div>
+
+                        <img src="https://images.unsplash.com/photo-1599305445671-ac291c95aaa9?w=200&h=200&fit=crop"
+                             alt="TÂN TỰ QUÝ Logo" class="store-avatar">
+                    </div>
+
+                    <!-- Action Buttons -->
+                    <div class="action-buttons">
+                        <button class="btn-outline" aria-label="Share store">
+                            <i class="fa-solid fa-share-nodes"></i>
+                            Chia sẻ
+                        </button>
+                        <button class="btn-outline" id="followBtn" aria-label="Follow store">
+                            <i class="fa-solid fa-plus"></i>
+                            Theo dõi
+                        </button>
+                    </div>
+
+                    <!-- Store Info -->
+                    <div class="store-info">
+                        <h1 class="store-name">TÂN TỰ QUÝ</h1>
+
+                        <div class="rating-display">
+                            <span class="rating-number">5.0</span>
+                            <div class="stars" aria-label="5 out of 5 stars">
+                                <i class="fa-solid fa-star"></i>
+                                <i class="fa-solid fa-star"></i>
+                                <i class="fa-solid fa-star"></i>
+                                <i class="fa-solid fa-star"></i>
+                                <i class="fa-solid fa-star"></i>
+                            </div>
+                            <a href="#reviews" class="rating-count">(5) nhận xét</a>
+                        </div>
+
+                        <div class="store-address">
+                            <i class="fa-solid fa-location-dot"></i>
+                            <div>
+                                <div>Địa chỉ: Tòa nhà Mê Linh Point, 2, Đường</div>
+                                <div>Ngô Đức Kế, Phường Bến Nghé, Quận 1,</div>
+                                <div>Thành phố Hồ Chí Minh, 00084, Việt Nam</div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Stats Section -->
+                    <div class="stats-section">
+                        <div class="stat-item">
+                            <span class="stat-label">Đã bán</span>
+                            <span class="stat-value">221</span>
+                        </div>
+                        <div class="stat-item">
+                            <span class="stat-label">Người theo dõi</span>
+                            <span class="stat-value">374</span>
+                        </div>
+                        <div class="stat-item">
+                            <span class="stat-label">Xe đang bán</span>
+                            <span class="stat-value">499</span>
+                        </div>
+                    </div>
+
+                    <!-- Policies Section -->
+                    <div class="policies-section">
+                        <h2 class="policies-heading">CHÍNH SÁCH & ƯU ĐÃI NỔI BẬT</h2>
+
+                        <div class="policy-item">
+                            <i class="fa-solid fa-gift policy-icon"></i>
+                            <div class="policy-text">
+                                Quà tặng hấp dẫn trong tháng
+                                <a href="#" class="policy-detail">(Xem chi tiết)</a>
+                            </div>
+                        </div>
+
+                        <div class="policy-item">
+                            <i class="fa-solid fa-shield-halved policy-icon"></i>
+                            <div class="policy-text">Bao kiểm tra hãng</div>
+                        </div>
+
+                        <div class="policy-item">
+                            <i class="fa-solid fa-calendar-check policy-icon"></i>
+                            <div class="policy-text">Bảo hành xe 12 tháng / km</div>
+                        </div>
+
+                        <div class="policy-item">
+                            <i class="fa-solid fa-percent policy-icon"></i>
+                            <div class="policy-text">Hỗ trợ vay ngân hàng đến 70%</div>
+                        </div>
+
+                        <div class="policy-item">
+                            <i class="fa-solid fa-credit-card policy-icon"></i>
+                            <div class="policy-text">Hỗ trợ trả góp từ 12 đến 60 tháng</div>
+                        </div>
+
+                        <div class="policy-item">
+                            <i class="fa-solid fa-rotate policy-icon"></i>
+                            <div class="policy-text">Hỗ trợ lai lướt</div>
+                        </div>
+
+                        <div class="policy-item">
+                            <i class="fa-solid fa-car policy-icon"></i>
+                            <div class="policy-text">Thu mua xe cũ</div>
+                        </div>
+
+                        <div class="policy-item">
+                            <i class="fa-solid fa-warehouse policy-icon"></i>
+                            <div class="policy-text">Dịch vụ bảo dưỡng, sửa chữa xe</div>
+                        </div>
+
+                        <div class="policy-item">
+                            <i class="fa-solid fa-gear policy-icon"></i>
+                            <div class="policy-text">Dịch vụ kiểm tra chất lượng xe</div>
+                        </div>
+
+                        <div class="policy-item">
+                            <i class="fa-solid fa-trophy policy-icon"></i>
+                            <div class="policy-text">Cung cấp phụ tùng, phụ kiện chính hãng</div>
+                        </div>
+
+                        <a href="#" class="view-more-link">Xem thêm</a>
+                    </div>
+
+                    <!-- CTA Buttons -->
+                    <div class="cta-buttons">
+                        <button class="btn-cta primary" id="phoneBtn" aria-label="Call dealership">
+                            <i class="fa-solid fa-phone"></i>
+                            <span id="phoneNumber">0914******</span>
+                        </button>
+                        <button class="btn-cta secondary" id="revealBtn">
+                            Bấm để hiện số
+                        </button>
+                    </div>
+                </div>
+            </aside>
+
+            <!-- ==================== MAIN CONTENT ==================== -->
+            <main class="main-content" id="main-content" role="main">
+                <!-- Tab Navigation -->
+                <nav class="tab-navigation" role="tablist" aria-label="Store sections">
+                    <button class="tab-button active" role="tab" aria-selected="true" aria-controls="tab-store"
+                            data-tab="store">
+                        CỬA HÀNG
+                    </button>
+                    <button class="tab-button" role="tab" aria-selected="false" aria-controls="tab-activity"
+                            data-tab="activity">
+                        HOẠT ĐỘNG
+                    </button>
+                    <button class="tab-button" role="tab" aria-selected="false" aria-controls="tab-vehicles"
+                            data-tab="vehicles">
+                        XE ĐANG BÁN
+                    </button>
+                    <button class="tab-button" role="tab" aria-selected="false" aria-controls="tab-reviews"
+                            data-tab="reviews">
+                        ĐÁNH GIÁ
+                    </button>
+                    <button class="tab-button" role="tab" aria-selected="false" aria-controls="tab-info"
+                            data-tab="info">
+                        THÔNG TIN
+                    </button>
+                </nav>
+
+                <!-- Tab Content Container -->
+                <div class="tab-content-container">
+                    <!-- TAB: CỬA HÀNG (INTEGRATED) -->
+                    <div class="tab-pane active" id="tab-store" role="tabpanel">
+                        <!-- Section: Giới thiệu -->
+                        <section class="content-section">
+                            <h2 class="section-title">Giới thiệu</h2>
+
+                            <div class="store-slogan">
+                                ⭐ TÂN TỰ QUÝ - Đối Tác Đáng Tin Cậy Cho Xe Hơi của Bạn! ⭐
+                            </div>
+
+                            <div class="store-description" id="storeDescription">
+                                🚗 Chuyên Mua Bán Xe Lướt: Tại TÂN TỰ QUÝ, Với liêu chi "Sản phẩm Tốt - Dịch vụ Hoàn
+                                Hảo", chúng tôi tự hào là địa chỉ tin cậy hàng đầu cho những ai đang tìm kiếm xe lướt
+                                chất lượng cao với giá cả hợp lý. Đội ngũ chuyên viên giàu kinh nghiệm của chúng tôi
+                                luôn sẵn sàng tư vấn và hỗ trợ bạn tìm được chiếc xe hoàn hảo nhất.
+                                <a href="#" class="view-more-link" style="display: inline; margin: 0 0 0 4px;"
+                                   id="toggleDescription">Xem thêm</a>
+                            </div>
+
+                            <!-- Image Gallery -->
+                            <div class="image-gallery">
+                                <div class="gallery-image">
+                                    <img src="https://images.unsplash.com/photo-1549317661-bd32c8ce0db2?w=400&h=300&fit=crop"
+                                         alt="Showroom view 1" loading="lazy">
+                                </div>
+                                <div class="gallery-image">
+                                    <img src="https://images.unsplash.com/photo-1519641471654-76ce0107ad1b?w=400&h=300&fit=crop"
+                                         alt="Showroom interior" loading="lazy">
+                                </div>
+                                <div class="gallery-image">
+                                    <img src="https://images.unsplash.com/photo-1552519507-da3b142c6e3d?w=400&h=300&fit=crop"
+                                         alt="Showroom vehicles" loading="lazy">
+                                </div>
+                                <div class="gallery-image">
+                                    <img src="https://images.unsplash.com/photo-1533473359331-0135ef1b58bf?w=400&h=300&fit=crop"
+                                         alt="Showroom lighting" loading="lazy">
+                                </div>
+                                <div class="gallery-image">
+                                    <img src="https://images.unsplash.com/photo-1503376780353-7e6692767b70?w=400&h=300&fit=crop"
+                                         alt="Vehicle closeup" loading="lazy">
+                                </div>
+                                <div class="gallery-image">
+                                    <img src="https://images.unsplash.com/photo-1542362567-b07e54358753?w=400&h=300&fit=crop"
+                                         alt="Multiple vehicles" loading="lazy">
+                                </div>
+                            </div>
+                        </section>
+
+                        <!-- Section: Hoạt động -->
+                        <section class="content-section">
+                            <h2 class="section-title">
+                                Hoạt động
+                                <a href="#" class="view-more-link" style="font-size: 15px; font-weight: 400;">
+                                    Xem tất
+                                    cả
+                                </a>
+                            </h2>
+
+                            <div class="activity-grid">
+                                <!-- Activity Card 1 -->
+                                <article class="activity-card">
+                                    <div class="activity-header">
+                                        <div class="activity-author">
+                                            <img src="https://images.unsplash.com/photo-1599305445671-ac291c95aaa9?w=80&h=80&fit=crop"
+                                                 alt="Store avatar" class="activity-avatar">
+                                            <div>
+                                                <div class="activity-author-name">
+                                                    TÂN TỰ QUÝ
+                                                    <span class="badge-featured">Nổi bật</span>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <i class="fa-regular fa-heart activity-wishlist" role="button"
+                                           aria-label="Add to wishlist"></i>
+                                    </div>
+
+                                    <div class="activity-timestamp">6 tháng trước</div>
+
+                                    <h3 class="activity-title">
+                                        Thu Mua Ô Tô Giá Cao - Hotline 0914454749 Bạn đang có ô tô khôn...
+                                    </h3>
+
+                                    <div class="activity-image">
+                                        <img src="https://images.unsplash.com/photo-1562519819-016a2e1c8ff8?w=600&h=400&fit=crop"
+                                             alt="Activity image" loading="lazy">
+                                    </div>
+
+                                    <div class="activity-engagement">
+                                        <div class="engagement-item">
+                                            <i class="fa-regular fa-thumbs-up"></i>
+                                            <span>2</span>
+                                        </div>
+                                        <div class="engagement-item">
+                                            <i class="fa-regular fa-comment"></i>
+                                            <span>0 Bình luận</span>
+                                        </div>
+                                    </div>
+                                </article>
+
+                                <!-- Activity Card 2 -->
+                                <article class="activity-card">
+                                    <div class="activity-header">
+                                        <div class="activity-author">
+                                            <img src="https://images.unsplash.com/photo-1599305445671-ac291c95aaa9?w=80&h=80&fit=crop"
+                                                 alt="Store avatar" class="activity-avatar">
+                                            <div>
+                                                <div class="activity-author-name">
+                                                    TÂN TỰ QUÝ
+                                                    <span class="badge-featured">Nổi bật</span>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <i class="fa-regular fa-heart activity-wishlist" role="button"
+                                           aria-label="Add to wishlist"></i>
+                                    </div>
+
+                                    <div class="activity-timestamp">1 năm trước</div>
+
+                                    <h3 class="activity-title">
+                                        BÁN BIỂN SỐ ĐẸP SÀNH TIỀN: 51L-23456 👍 Chỉ với một cú điện...
+                                    </h3>
+
+                                    <div class="activity-image">
+                                        <img src="https://images.unsplash.com/photo-1555215695-3004980ad54e?w=600&h=400&fit=crop"
+                                             alt="BMW vehicle" loading="lazy">
+                                    </div>
+
+                                    <div class="activity-engagement">
+                                        <div class="engagement-item">
+                                            <i class="fa-regular fa-thumbs-up"></i>
+                                            <span>8</span>
+                                        </div>
+                                        <div class="engagement-item">
+                                            <i class="fa-regular fa-comment"></i>
+                                            <span>2 Bình luận</span>
+                                        </div>
+                                    </div>
+                                </article>
+
+                                <!-- Activity Card 3 -->
+                                <article class="activity-card">
+                                    <div class="activity-header">
+                                        <div class="activity-author">
+                                            <img src="https://images.unsplash.com/photo-1599305445671-ac291c95aaa9?w=80&h=80&fit=crop"
+                                                 alt="Store avatar" class="activity-avatar">
+                                            <div>
+                                                <div class="activity-author-name">
+                                                    TÂN TỰ QUÝ
+                                                    <span class="badge-featured">Nổi bật</span>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <i class="fa-regular fa-heart activity-wishlist" role="button"
+                                           aria-label="Add to wishlist"></i>
+                                    </div>
+
+                                    <div class="activity-timestamp">1 năm trước</div>
+
+                                    <h3 class="activity-title">
+                                        TÂN TỰ QUÝ - Đối Tác Đáng Tin Cậy Cho...
+                                    </h3>
+
+                                    <div class="activity-image">
+                                        <img src="https://images.unsplash.com/photo-1503376780353-7e6692767b70?w=600&h=400&fit=crop"
+                                             alt="White vehicle" loading="lazy">
+                                    </div>
+
+                                    <div class="activity-engagement">
+                                        <div class="engagement-item">
+                                            <i class="fa-regular fa-thumbs-up"></i>
+                                            <span>5</span>
+                                        </div>
+                                        <div class="engagement-item">
+                                            <i class="fa-regular fa-comment"></i>
+                                            <span>0 Bình luận</span>
+                                        </div>
+                                    </div>
+                                </article>
+                            </div>
+                        </section>
+
+                        <!-- Section: Xe đang bán (INTEGRATED) -->
+                        <section class="content-section">
+                            <h2 class="section-title">
+                                Xe đang bán
+                                <span class="section-title-count">(489 xe)</span>
+                            </h2>
+
+                            <div class="vehicle-grid">
+                                <!-- Vehicle Card 1 -->
+                                <article class="vehicle-card-compact">
+                                    <div class="vehicle-image">
+                                        <img src="https://images.unsplash.com/photo-1533473359331-0135ef1b58bf?w=600&h=400&fit=crop"
+                                             alt="Ford Ranger 2016" loading="lazy">
+                                    </div>
+                                    <i class="fa-regular fa-heart vehicle-wishlist" role="button"
+                                       aria-label="Add to wishlist"></i>
+                                    <div class="vehicle-info">
+                                        <h3 class="vehicle-title">Ford Ranger 2016 - 9000 km</h3>
+                                        <div class="vehicle-price">575.000.000 đ</div>
+                                        <div class="vehicle-meta">
+                                            <i class="fa-regular fa-calendar"></i>
+                                            <span>2 tuần trước</span>
+                                        </div>
+                                    </div>
+                                </article>
+
+                                <!-- Vehicle Card 2 -->
+                                <article class="vehicle-card-compact">
+                                    <div class="vehicle-image">
+                                        <img src="https://images.unsplash.com/photo-1605559424843-9e4c228bf1c2?w=600&h=400&fit=crop"
+                                             alt="VinFast Lux A2.0 2021" loading="lazy">
+                                    </div>
+                                    <i class="fa-regular fa-heart vehicle-wishlist" role="button"
+                                       aria-label="Add to wishlist"></i>
+                                    <div class="vehicle-info">
+                                        <h3 class="vehicle-title">VinFast Lux A2.0 2021 2.0 AT - 48000 km</h3>
+                                        <div class="vehicle-price">560.000.000 đ</div>
+                                        <div class="vehicle-meta">
+                                            <i class="fa-regular fa-calendar"></i>
+                                            <span>3 tuần trước</span>
+                                        </div>
+                                    </div>
+                                </article>
+
+                                <!-- Vehicle Card 3 -->
+                                <article class="vehicle-card-compact">
+                                    <div class="vehicle-image">
+                                        <img src="https://images.unsplash.com/photo-1552519507-da3b142c6e3d?w=600&h=400&fit=crop"
+                                             alt="Toyota Innova 2018" loading="lazy">
+                                    </div>
+                                    <i class="fa-regular fa-heart vehicle-wishlist" role="button"
+                                       aria-label="Add to wishlist"></i>
+                                    <div class="vehicle-info">
+                                        <h3 class="vehicle-title">Toyota Innova 2018 2.0V - 45000 km</h3>
+                                        <div class="vehicle-price">599.000.000 đ</div>
+                                        <div class="vehicle-meta">
+                                            <i class="fa-regular fa-calendar"></i>
+                                            <span>1 tháng trước</span>
+                                        </div>
+                                    </div>
+                                </article>
+
+                                <!-- Vehicle Card 4 -->
+                                <article class="vehicle-card-compact">
+                                    <div class="vehicle-image">
+                                        <img src="https://images.unsplash.com/photo-1617531653332-bd46c24f2068?w=600&h=400&fit=crop"
+                                             alt="Mercedes-Benz C200" loading="lazy">
+                                    </div>
+                                    <i class="fa-regular fa-heart vehicle-wishlist" role="button"
+                                       aria-label="Add to wishlist"></i>
+                                    <div class="vehicle-info">
+                                        <h3 class="vehicle-title">Mercedes-Benz C200 2019 - 35000 km</h3>
+                                        <div class="vehicle-price">1.250.000.000 đ</div>
+                                        <div class="vehicle-meta">
+                                            <i class="fa-regular fa-calendar"></i>
+                                            <span>1 tuần trước</span>
+                                        </div>
+                                    </div>
+                                </article>
+
+                                <!-- Vehicle Card 5 -->
+                                <article class="vehicle-card-compact">
+                                    <div class="vehicle-image">
+                                        <img src="https://images.unsplash.com/photo-1583121274602-3e2820c69888?w=600&h=400&fit=crop"
+                                             alt="Honda CR-V 2020" loading="lazy">
+                                    </div>
+                                    <i class="fa-regular fa-heart vehicle-wishlist" role="button"
+                                       aria-label="Add to wishlist"></i>
+                                    <div class="vehicle-info">
+                                        <h3 class="vehicle-title">Honda CR-V 2020 1.5 Turbo - 28000 km</h3>
+                                        <div class="vehicle-price">890.000.000 đ</div>
+                                        <div class="vehicle-meta">
+                                            <i class="fa-regular fa-calendar"></i>
+                                            <span>3 ngày trước</span>
+                                        </div>
+                                    </div>
+                                </article>
+
+                                <!-- Vehicle Card 6 -->
+                                <article class="vehicle-card-compact">
+                                    <div class="vehicle-image">
+                                        <img src="https://images.unsplash.com/photo-1606664515524-ed2f786a0bd6?w=600&h=400&fit=crop"
+                                             alt="Mazda CX-5 2021" loading="lazy">
+                                    </div>
+                                    <i class="fa-regular fa-heart vehicle-wishlist" role="button"
+                                       aria-label="Add to wishlist"></i>
+                                    <div class="vehicle-info">
+                                        <h3 class="vehicle-title">Mazda CX-5 2021 2.5 Premium - 15000 km</h3>
+                                        <div class="vehicle-price">975.000.000 đ</div>
+                                        <div class="vehicle-meta">
+                                            <i class="fa-regular fa-calendar"></i>
+                                            <span>5 ngày trước</span>
+                                        </div>
+                                    </div>
+                                </article>
+                            </div>
+
+                            <div class="load-more">
+                                <button class="btn-load-more">Xem tất cả 489 xe</button>
+                            </div>
+                        </section>
+
+                        <!-- Section: Đánh giá (INTEGRATED) -->
+                        <section class="content-section">
+                            <h2 class="section-title">
+                                Đánh giá từ khách hàng
+                                <span class="section-title-count">(5 đánh giá)</span>
+                            </h2>
+
+                            <!-- Overall Rating Summary -->
+                            <div class="overall-rating">
+                                <div class="large-rating">
+                                    <span class="large-rating-number">5.0</span>
+                                    <div class="large-stars" aria-label="5 out of 5 stars">
+                                        <i class="fa-solid fa-star"></i>
+                                        <i class="fa-solid fa-star"></i>
+                                        <i class="fa-solid fa-star"></i>
+                                        <i class="fa-solid fa-star"></i>
+                                        <i class="fa-solid fa-star"></i>
+                                    </div>
+                                </div>
+
+                                <!-- Filter Pills -->
+                                <div class="filter-pills">
+                                    <button class="filter-pill">Chất lượng sản phẩm đẹp (2)</button>
+                                    <button class="filter-pill">Đúng hẹn (1)</button>
+                                    <button class="filter-pill active">Giao tiếp lịch sự, thân thiện (4)</button>
+                                    <button class="filter-pill">Mô tả sản phẩm đúng (3)</button>
+                                    <button class="filter-pill">Đăng tin cẩy (3)</button>
+                                    <button class="filter-pill">Sản phẩm giá tốt (2)</button>
+                                </div>
+                            </div>
+
+                            <!-- Review List -->
+                            <div class="review-list">
+                                <!-- Review 1 -->
+                                <article class="review-card">
+                                    <img src="https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?w=100&h=100&fit=crop"
+                                         alt="Reviewer avatar" class="review-avatar">
+                                    <div class="review-content">
+                                        <div class="review-header">
+                                            <div class="reviewer-name">Mitsubishi Ucar Thế Giới Xe Lướt</div>
+                                            <div class="review-tags">
+                                                <span class="review-tag">Đăng tin cẩy</span>
+                                                <span class="review-tag">Sản phẩm giá tốt</span>
+                                                <span class="review-tag">Mô tả sản phẩm đúng</span>
+                                            </div>
+                                        </div>
+                                        <div class="review-rating">
+                                            <span style="font-weight: 600;">5.0</span>
+                                            <div class="stars">
+                                                <i class="fa-solid fa-star"></i>
+                                                <i class="fa-solid fa-star"></i>
+                                                <i class="fa-solid fa-star"></i>
+                                                <i class="fa-solid fa-star"></i>
+                                                <i class="fa-solid fa-star"></i>
+                                            </div>
+                                            <span style="color: var(--text-tertiary);">1 năm trước</span>
+                                        </div>
+                                        <div class="review-text">
+                                            2210'19 🚙 Carnival 2023 Signature 2.2 12000km 📜BEFORE📜
+                                        </div>
+                                        <div class="review-price">1.398.000.000 đ</div>
+                                        <div class="review-thumbnail">
+                                            <img src="https://images.unsplash.com/photo-1549317661-bd32c8ce0db2?w=160&h=120&fit=crop"
+                                                 alt="Vehicle thumbnail">
+                                        </div>
+                                    </div>
+                                </article>
+
+                                <!-- Review 2 -->
+                                <article class="review-card">
+                                    <img src="https://images.unsplash.com/photo-1527980965255-d3b416303d12?w=100&h=100&fit=crop"
+                                         alt="Reviewer avatar" class="review-avatar">
+                                    <div class="review-content">
+                                        <div class="review-header">
+                                            <div class="reviewer-name">Khoa Nguyên</div>
+                                            <div class="review-tags">
+                                                <span class="review-tag">Giao tiếp lịch sự, thân thiện</span>
+                                                <span class="review-tag">Chất lượng sản phẩm đẹp</span>
+                                            </div>
+                                        </div>
+                                        <div class="review-rating">
+                                            <span style="font-weight: 600;">5.0</span>
+                                            <div class="stars">
+                                                <i class="fa-solid fa-star"></i>
+                                                <i class="fa-solid fa-star"></i>
+                                                <i class="fa-solid fa-star"></i>
+                                                <i class="fa-solid fa-star"></i>
+                                                <i class="fa-solid fa-star"></i>
+                                            </div>
+                                            <span style="color: var(--text-tertiary);">1 năm trước</span>
+                                        </div>
+                                        <div class="review-text">
+                                            VinFast VF6 2023 Eco - 16000 km 🔥 BAO ĐẸP👍
+                                        </div>
+                                        <div class="review-price">774.000.000 đ</div>
+                                        <div class="review-thumbnail">
+                                            <img src="https://images.unsplash.com/photo-1605559424843-9e4c228bf1c2?w=160&h=120&fit=crop"
+                                                 alt="Vehicle thumbnail">
+                                        </div>
+                                    </div>
+                                </article>
+
+                                <!-- Review 3 -->
+                                <article class="review-card">
+                                    <img src="https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=100&h=100&fit=crop"
+                                         alt="Reviewer avatar" class="review-avatar">
+                                    <div class="review-content">
+                                        <div class="review-header">
+                                            <div class="reviewer-name">ĐÀO NGỌC VŨ</div>
+                                            <div class="review-tags">
+                                                <span class="review-tag">Đúng hẹn</span>
+                                                <span class="review-tag">Giao tiếp lịch sự, thân thiện</span>
+                                            </div>
+                                        </div>
+                                        <div class="review-rating">
+                                            <span style="font-weight: 600;">5.0</span>
+                                            <div class="stars">
+                                                <i class="fa-solid fa-star"></i>
+                                                <i class="fa-solid fa-star"></i>
+                                                <i class="fa-solid fa-star"></i>
+                                                <i class="fa-solid fa-star"></i>
+                                                <i class="fa-solid fa-star"></i>
+                                            </div>
+                                            <span style="color: var(--text-tertiary);">8 tháng trước</span>
+                                        </div>
+                                        <div class="review-text">
+                                            VF 7 TRẢ TRƯỚC CHỈ TỪ 172 TR -SẴN XE GIAO NGAY
+                                        </div>
+                                        <div class="review-price">999.000.000 đ</div>
+                                    </div>
+                                </article>
+                            </div>
+
+                            <div class="load-more">
+                                <button class="btn-load-more">Xem tất cả 5 đánh giá</button>
+                            </div>
+                        </section>
+                    </div>
+
+                    <!-- TAB: HOẠT ĐỘNG -->
+                    <div class="tab-pane" id="tab-activity" role="tabpanel">
+                        <section class="content-section">
+                            <h2 class="section-title">Tất cả hoạt động</h2>
+                            <p style="color: var(--text-tertiary); text-align: center; padding: 40px 0;">
+                                Nội dung hoạt động sẽ được hiển thị ở đây
+                            </p>
+                        </section>
+                    </div>
+
+                    <!-- TAB: XE ĐANG BÁN -->
+                    <div class="tab-pane" id="tab-vehicles" role="tabpanel">
+                        <section class="content-section">
+                            <h2 class="section-title">Xe đang bán (489)</h2>
+
+                            <div class="vehicle-list">
+                                <!-- Vehicle Card 1 -->
+                                <article class="vehicle-card">
+                                    <div class="vehicle-image">
+                                        <img src="https://images.unsplash.com/photo-1533473359331-0135ef1b58bf?w=400&h=300&fit=crop"
+                                             alt="Ford Ranger 2016" loading="lazy">
+                                    </div>
+                                    <div class="vehicle-info">
+                                        <h3 class="vehicle-title">Ford Ranger 2016 - 9000 km</h3>
+                                        <div class="vehicle-price">575.000.000 đ</div>
+                                        <div class="vehicle-meta">
+                                            <i class="fa-regular fa-calendar"></i>
+                                            <span>2 tuần trước</span>
+                                        </div>
+                                    </div>
+                                    <i class="fa-regular fa-heart vehicle-wishlist" role="button"
+                                       aria-label="Add to wishlist"></i>
+                                </article>
+
+                                <!-- Vehicle Card 2 -->
+                                <article class="vehicle-card">
+                                    <div class="vehicle-image">
+                                        <img src="https://images.unsplash.com/photo-1605559424843-9e4c228bf1c2?w=400&h=300&fit=crop"
+                                             alt="VinFast Lux A2.0 2021" loading="lazy">
+                                    </div>
+                                    <div class="vehicle-info">
+                                        <h3 class="vehicle-title">VinFast Lux A2.0 2021 2.0 AT - 48000 km</h3>
+                                        <div class="vehicle-price">560.000.000 đ</div>
+                                        <div class="vehicle-meta">
+                                            <i class="fa-regular fa-calendar"></i>
+                                            <span>3 tuần trước</span>
+                                        </div>
+                                    </div>
+                                    <i class="fa-regular fa-heart vehicle-wishlist" role="button"
+                                       aria-label="Add to wishlist"></i>
+                                </article>
+
+                                <!-- Vehicle Card 3 -->
+                                <article class="vehicle-card">
+                                    <div class="vehicle-image">
+                                        <img src="https://images.unsplash.com/photo-1552519507-da3b142c6e3d?w=400&h=300&fit=crop"
+                                             alt="Toyota Innova 2018" loading="lazy">
+                                    </div>
+                                    <div class="vehicle-info">
+                                        <h3 class="vehicle-title">Toyota Innova 2018 2.0V - 45000 km</h3>
+                                        <div class="vehicle-price">599.000.000 đ</div>
+                                        <div class="vehicle-meta">
+                                            <i class="fa-regular fa-calendar"></i>
+                                            <span>1 tháng trước</span>
+                                        </div>
+                                    </div>
+                                    <i class="fa-regular fa-heart vehicle-wishlist" role="button"
+                                       aria-label="Add to wishlist"></i>
+                                </article>
+                            </div>
+
+                            <div class="load-more">
+                                <button class="btn-load-more">Xem thêm tin đăng</button>
+                            </div>
+                        </section>
+                    </div>
+
+                    <!-- TAB: ĐÁNH GIÁ -->
+                    <div class="tab-pane" id="tab-reviews" role="tabpanel">
+                        <section class="content-section">
+                            <!-- Overall Rating -->
+                            <div class="overall-rating">
+                                <div class="large-rating">
+                                    <span class="large-rating-number">5.0</span>
+                                    <div class="large-stars" aria-label="5 out of 5 stars">
+                                        <i class="fa-solid fa-star"></i>
+                                        <i class="fa-solid fa-star"></i>
+                                        <i class="fa-solid fa-star"></i>
+                                        <i class="fa-solid fa-star"></i>
+                                        <i class="fa-solid fa-star"></i>
+                                    </div>
+                                </div>
+
+                                <!-- Filter Pills -->
+                                <div class="filter-pills">
+                                    <button class="filter-pill">Chất lượng sản phẩm đẹp (2)</button>
+                                    <button class="filter-pill">Đúng hẹn (1)</button>
+                                    <button class="filter-pill active">Giao tiếp lịch sự, thân thiện (4)</button>
+                                    <button class="filter-pill">Mô tả sản phẩm đúng (3)</button>
+                                    <button class="filter-pill">Đăng tin cẩy (3)</button>
+                                    <button class="filter-pill">Sản phẩm giá tốt (2)</button>
+                                </div>
+                            </div>
+
+                            <!-- Review Filter Tabs -->
+                            <div class="review-filter-tabs">
+                                <button class="review-tab active">TẤT CẢ (5)</button>
+                                <button class="review-tab">TỪ NGƯỜI MUA (4)</button>
+                                <button class="review-tab">TỪ NGƯỜI BÁN (1)</button>
+                            </div>
+
+                            <!-- Review List -->
+                            <div class="review-list">
+                                <!-- Review 1 -->
+                                <article class="review-card">
+                                    <img src="https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?w=100&h=100&fit=crop"
+                                         alt="Reviewer avatar" class="review-avatar">
+                                    <div class="review-content">
+                                        <div class="review-header">
+                                            <div class="reviewer-name">Mitsubishi Ucar Thế Giới Xe Lướt</div>
+                                            <div class="review-tags">
+                                                <span class="review-tag">Đăng tin cẩy</span>
+                                                <span class="review-tag">Sản phẩm giá tốt</span>
+                                                <span class="review-tag">Mô tả sản phẩm đúng</span>
+                                            </div>
+                                        </div>
+                                        <div class="review-rating">
+                                            <span style="font-weight: 600;">5.0</span>
+                                            <div class="stars">
+                                                <i class="fa-solid fa-star"></i>
+                                                <i class="fa-solid fa-star"></i>
+                                                <i class="fa-solid fa-star"></i>
+                                                <i class="fa-solid fa-star"></i>
+                                                <i class="fa-solid fa-star"></i>
+                                            </div>
+                                            <span style="color: var(--text-tertiary);">1 năm trước</span>
+                                        </div>
+                                        <div class="review-text">
+                                            2210'19 🚙 Carnival 2023 Signature 2.2 12000km 📜BEFORE📜
+                                        </div>
+                                        <div class="review-price">1.398.000.000 đ</div>
+                                        <div class="review-thumbnail">
+                                            <img src="https://images.unsplash.com/photo-1549317661-bd32c8ce0db2?w=160&h=120&fit=crop"
+                                                 alt="Vehicle thumbnail">
+                                        </div>
+                                    </div>
+                                </article>
+
+                                <!-- Review 2 -->
+                                <article class="review-card">
+                                    <img src="https://images.unsplash.com/photo-1527980965255-d3b416303d12?w=100&h=100&fit=crop"
+                                         alt="Reviewer avatar" class="review-avatar">
+                                    <div class="review-content">
+                                        <div class="review-header">
+                                            <div class="reviewer-name">Khoa Nguyên</div>
+                                            <div class="review-tags">
+                                                <span class="review-tag">Giao tiếp lịch sự, thân thiện</span>
+                                                <span class="review-tag">Chất lượng sản phẩm đẹp</span>
+                                            </div>
+                                        </div>
+                                        <div class="review-rating">
+                                            <span style="font-weight: 600;">5.0</span>
+                                            <div class="stars">
+                                                <i class="fa-solid fa-star"></i>
+                                                <i class="fa-solid fa-star"></i>
+                                                <i class="fa-solid fa-star"></i>
+                                                <i class="fa-solid fa-star"></i>
+                                                <i class="fa-solid fa-star"></i>
+                                            </div>
+                                            <span style="color: var(--text-tertiary);">1 năm trước</span>
+                                        </div>
+                                        <div class="review-text">
+                                            VinFast VF6 2023 Eco - 16000 km 🔥 BAO ĐẸP👍
+                                        </div>
+                                        <div class="review-price">774.000.000 đ</div>
+                                        <div class="review-thumbnail">
+                                            <img src="https://images.unsplash.com/photo-1605559424843-9e4c228bf1c2?w=160&h=120&fit=crop"
+                                                 alt="Vehicle thumbnail">
+                                        </div>
+                                    </div>
+                                </article>
+
+                                <!-- Review 3 -->
+                                <article class="review-card">
+                                    <img src="https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=100&h=100&fit=crop"
+                                         alt="Reviewer avatar" class="review-avatar">
+                                    <div class="review-content">
+                                        <div class="review-header">
+                                            <div class="reviewer-name">ĐÀO NGỌC VŨ</div>
+                                            <div class="review-tags">
+                                                <span class="review-tag">Đúng hẹn</span>
+                                                <span class="review-tag">Giao tiếp lịch sự, thân thiện</span>
+                                            </div>
+                                        </div>
+                                        <div class="review-rating">
+                                            <span style="font-weight: 600;">5.0</span>
+                                            <div class="stars">
+                                                <i class="fa-solid fa-star"></i>
+                                                <i class="fa-solid fa-star"></i>
+                                                <i class="fa-solid fa-star"></i>
+                                                <i class="fa-solid fa-star"></i>
+                                                <i class="fa-solid fa-star"></i>
+                                            </div>
+                                            <span style="color: var(--text-tertiary);">8 tháng trước</span>
+                                        </div>
+                                        <div class="review-text">
+                                            VF 7 TRẢ TRƯỚC CHỈ TỪ 172 TR -SẴN XE GIAO NGAY
+                                        </div>
+                                        <div class="review-price">999.000.000 đ</div>
+                                    </div>
+                                </article>
+
+                                <!-- Review 4 -->
+                                <article class="review-card">
+                                    <img src="https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=100&h=100&fit=crop"
+                                         alt="Reviewer avatar" class="review-avatar">
+                                    <div class="review-content">
+                                        <div class="review-header">
+                                            <div class="reviewer-name">Tấn chưa cung cấp</div>
+                                            <div class="review-tags">
+                                                <span class="review-tag">Sản phẩm giá tốt</span>
+                                                <span class="review-tag">Mô tả sản phẩm đúng</span>
+                                            </div>
+                                        </div>
+                                        <div class="review-rating">
+                                            <span style="font-weight: 600;">5.0</span>
+                                            <div class="stars">
+                                                <i class="fa-solid fa-star"></i>
+                                                <i class="fa-solid fa-star"></i>
+                                                <i class="fa-solid fa-star"></i>
+                                                <i class="fa-solid fa-star"></i>
+                                                <i class="fa-solid fa-star"></i>
+                                            </div>
+                                            <span style="color: var(--text-tertiary);">6 tháng trước</span>
+                                        </div>
+                                        <div class="review-text">
+                                            9100đ🚙FORD RANGER 2.2 MT 2019 👍BAO ĐẸP 📜TẢNG 5 TR👍
+                                        </div>
+                                        <div class="review-price">459.000.000 đ</div>
+                                        <div class="review-thumbnail">
+                                            <img src="https://images.unsplash.com/photo-1533473359331-0135ef1b58bf?w=160&h=120&fit=crop"
+                                                 alt="Vehicle thumbnail">
+                                        </div>
+                                    </div>
+                                </article>
+                            </div>
+                        </section>
+                    </div>
+
+                    <!-- TAB: THÔNG TIN -->
+                    <div class="tab-pane" id="tab-info" role="tabpanel">
+                        <section class="content-section">
+                            <h2 class="section-title">Thông tin cửa hàng</h2>
+                            <p style="color: var(--text-tertiary); text-align: center; padding: 40px 0;">
+                                Thông tin chi tiết về cửa hàng sẽ được hiển thị ở đây
+                            </p>
+                        </section>
+                    </div>
+                </div>
+            </main>
+        </div>
+    </div>
+    <script src="/js/MotorBikeOnline.js"></script>
+</body>
+
+</html>
