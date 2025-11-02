@@ -1,3 +1,4 @@
+
 using System.Diagnostics;
 using BTL_LTWeb_Quan_Ly_Cua_Hang_Xe_May.Models;
 using Microsoft.AspNetCore.Mvc;
@@ -13,6 +14,14 @@ namespace BTL_LTWeb_Quan_Ly_Cua_Hang_Xe_May.Controllers
             _logger = logger;
         }
 
+        public IActionResult MotorBikeOnline()
+        {
+            return View();
+        }
+
+        public IActionResult QaA() { 
+            return View();
+        }
         public IActionResult Index()
         {
             return View();
@@ -22,7 +31,6 @@ namespace BTL_LTWeb_Quan_Ly_Cua_Hang_Xe_May.Controllers
         {
             return View();
         }
-
 
         [ResponseCache(Duration = 0, Location = ResponseCacheLocation.None, NoStore = true)]
         public IActionResult Error()
