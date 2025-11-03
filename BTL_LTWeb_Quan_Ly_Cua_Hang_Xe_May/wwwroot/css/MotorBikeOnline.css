@@ -398,3 +398,16 @@ body {
         height: 150px;
     }
 }
+
+.product-list {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: flex-start; /* hoặc space-between nếu muốn đều 2 bên */
+    gap: 20px;
+}
+
+.product-item {
+    width: calc(16.66% - 20px); /* 6 sản phẩm mỗi hàng, trừ khoảng cách */
+    box-sizing: border-box;
+    background-color: white;
+}

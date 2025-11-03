@@ -76,7 +76,8 @@
                     <button class="btn-icon d-none d-md-inline-flex" aria-label="Thông báo">
                         <i class="far fa-bell"></i>
                     </button>
-                    <a href="/Home/Login"><button class="btn btn-outline-primary d-none d-md-inline-flex"> Đăng nhập</button></a>
+                    <a href="/Home/Login">
+                       <button class="btn btn-outline-primary d-none d-md-inline-flex"> Đăng nhập</button></a>
                     <button class="btn btn-primary">Bán xe</button>
                     <button class="btn-icon d-none d-md-inline-flex">
                         <i class="fas fa-user-circle"></i>
@@ -458,7 +459,9 @@
                 </button>
             </div>
             <div class="text-center mt-4">
-                <button class="btn btn-outline-secondary">Xem thêm cửa hàng xe</button>
+                <a asp-controller="Home" asp-action="MotorbikeStore" class="btn btn-info">
+                    Xem thêm cửa hàng xe
+                </a>
             </div>
         </div>
     </section>
@@ -757,6 +760,7 @@
 
     <!-- Custom JS -->
     <script src="../js/main.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/swiper@10/swiper-bundle.min.js"></script>
 </body>
 
 </html>
