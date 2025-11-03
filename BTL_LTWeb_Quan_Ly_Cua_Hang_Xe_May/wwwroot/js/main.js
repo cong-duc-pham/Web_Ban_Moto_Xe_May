@@ -490,3 +490,25 @@ document.addEventListener('DOMContentLoaded', () => {
 
     console.log('✅ Chợ Tốt Xe loaded with Activity Modal!');
 });
+
+const swiper = new Swiper(".swiper-container", {
+    autoplay: {
+        delay: 2000,
+    },
+    loop: true,
+    navigation: {
+        nextEl: ".swiper-button-next",
+        prevEl: ".swiper-button-prev",
+    },
+});
+const swiper1 = new Swiper(".swiper-container1", {
+    autoplay: {
+        delay: 2000,
+    },
+    loop: false,
+    navigation: {
+        nextEl: ".swiper-button-next",
+        prevEl: ".swiper-button-prev",
+    },
+});
+

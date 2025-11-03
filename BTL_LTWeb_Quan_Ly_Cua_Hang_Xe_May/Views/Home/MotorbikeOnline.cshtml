@@ -1,4 +1,8 @@
-﻿<!DOCTYPE html>
+﻿@using BTL_LTWeb_Quan_Ly_Cua_Hang_Xe_May.Models.Entities;
+@{
+    var lstXeMay = ViewData["lstXeMay"] as List<XeMay>;
+}
+<!DOCTYPE html>
 <html lang="vi">
 
 <head>
@@ -201,6 +205,23 @@
             <h2 class="section-title">Sản phẩm đang bán</h2>
             <div class="row g-3" id="productGrid">
                 <!-- Products will be inserted by JavaScript -->
+                @if (lstXeMay != null)
+                {
+                    foreach (var xe in lstXeMay)
+                    {
+                        <div class="product-item">
+                            <span class="badge badge-official">CHÍNH HÃNG</span>
+                            <img src="~/images/@xe.HinhAnh" alt="@xe.TenXe" class="product-image" />
+                            <h3 class="product-name">@xe.TenXe</h3>
+                            <p class="product-price">@string.Format("{0:N0} đ", xe.Gia)</p>
+
+                            @if (!string.IsNullOrEmpty(xe.MoTa))
+                            {
+                                <p class="product-desc">@xe.MoTa</p>
+                            }
+                        </div>
+                    }
+                }
             </div>
             <div class="text-center">
                 <button class="btn btn-load-more" id="loadMoreBtn">Xem thêm tin đăng</button>
