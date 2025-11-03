@@ -14,15 +14,21 @@ namespace BTL_LTWeb_Quan_Ly_Cua_Hang_Xe_May.Controllers
             _logger = logger;
         }
 
-        public IActionResult MotorBikeOnline()
-        {
-            return View();
-        }
 
         public IActionResult QaA() { 
             return View();
         }
         public IActionResult Index()
+        {
+            return View();
+        }
+
+        public IActionResult MotorbikeStore()
+        {
+            return View();
+        }
+
+        public IActionResult MotorbikeOnline()
         {
             return View();
         }

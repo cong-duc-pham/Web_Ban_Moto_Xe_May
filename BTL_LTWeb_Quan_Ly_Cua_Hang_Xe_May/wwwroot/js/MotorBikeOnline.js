@@ -1,349 +1,99 @@
-﻿// ==================== TAB NAVIGATION ====================
-document.addEventListener('DOMContentLoaded', function () {
-    // Tab switching functionality
-    const tabButtons = document.querySelectorAll('.tab-button');
-    const tabPanes = document.querySelectorAll('.tab-pane');
+﻿// Product data with real images
+const products = [
+    // Row 1
+    { id: 1, name: "VinFast Klara S (Kèm pin)", price: "32.120.000", image: "https://images.unsplash.com/photo-1558981806-ec527fa84c39?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=400&q=80", official: true },
+    { id: 2, name: "VinFast Vento S (Kèm pin)", price: "43.290.000", image: "https://images.unsplash.com/photo-1568772684723-dc07fcb3e9c0?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=400&q=80", official: true },
+    { id: 3, name: "VinFast Theon S (Kèm pin)", price: "50.072.000", image: "https://images.unsplash.com/photo-1609630875171-b1321377ee65?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=400&q=80", official: true },
+    { id: 4, name: "VinFast EVO200 LITE (Kèm pin)", price: "24.000.000", image: "https://images.unsplash.com/photo-1554282775-257f006125b5?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=400&q=80", official: true },
+    { id: 5, name: "VinFast EVO200 (Kèm pin)", price: "24.000.000", image: "https://images.unsplash.com/photo-1593941707882-a5bba14938c7?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=400&q=80", official: true },
+    { id: 6, name: "VinFast VF DrgnFly", price: "18.690.000", image: "https://images.unsplash.com/photo-1571069314924-18f0b8146c1f?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=400&q=80", official: true },
 
-    tabButtons.forEach(button => {
-        button.addEventListener('click', function () {
-            const targetTab = this.dataset.tab;
+    // Row 2
+    { id: 7, name: "VinFast Motio", price: "10.560.000", image: "https://images.unsplash.com/photo-1583121274602-3e2820c69888?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=400&q=80", official: true, color: "hồng" },
+    { id: 8, name: "VinFast Feliz Neo (Kèm pin)", price: "19.712.000", image: "https://images.unsplash.com/photo-1558980664-769d59546b3d?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=400&q=80", official: true },
+    { id: 9, name: "VinFast Evo Neo (Kèm pin)", price: "15.664.000", image: "https://images.unsplash.com/photo-1563492065599-3520f775eeed?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=400&q=80", official: true },
+    { id: 10, name: "VinFast Evo Lite Neo (Kèm Acquy)", price: "12.672.000", image: "https://images.unsplash.com/photo-1579621024320-5bf67f8d4944?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=400&q=80", official: true },
+    { id: 11, name: "VinFast Klara Neo (Kèm pin)", price: "25.344.000", image: "https://images.unsplash.com/photo-1605559424843-9e4c228bf1c2?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=400&q=80", official: true },
+    { id: 12, name: "VinFast Vento Neo (Kèm pin)", price: "28.160.000", image: "https://images.unsplash.com/photo-1584309983854-7b4e5f5c9a2a?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=400&q=80", official: true },
 
-            // Remove active class from all buttons and panes
-            tabButtons.forEach(btn => {
-                btn.classList.remove('active');
-                btn.setAttribute('aria-selected', 'false');
-            });
-            tabPanes.forEach(pane => {
-                pane.classList.remove('active');
-            });
+    // Row 3
+    { id: 13, name: "VinFast Evo Grand (Kèm pin)", price: "18.480.000", image: "https://images.unsplash.com/photo-1570213485955-5c1f8e8e5c9e?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=400&q=80", official: true, color: "kem" },
+    { id: 14, name: "VinFast Evo Grand Lite (Kèm pin)", price: "15.840.000", image: "https://images.unsplash.com/photo-1593696140826-c58b021acf8b?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=400&q=80", official: true, color: "tím" },
+    { id: 15, name: "VinFast Feliz 2025 (Kèm Pin)", price: "22.792.000", image: "https://images.unsplash.com/photo-1605559424843-9e4c228bf1c2?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=400&q=80", official: true },
+    { id: 16, name: "VinFast Feliz Lite (Kèm Pin)", price: "22.792.000", image: "https://images.unsplash.com/photo-1583121274602-3e2820c69888?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=400&q=80", official: true },
+    { id: 17, name: "VinFast Vero X (Kèm Pin)", price: "30.712.000", image: "https://images.unsplash.com/photo-1579621024320-5bf67f8d4944?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=400&q=80", official: true }
+];
 
-            // Add active class to clicked button and corresponding pane
-            this.classList.add('active');
-            this.setAttribute('aria-selected', 'true');
-            document.getElementById(`tab-${targetTab}`).classList.add('active');
+// Function to format price
+function formatPrice(price) {
+    return price.replace(/\B(?=(\d{3})+(?!\d))/g, ".") + " đ";
+}
 
-            // Scroll to top of content
-            window.scrollTo({ top: 0, behavior: 'smooth' });
-        });
-    });
+// Function to render products
+function renderProducts(limit = products.length) {
+    const productGrid = document.getElementById('productGrid');
+    productGrid.innerHTML = '';
 
-    // ==================== PHONE NUMBER REVEAL ====================
-    const phoneBtn = document.getElementById('phoneBtn');
-    const revealBtn = document.getElementById('revealBtn');
+    for (let i = 0; i < Math.min(limit, products.length); i++) {
+        const product = products[i];
+        const productCard = document.createElement('div');
+        productCard.className = 'col-lg-2 col-md-3 col-6';
+
+        productCard.innerHTML = `
+                    <div class="product-card" data-id="${product.id}">
+                        <div class="product-image">
+                            <img src="${product.image}" alt="${product.name}">
+                            ${product.official ? '<div class="product-badge"><i class="fas fa-check-circle"></i> CHÍNH HÃNG</div>' : ''}
+                        </div>
+                        <div class="product-info">
+                            <h3 class="product-name">${product.name}${product.color ? ` (màu ${product.color})` : ''}</h3>
+                            <div class="product-price">${formatPrice(product.price)}</div>
+                        </div>
+                    </div>
+                `;
+
+        productGrid.appendChild(productCard);
+    }
+
+    // Show/hide load more button
+    const loadMoreBtn = document.getElementById('loadMoreBtn');
+    if (limit >= products.length) {
+        loadMoreBtn.style.display = 'none';
+    } else {
+        loadMoreBtn.style.display = 'inline-block';
+    }
+}
+
+// Initialize products
+let currentLimit = 12; // Show first 12 products initially
+renderProducts(currentLimit);
+
+// Load more functionality
+document.getElementById('loadMoreBtn').addEventListener('click', function () {
+    currentLimit = products.length; // Load all products
+    renderProducts(currentLimit);
+});
+
+// Reveal phone number
+document.getElementById('revealPhoneBtn').addEventListener('click', function () {
     const phoneNumber = document.getElementById('phoneNumber');
+    phoneNumber.textContent = '0767891234';
+    this.style.display = 'none';
+});
 
-    if (revealBtn && phoneNumber) {
-        revealBtn.addEventListener('click', function () {
-            phoneNumber.textContent = '0914 454 749';
-            this.style.display = 'none';
-
-            // Animate the reveal
-            phoneNumber.style.transition = 'all 0.3s ease';
-            phoneNumber.style.transform = 'scale(1.1)';
-            setTimeout(() => {
-                phoneNumber.style.transform = 'scale(1)';
-            }, 300);
-        });
+// Product card click
+document.addEventListener('click', function (e) {
+    const productCard = e.target.closest('.product-card');
+    if (productCard) {
+        const productId = productCard.dataset.id;
+        // Navigate to product detail page
+        console.log(`Navigate to product ${productId}`);
+        // window.location.href = `product-detail.html?id=${productId}`;
     }
+});
 
-    if (phoneBtn) {
-        phoneBtn.addEventListener('click', function () {
-            const number = phoneNumber.textContent.replace(/\s/g, '');
-            if (!number.includes('*')) {
-                window.location.href = `tel:${number}`;
-            }
-        });
-    }
-
-    // ==================== FOLLOW BUTTON ====================
-    const followBtn = document.getElementById('followBtn');
-
-    if (followBtn) {
-        followBtn.addEventListener('click', function () {
-            const isFollowing = this.classList.contains('following');
-
-            if (isFollowing) {
-                this.innerHTML = '<i class="fa-solid fa-plus"></i> Theo dõi';
-                this.classList.remove('following');
-            } else {
-                this.innerHTML = '<i class="fa-solid fa-check"></i> Đã theo dõi';
-                this.classList.add('following');
-            }
-        });
-    }
-
-    // ==================== DESCRIPTION TOGGLE ====================
-    const toggleDescription = document.getElementById('toggleDescription');
-    const storeDescription = document.getElementById('storeDescription');
-
-    if (toggleDescription && storeDescription) {
-        const fullText = `🚗 Chuyên Mua Bán Xe Lướt: Tại TÂN TỰ QUÝ, Với liêu chi "Sản phẩm Tốt - Dịch vụ Hoàn Hảo", chúng tôi tự hào là địa chỉ tin cậy hàng đầu cho những ai đang tìm kiếm xe lướt chất lượng cao với giá cả hợp lý. Đội ngũ chuyên viên giàu kinh nghiệm của chúng tôi luôn sẵn sàng tư vấn và hỗ trợ bạn tìm được chiếc xe hoàn hảo nhất.
-        
-📦 Dịch Vụ Cầm Xe: Cần tiền gấp? Hãy đến với chúng tôi! TÂN TỰ QUÝ cung cấp dịch vụ cầm xe nhanh chóng và thuận tiện với thủ tục đơn giản, lãi suất cạnh tranh. Chúng tôi cam kết bảo mật thông tin và xe của bạn luôn được chăm sóc chu đáo trong suốt thời gian cầm.
-
-🔧 Bảo Dưỡng & Sửa Chữa Chuyên Nghiệp: Xe của bạn xứng đáng nhận được sự chăm sóc tốt nhất! Với đội ngũ kỹ thuật viên lành nghề và trang thiết bị hiện đại, TÂN TỰ QUÝ mang đến dịch vụ bảo dưỡng và sửa chữa xe chuyên nghiệp, giúp chiếc xe của bạn luôn trong tình trạng tối ưu.
-
-💎 Cam Kết Chất Lượng: Tại TÂN TỰ QUÝ, mỗi chiếc xe đều được kiểm tra kỹ lưỡng và đảm bảo chất lượng cao nhất trước khi đến tay khách hàng. Chúng tôi tin rằng sự hài lòng của bạn chính là thành công của chúng tôi.
-
-🌟 Liên Hệ Ngay: Đừng ngần ngại liên hệ với TÂN TỰ QUÝ qua hotline 0914 454 749 để được tư vấn chi tiết và trải nghiệm dịch vụ tuyệt vời nhất. Chúng tôi luôn sẵn sàng phục vụ bạn 24/7!`;
-
-        const shortText = storeDescription.textContent;
-        let isExpanded = false;
-
-        toggleDescription.addEventListener('click', function (e) {
-            e.preventDefault();
-            isExpanded = !isExpanded;
-
-            if (isExpanded) {
-                storeDescription.innerHTML = fullText + ' <a href="#" class="view-more-link" style="display: inline; margin: 0 0 0 4px;" id="toggleDescription">Thu gọn</a>';
-                // Re-attach event listener
-                document.getElementById('toggleDescription').addEventListener('click', arguments.callee);
-            } else {
-                storeDescription.innerHTML = shortText;
-                document.getElementById('toggleDescription').addEventListener('click', arguments.callee);
-            }
-        });
-    }
-
-    // ==================== WISHLIST FUNCTIONALITY ====================
-    const wishlistIcons = document.querySelectorAll('.activity-wishlist, .vehicle-wishlist');
-
-    wishlistIcons.forEach(icon => {
-        icon.addEventListener('click', function (e) {
-            e.stopPropagation();
-            e.preventDefault();
-
-            if (this.classList.contains('fa-regular')) {
-                this.classList.remove('fa-regular');
-                this.classList.add('fa-solid');
-                this.style.color = 'var(--primary-red)';
-            } else {
-                this.classList.remove('fa-solid');
-                this.classList.add('fa-regular');
-                this.style.color = '';
-            }
-
-            // Animate
-            this.style.transform = 'scale(1.3)';
-            setTimeout(() => {
-                this.style.transform = 'scale(1)';
-            }, 200);
-        });
-    });
-
-    // ==================== FILTER PILLS ====================
-    const filterPills = document.querySelectorAll('.filter-pill');
-
-    filterPills.forEach(pill => {
-        pill.addEventListener('click', function () {
-            // Toggle active state
-            this.classList.toggle('active');
-        });
-    });
-
-    // ==================== REVIEW FILTER TABS ====================
-    const reviewTabs = document.querySelectorAll('.review-tab');
-
-    reviewTabs.forEach(tab => {
-        tab.addEventListener('click', function () {
-            reviewTabs.forEach(t => t.classList.remove('active'));
-            this.classList.add('active');
-        });
-    });
-
-    // ==================== LOAD MORE BUTTONS ====================
-    const loadMoreButtons = document.querySelectorAll('.btn-load-more');
-
-    loadMoreButtons.forEach(button => {
-        button.addEventListener('click', function () {
-            // Simulate loading
-            const originalText = this.textContent;
-            this.textContent = 'Đang tải...';
-            this.disabled = true;
-
-            setTimeout(() => {
-                this.textContent = originalText;
-                this.disabled = false;
-                // Here you would load more content
-                alert('Chức năng tải thêm sẽ được triển khai với backend');
-            }, 1000);
-        });
-    });
-
-    // ==================== IMAGE GALLERY LIGHTBOX ====================
-    const galleryImages = document.querySelectorAll('.gallery-image img');
-
-    galleryImages.forEach(img => {
-        img.addEventListener('click', function () {
-            // Simple lightbox effect
-            const lightbox = document.createElement('div');
-            lightbox.style.cssText = `
-                position: fixed;
-                top: 0;
-                left: 0;
-                width: 100%;
-                height: 100%;
-                background: rgba(0,0,0,0.9);
-                display: flex;
-                align-items: center;
-                justify-content: center;
-                z-index: 9999;
-                cursor: pointer;
-            `;
-
-            const imgClone = this.cloneNode();
-            imgClone.style.cssText = `
-                max-width: 90%;
-                max-height: 90%;
-                object-fit: contain;
-                border-radius: 8px;
-            `;
-
-            lightbox.appendChild(imgClone);
-            document.body.appendChild(lightbox);
-
-            lightbox.addEventListener('click', function () {
-                document.body.removeChild(lightbox);
-            });
-        });
-    });
-
-    // ==================== VEHICLE CARD CLICK ====================
-    const vehicleCards = document.querySelectorAll('.vehicle-card, .vehicle-card-compact');
-
-    vehicleCards.forEach(card => {
-        card.addEventListener('click', function (e) {
-            // Don't trigger if clicking wishlist
-            if (e.target.closest('.vehicle-wishlist')) {
-                return;
-            }
-
-            // Navigate to vehicle detail page
-            console.log('Navigate to vehicle details');
-            // window.location.href = '/vehicle-detail?id=123';
-        });
-    });
-
-    // ==================== ACTIVITY CARD CLICK ====================
-    const activityCards = document.querySelectorAll('.activity-card');
-
-    activityCards.forEach(card => {
-        card.addEventListener('click', function (e) {
-            // Don't trigger if clicking wishlist
-            if (e.target.closest('.activity-wishlist')) {
-                return;
-            }
-
-            console.log('Navigate to activity details');
-        });
-    });
-
-    // ==================== SMOOTH SCROLL ====================
-    document.querySelectorAll('a[href^="#"]').forEach(anchor => {
-        anchor.addEventListener('click', function (e) {
-            const href = this.getAttribute('href');
-            if (href !== '#') {
-                e.preventDefault();
-                const target = document.querySelector(href);
-                if (target) {
-                    target.scrollIntoView({
-                        behavior: 'smooth',
-                        block: 'start'
-                    });
-                }
-            }
-        });
-    });
-
-    // ==================== ENGAGEMENT INTERACTIONS ====================
-    const engagementItems = document.querySelectorAll('.engagement-item');
-
-    engagementItems.forEach(item => {
-        item.addEventListener('click', function (e) {
-            e.stopPropagation();
-
-            const icon = this.querySelector('i');
-            const countSpan = this.querySelector('span');
-
-            if (icon.classList.contains('fa-thumbs-up')) {
-                if (icon.classList.contains('fa-regular')) {
-                    icon.classList.remove('fa-regular');
-                    icon.classList.add('fa-solid');
-                    // Increment count
-                    const currentCount = parseInt(countSpan.textContent);
-                    countSpan.textContent = currentCount + 1;
-                } else {
-                    icon.classList.remove('fa-solid');
-                    icon.classList.add('fa-regular');
-                    // Decrement count
-                    const currentCount = parseInt(countSpan.textContent);
-                    countSpan.textContent = Math.max(0, currentCount - 1);
-                }
-            }
-
-            if (icon.classList.contains('fa-comment')) {
-                console.log('Open comments');
-            }
-        });
-    });
-
-    // ==================== STICKY SIDEBAR ====================
-    function updateStickyPosition() {
-        const sidebar = document.querySelector('.sidebar');
-        if (sidebar && window.innerWidth > 1024) {
-            const scrollTop = window.pageYOffset || document.documentElement.scrollTop;
-            const offset = 20;
-
-            if (scrollTop > offset) {
-                sidebar.style.top = `${offset}px`;
-            }
-        }
-    }
-
-    window.addEventListener('scroll', updateStickyPosition);
-    window.addEventListener('resize', updateStickyPosition);
-
-    // ==================== LAZY LOADING IMAGES ====================
-    if ('IntersectionObserver' in window) {
-        const imageObserver = new IntersectionObserver((entries, observer) => {
-            entries.forEach(entry => {
-                if (entry.isIntersecting) {
-                    const img = entry.target;
-                    if (img.dataset.src) {
-                        img.src = img.dataset.src;
-                        img.removeAttribute('data-src');
-                    }
-                    observer.unobserve(img);
-                }
-            });
-        });
-
-        document.querySelectorAll('img[data-src]').forEach(img => {
-            imageObserver.observe(img);
-        });
-    }
-
-    // ==================== SHARE FUNCTIONALITY ====================
-    const shareButtons = document.querySelectorAll('.btn-outline');
-
-    shareButtons.forEach(button => {
-        if (button.textContent.includes('Chia sẻ')) {
-            button.addEventListener('click', function () {
-                if (navigator.share) {
-                    navigator.share({
-                        title: 'TÂN TỰ QUÝ - Dealership Store',
-                        text: 'Xem cửa hàng này trên Chợ Tốt Xe',
-                        url: window.location.href
-                    }).catch(err => console.log('Error sharing:', err));
-                } else {
-                    // Fallback: Copy to clipboard
-                    navigator.clipboard.writeText(window.location.href).then(() => {
-                        alert('Đã copy link cửa hàng!');
-                    });
-                }
-            });
-        }
-    });
-
-    console.log('XeOnline.js loaded successfully!');
+// Initialize tooltips
+var tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'))
+var tooltipList = tooltipTriggerList.map(function (tooltipTriggerEl) {
+    return new bootstrap.Tooltip(tooltipTriggerEl)
 });
