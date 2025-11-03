@@ -1,0 +1,56 @@
+﻿@*
+    For more information on enabling MVC for empty projects, visit https://go.microsoft.com/fwlink/?LinkID=397860
+*@
+@{
+}
+@section Styles {
+    <link rel="stylesheet" href="~/css/LiquidationCar.css">
+}
+<!DOCTYPE html>
+<html lang="vi">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Activity Modal - Social Marketplace</title>
+
+    <!-- Font Awesome 6 -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+    <link rel="stylesheet" href="/css/LiquidationCar.css">
+</head>
+
+<body>
+    <!-- Demo Container -->
+    <div class="demo-container">
+        <h1 class="demo-title">Activity Modal Demo</h1>
+        <p class="demo-subtitle">Click vào card bên dưới để mở modal</p>
+
+        <!-- Demo Card (click to open modal) -->
+        <div class="activity-card" data-activity-id="1" role="button" tabindex="0" aria-label="Mở chi tiết bài viết">
+            <div class="activity-card__header">
+                <img src="https://ui-avatars.com/api/?name=CD&background=random&size=40" alt="Store avatar"
+                     class="activity-card__avatar">
+                <div>
+                    <div class="activity-card__title">Cầm Đồ Q8 - Thanh Lý & Trao Đổi Xe Máy Cũ</div>
+                    <div style="font-size: 12px; color: var(--muted);">9 giờ trước</div>
+                </div>
+            </div>
+            <div class="activity-card__text">1 nhất 📌 cho e zai nhanh lẹ</div>
+            <div class="activity-card__preview">
+                <img src="https://images.unsplash.com/photo-1558981806-ec527fa84c39?w=600&h=600&fit=crop"
+                     alt="Post image 1">
+                <img src="https://images.unsplash.com/photo-1568772684723-dc07fcb3e9c0?w=600&h=600&fit=crop"
+                     alt="Post image 2">
+            </div>
+        </div>
+    </div>
+
+    <!-- Activity Modal Container -->
+    <div class="activity-modal" id="activityModal" aria-hidden="true"></div>
+
+    <script src="/js/LiquidationCar.js></script>
+</body>
+
+
+</html>
