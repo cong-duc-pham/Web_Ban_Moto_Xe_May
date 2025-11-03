@@ -7,7 +7,11 @@
     <script type="importmap"></script>
     <link rel="stylesheet" href="~/lib/bootstrap/dist/css/bootstrap.min.css" />
     <link rel="stylesheet" href="~/css/site.css" asp-append-version="true" />
+    
     <link rel="stylesheet" href="~/BTL_LTWeb_Quan_Ly_Cua_Hang_Xe_May.styles.css" asp-append-version="true" />
+    @await RenderSectionAsync("Styles", required: false)
+
+
 </head>
 <body>
     <header>
