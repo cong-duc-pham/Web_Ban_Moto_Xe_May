@@ -32,7 +32,15 @@ namespace BTL_LTWeb_Quan_Ly_Cua_Hang_Xe_May.Controllers
         {
             return View();
         }
+        public IActionResult Login()
+        {
+            return View();
+        }
 
+        public IActionResult Register()
+        {
+            return View();
+        }
         public IActionResult Privacy()
         {
             return View();

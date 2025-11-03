@@ -1,0 +1,113 @@
+﻿body {
+    margin: 0;
+    padding: 0;
+    background: linear-gradient(to bottom, #ffed48 30%, #F3F4F6 100%);
+    height: 100%;
+}
+
+.head-body {
+    width: 100%;
+    height: 417px;
+}
+
+.tail-body {
+    width: 100%;
+    height: 417px;
+}
+
+.login-box {
+    width: 500px;
+    height: 500px;
+    background-color: white;
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    border-radius: 10px;
+}
+
+.title-login {
+    text-align: center;
+    padding: 40px 0 30px 0;
+}
+
+    .title-login h1 {
+        margin: 0;
+        padding: 0;
+        color: #333;
+        text-transform: uppercase;
+    }
+
+.text-box-login {
+    margin-left: 46px;
+    margin-top: 30px;
+}
+
+.name-login {
+    font-size: 18px;
+}
+
+.password-login {
+    margin-top: 50px;
+    font-size: 18px;
+}
+
+.name-login input {
+    margin-left: 63px;
+    border-radius: 10px;
+    width: 230px;
+    height: 30px;
+    border: 2px solid green;
+    outline: none;
+}
+
+.password-login input {
+    margin-left: 100px;
+    border-radius: 10px;
+    width: 230px;
+    height: 30px;
+    outline: none;
+    border: 2px solid green;
+}
+
+.button-login {
+    text-align: center;
+    margin-top: 90px;
+    margin-left: 46px;
+    width: 410px;
+    height: 40px;
+    border-radius: 10px;
+    background-color: green;
+    border: none;
+}
+
+    .button-login:hover {
+        background-color: aqua;
+        cursor: pointer;
+        transition: background-color 0.5s ease;
+    }
+
+        .button-login:hover span {
+            color: black;
+            transition: color 0.5s ease;
+        }
+
+    .button-login span {
+        color: white;
+        font-weight: bold;
+        font-size: 20px;
+    }
+
+.under-button {
+    margin-top: 30px;
+    margin-left: 46px;
+}
+
+.register-account {
+    margin-left: 182px;
+}
+
+.under-button a {
+    text-decoration: none;
+    color: black;
+}

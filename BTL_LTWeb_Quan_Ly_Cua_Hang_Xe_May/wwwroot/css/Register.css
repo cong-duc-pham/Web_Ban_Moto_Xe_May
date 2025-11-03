@@ -1,0 +1,99 @@
+﻿body {
+    margin: 0;
+    padding: 0;
+    height: 100%;
+    background: linear-gradient(to bottom, #ffed48 30%, #F3F4F6 100%);
+}
+
+.head-body {
+    width: 100%;
+    height: 417px;
+}
+
+.tail-body {
+    width: 100%;
+    height: 417px;
+}
+
+.login-box {
+    width: 500px;
+    height: 500px;
+    background-color: white;
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    border-radius: 10px;
+}
+
+.title-login {
+    text-align: center;
+    padding: 20px 0 30px 0;
+}
+
+.text-box-login {
+    margin-left: 46px;
+    margin-top: 10px;
+}
+
+    .text-box-login input {
+        margin-left: 20px;
+        border-radius: 10px;
+        width: 230px;
+        height: 30px;
+        border: 2px solid green;
+        outline: none;
+    }
+
+.password-login {
+    margin-top: 30px;
+    font-size: 18px;
+}
+
+.confirm-password {
+    margin-top: 30px;
+    font-size: 18px;
+}
+
+.email-login {
+    margin-top: 30px;
+    font-size: 18px;
+}
+
+.name-login input {
+    margin-left: 70px;
+}
+
+.password-login input {
+    margin-left: 96px;
+}
+
+.confirm-password input {
+    margin-left: 25px;
+}
+
+.email-login input {
+    margin-left: 68px;
+}
+
+.button-signup {
+    text-align: center;
+    margin-top: 40px;
+}
+
+    .button-signup button {
+        width: 406px;
+        height: 40px;
+        border-radius: 10px;
+        border: none;
+        background-color: green;
+        font-size: 18px;
+        cursor: pointer;
+        color: white;
+    }
+
+        .button-signup button:hover {
+            background-color: aqua;
+            color: black;
+            transition: background-color 0.5s ease, color 0.5s ease;
+        }
