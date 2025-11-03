@@ -41,7 +41,7 @@ body {
 }
 
 .logo-text {
-    width: 300px;
+    width: 100px;
     height: auto;
     display: block;
     margin: 0;
@@ -52,7 +52,7 @@ body {
 /* ==================== HEADER ==================== */
 .top-bar {
     background-color: var(--primary-yellow);
-    padding: 8px 0;
+    padding: 6px 0;
     font-size: 14px;
 }
 
@@ -90,21 +90,26 @@ body {
     width: 100%;
     padding: 10px 45px 10px 15px;
     border: none;
+    margin-left: -150px;
     border-radius: 4px;
     font-size: 14px;
 }
 
 .search-btn {
     position: absolute;
-    right: 5px;
+    right: 50px;
     top: 50%;
     transform: translateY(-50%);
     background: none;
     border: none;
     color: var(--text-secondary);
     padding: 5px 10px;
+    margin-left: -150px;
 }
 
+.pas {
+    margin-left: -150px;
+}
 .header-icon {
     color: var(--text-primary);
     font-size: 20px;
@@ -128,7 +133,7 @@ body {
     background-color: var(--primary-red);
     color: white;
     border: none;
-    padding: 8px 16px;
+    padding: 8px 24px;
     border-radius: 4px;
     font-weight: 600;
     display: flex;
@@ -207,7 +212,7 @@ body {
 }
 
 .hero-banner {
-    height: 300px;
+    height: 1000px;
     overflow: hidden;
     position: relative;
 }
