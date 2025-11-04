@@ -1,0 +1,43 @@
+﻿@model BTL_LTWeb_Quan_Ly_Cua_Hang_Xe_May.Models.Entities.TaiKhoan
+@section Styles {
+    <link rel="stylesheet" href="~/css/Register.css" />
+}
+
+<form asp-action="Register" asp-controller="Account" method="post" class="login-box">
+    <div class="title-login">
+        <h1>ĐĂNG KÝ TÀI KHOẢN</h1>
+    </div>
+    <div class="text-box-login">
+        <div class="name-login">
+            <span>Tên đăng nhập</span>
+            <input type="text" name="TenDangNhap" value="@Model?.TenDangNhap" placeholder="Nhập tên đăng nhập" required>
+        </div>
+        <div class="password-login">
+            <span>Mật khẩu</span>
+            <input type="password" name="MatKhau" placeholder="Nhập mật khẩu" required>
+        </div>
+        <div class="confirm-password">
+            <span>Xác nhận mật khẩu</span>
+            <input type="password" name="ConfirmPassword" placeholder="Nhập lại mật khẩu" required>
+        </div>
+        
+        <div class="email-login">
+            <span>Địa chỉ email</span>
+            <input type="email" name="Email" value="@Model?.Email" placeholder="Nhập địa chỉ email" required>
+        </div>
+    </div>
+    <div class="button-signup">
+        <button type="submit">
+            <span>Đăng ký</span>
+        </button>
+    </div>
+    @if (!ViewData.ModelState.IsValid)
+    {
+        <div class="error-message" style="color:red">
+            @foreach (var error in ViewData.ModelState.Values.SelectMany(v => v.Errors))
+            {
+                <div>@error.ErrorMessage</div>
+            }
+        </div>
+    }
+</form>

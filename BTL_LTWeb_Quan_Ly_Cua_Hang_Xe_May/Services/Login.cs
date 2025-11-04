@@ -34,7 +34,7 @@ namespace BTL_LTWeb_Quan_Ly_Cua_Hang_Xe_May.Services
 
                 if (existingUser != null)
                 {
-                    return false; // Tên đăng nhập đã tồn tại
+                    return false;
                 }
 
                 // Thêm tài khoản mới

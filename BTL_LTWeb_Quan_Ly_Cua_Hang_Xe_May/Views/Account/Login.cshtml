@@ -1,0 +1,42 @@
+﻿@model BTL_LTWeb_Quan_Ly_Cua_Hang_Xe_May.Models.Entities.TaiKhoan
+@section Styles {
+    <link rel="stylesheet" href="~/css/Login.css" />
+}
+
+<form asp-action="Login" asp-controller="Account" method="post" class="login-box">
+    <div class="title-login">
+        <h1>Đăng nhập</h1>
+    </div>
+    <div class="text-box-login">
+        <div class="name-login">
+            <span>Tên đăng nhập</span>
+            <input type="text" name="TenDangNhap" value="@Model?.TenDangNhap" placeholder="Nhập tên đăng nhập" required>
+        </div>
+        <div class="password-login">
+            <span>Mật khẩu</span>
+            <input type="password" name="MatKhau" placeholder="Nhập mật khẩu" required>
+        </div>
+    </div>
+    <div class="button-signup" style="text-align:center;margin-top:16px;">
+        <button type="submit" class="button-login">
+            <span>Đăng nhập</span>
+        </button>
+    </div>
+    @if (!ViewData.ModelState.IsValid)
+    {
+        <div class="error-message" style="color:red">
+            @foreach (var error in ViewData.ModelState.Values.SelectMany(v => v.Errors))
+            {
+                <div>@error.ErrorMessage</div>
+            }
+        </div>
+    }
+    <div class="under-button">
+        <span class="forgot-password">
+            <a href="#">Quên mật khẩu?</a>
+        </span>
+        <span class="register-account">
+            <a href="/Account/Register">Đăng ký tài khoản</a>
+        </span>
+    </div>
+</form>
