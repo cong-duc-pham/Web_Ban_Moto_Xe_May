@@ -14,20 +14,39 @@
         <div class="title-login">
             <h1>Đăng nhập</h1>
         </div>
-        <div class="text-box-login">
-            <div class="name-login">
-                <span>Tên đăng nhập</span>
-                <input type="text" placeholder="Nhập tên đăng nhập">
-
+        
+        @* Hiển thị thông báo lỗi *@
+        @if (ViewData.ModelState.ErrorCount > 0)
+        {
+            <div class="alert alert-danger">
+                @Html.ValidationSummary(false, "", new { @class = "text-danger" })
             </div>
-            <div class="password-login">
-                <span>Mật khẩu</span>
-                <input type="text" placeholder="Nhập mật khẩu">
+        }
+        
+        @* Hiển thị thông báo thành công từ đăng ký *@
+        @if (TempData["SuccessMessage"] != null)
+        {
+            <div class="alert alert-success">
+                @TempData["SuccessMessage"]
             </div>
-        </div>
-        <button class="button-login">
-            <span>Đăng nhập</span>
-        </button>
+        }
+        
+        <form asp-controller="Account" asp-action="Login" method="post">
+            <div class="text-box-login">
+                <div class="name-login">
+                    <span>Tên đăng nhập</span>
+                    <input type="text" name="tenDangNhap" id="tenDangNhap" placeholder="Nhập tên đăng nhập" required>
+                </div>
+                <div class="password-login">
+                    <span>Mật khẩu</span>
+                    <input type="password" name="matKhau" id="matKhau" placeholder="Nhập mật khẩu" required>
+                </div>
+            </div>
+            <button type="submit" class="button-login">
+                <span>Đăng nhập</span>
+            </button>
+        </form>
+        
         <div class="under-button">
             <span class="forgot-password">
                 <a href="">Quên mật khẩu?</a>

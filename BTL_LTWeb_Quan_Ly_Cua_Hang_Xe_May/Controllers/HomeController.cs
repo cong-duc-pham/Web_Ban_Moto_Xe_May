@@ -42,6 +42,13 @@ namespace BTL_LTWeb_Quan_Ly_Cua_Hang_Xe_May.Controllers
             // Sử dụng service để lấy danh sách xe máy
             List<XeMay> lstXeMay = await _xeMayService.GetAllXeMayAsync();
             ViewBag.lstXeMay = lstXeMay;
+            
+            // Kiểm tra vai trò từ session
+            var vaiTro = HttpContext.Session.GetString("VaiTro");
+            ViewBag.IsAdmin = !string.IsNullOrEmpty(vaiTro) && 
+                             (vaiTro.Equals("Admin", StringComparison.OrdinalIgnoreCase) || 
+                              vaiTro.Equals("QuanLy", StringComparison.OrdinalIgnoreCase));
+            
             return View();
         }
         public IActionResult Login()
@@ -69,12 +76,27 @@ namespace BTL_LTWeb_Quan_Ly_Cua_Hang_Xe_May.Controllers
 
         // ==================== API XE MÁY ====================
         
+        // Hàm kiểm tra quyền quản lý
+        private bool IsAdmin()
+        {
+            var vaiTro = HttpContext.Session.GetString("VaiTro");
+            return !string.IsNullOrEmpty(vaiTro) && 
+                   (vaiTro.Equals("Admin", StringComparison.OrdinalIgnoreCase) || 
+                    vaiTro.Equals("QuanLy", StringComparison.OrdinalIgnoreCase));
+        }
+        
         // API: Thêm xe máy mới
         [HttpPost]
         public async Task<IActionResult> AddXeMay([FromBody] XeMay xeMay)
         {
             try
             {
+                // Kiểm tra quyền
+                if (!IsAdmin())
+                {
+                    return Json(new { success = false, message = "Bạn không có quyền thực hiện chức năng này! Chỉ Quản lý mới có thể thêm xe." });
+                }
+                
                 if (!ModelState.IsValid)
                 {
                     return Json(new { success = false, message = "Dữ liệu không hợp lệ!" });
@@ -119,6 +141,12 @@ namespace BTL_LTWeb_Quan_Ly_Cua_Hang_Xe_May.Controllers
         {
             try
             {
+                // Kiểm tra quyền
+                if (!IsAdmin())
+                {
+                    return Json(new { success = false, message = "Bạn không có quyền thực hiện chức năng này! Chỉ Quản lý mới có thể sửa thông tin xe." });
+                }
+                
                 if (!ModelState.IsValid)
                 {
                     return Json(new { success = false, message = "Dữ liệu không hợp lệ!" });
@@ -170,6 +198,12 @@ namespace BTL_LTWeb_Quan_Ly_Cua_Hang_Xe_May.Controllers
         {
             try
             {
+                // Kiểm tra quyền
+                if (!IsAdmin())
+                {
+                    return Json(new { success = false, message = "Bạn không có quyền thực hiện chức năng này! Chỉ Quản lý mới có thể xóa xe." });
+                }
+                
                 // Kiểm tra xe có tồn tại không
                 var existingXe = await _xeMayService.GetXeMayByIdAsync(id);
                 if (existingXe == null)
