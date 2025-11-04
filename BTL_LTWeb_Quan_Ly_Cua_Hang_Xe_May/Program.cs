@@ -1,4 +1,5 @@
 using BTL_LTWeb_Quan_Ly_Cua_Hang_Xe_May.Models.EF;
+using BTL_LTWeb_Quan_Ly_Cua_Hang_Xe_May.Services;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.SqlServer;
@@ -9,6 +10,20 @@ var builder = WebApplication.CreateBuilder(args);
 builder.Services.AddControllersWithViews();
 
 builder.Services.AddDbContext<ApplicationDbContext>(options => options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")), ServiceLifetime.Scoped);
+
+// Đăng ký service Login
+builder.Services.AddScoped<ILoginService, Login>();
+
+// Đăng ký service XeMay
+builder.Services.AddScoped<IXeMayService, XeMayService>();
+
+// Thêm session
+builder.Services.AddSession(options =>
+{
+    options.IdleTimeout = TimeSpan.FromMinutes(30);
+    options.Cookie.HttpOnly = true;
+    options.Cookie.IsEssential = true;
+});
 
 var app = builder.Build();
 
@@ -25,6 +40,7 @@ if (!app.Environment.IsDevelopment())
 app.UseHttpsRedirection();
 app.UseRouting();
 
+app.UseSession();
 app.UseAuthorization();
 
 app.MapStaticAssets();

@@ -1,6 +1,8 @@
 
 using BTL_LTWeb_Quan_Ly_Cua_Hang_Xe_May.Models;
 using BTL_LTWeb_Quan_Ly_Cua_Hang_Xe_May.Models.EF;
+using BTL_LTWeb_Quan_Ly_Cua_Hang_Xe_May.Models.Entities;
+using BTL_LTWeb_Quan_Ly_Cua_Hang_Xe_May.Services;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using System.Data;
@@ -11,12 +13,14 @@ namespace BTL_LTWeb_Quan_Ly_Cua_Hang_Xe_May.Controllers
     public class HomeController : Controller
     {
         private readonly ILogger<HomeController> _logger;
-        private readonly ApplicationDbContext _context;
+        private readonly IXeMayService _xeMayService;
+        private readonly ILoginService _loginService;
 
-        public HomeController(ILogger<HomeController> logger, ApplicationDbContext context)
+        public HomeController(ILogger<HomeController> logger, IXeMayService xeMayService, ILoginService loginService)
         {
             _logger = logger;
-            _context = context;
+            _xeMayService = xeMayService;
+            _loginService = loginService;
         }
 
 
@@ -33,10 +37,11 @@ namespace BTL_LTWeb_Quan_Ly_Cua_Hang_Xe_May.Controllers
             return View();
         }
 
-        public IActionResult MotorbikeOnline()
+        public async Task<IActionResult> MotorbikeOnline()
         {
-            var lstXeMay = _context.XeMay.AsNoTracking().ToList();
-            ViewData["lstXeMay"] = lstXeMay;
+            // Sử dụng service để lấy danh sách xe máy
+            List<XeMay> lstXeMay = await _xeMayService.GetAllXeMayAsync();
+            ViewBag.lstXeMay = lstXeMay;
             return View();
         }
         public IActionResult Login()
