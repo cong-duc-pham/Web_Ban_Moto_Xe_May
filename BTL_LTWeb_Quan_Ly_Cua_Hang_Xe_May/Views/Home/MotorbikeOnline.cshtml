@@ -200,40 +200,137 @@
     <!-- Product Listing -->
     <section class="products-section">
         <div class="container">
-            <h2 class="section-title">Sản phẩm đang bán</h2>
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <h2 class="section-title mb-0">Sản phẩm đang bán</h2>
+                <button class="btn btn-primary" onclick="showAddModal()">
+                    <i class="fas fa-plus"></i> Thêm xe mới
+                </button>
+            </div>
             <div class="row g-3" id="productGrid">
-                <!-- Products will be inserted by JavaScript -->
                 @{
-                    if (ViewData["lstXeMay"] != null)
+                    if (ViewBag.lstXeMay != null)
+                    {
                         foreach (XeMay xe in ViewBag.lstXeMay)
                         {
-                            <div class="product-item">
-                                <span class="badge badge-official">CHÍNH HÃNG</span>
-                                <img src="~/images/@xe.HinhAnh" alt="@xe.TenXe" class="product-image" />
-                                <h3 class="product-name">@xe.TenXe</h3>
-                                <p class="product-price">@string.Format("{0:N0} đ", xe.Gia)</p>
-
-                                @if (!string.IsNullOrEmpty(xe.MoTa))
-                                {
-                                    <p class="product-desc">@xe.MoTa</p>
-                                }
+                            <div class="col-lg-2 col-md-3 col-6">
+                                <div class="product-card" data-id="@xe.ID">
+                                    <div class="product-image">
+                                        <img src="~/images/@xe.HinhAnh" alt="@xe.TenXe" onerror="this.src='https://via.placeholder.com/300x200?text=No+Image'" />
+                                        <span class="product-badge">
+                                            <i class="fas fa-check-circle"></i> CHÍNH HÃNG
+                                        </span>
+                                    </div>
+                                    <div class="product-info">
+                                        <h3 class="product-name">@xe.TenXe</h3>
+                                        <div class="product-price">@string.Format("{0:N0} đ", xe.Gia)</div>
+                                        @if (!string.IsNullOrEmpty(xe.MoTa))
+                                        {
+                                            <p class="product-desc">@xe.MoTa</p>
+                                        }
+                                    </div>
+                                    <div class="product-actions">
+                                        <button class="btn btn-sm btn-warning" 
+                                                onclick='showEditModal(@xe.ID, @Html.Raw(System.Text.Json.JsonSerializer.Serialize(xe.TenXe)), @xe.Gia, @Html.Raw(System.Text.Json.JsonSerializer.Serialize(xe.HinhAnh)), @Html.Raw(System.Text.Json.JsonSerializer.Serialize(xe.MoTa ?? "")))'>
+                                            <i class="fas fa-edit"></i> Sửa
+                                        </button>
+                                        <button class="btn btn-sm btn-danger" 
+                                                onclick='confirmDelete(@xe.ID, @Html.Raw(System.Text.Json.JsonSerializer.Serialize(xe.TenXe)))'>
+                                            <i class="fas fa-trash"></i> Xóa
+                                        </button>
+                                    </div>
+                                </div>
                             </div>
                         }
                     }
-                
-              
-            </div>
-            <div class="text-center">
-                <button class="btn btn-load-more" id="loadMoreBtn">Xem thêm tin đăng</button>
+                }
             </div>
         </div>
     </section>
+
+    <!-- Modal Thêm/Sửa Xe Máy -->
+    <div class="modal fade" id="xeMayModal" tabindex="-1">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="modalTitle">Thêm Xe Máy Mới</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <form id="xeMayForm">
+                    <div class="modal-body">
+                        <input type="hidden" id="xeID" name="ID" value="0" />
+                        
+                        <div class="mb-3">
+                            <label for="tenXe" class="form-label">Tên xe <span class="text-danger">*</span></label>
+                            <input type="text" class="form-control" id="tenXe" name="TenXe" required 
+                                   placeholder="Ví dụ: VinFast Klara S" />
+                        </div>
+
+                        <div class="mb-3">
+                            <label for="gia" class="form-label">Giá (VNĐ) <span class="text-danger">*</span></label>
+                            <input type="number" class="form-control" id="gia" name="Gia" required 
+                                   min="0" step="1000" placeholder="Ví dụ: 35000000" />
+                        </div>
+
+                        <div class="mb-3">
+                            <label for="hinhAnh" class="form-label">Hình ảnh <span class="text-danger">*</span></label>
+                            <input type="text" class="form-control" id="hinhAnh" name="HinhAnh" required 
+                                   placeholder="Nhập tên file ảnh (vd: xe1.jpg)" />
+                            <small class="text-muted">Ảnh phải được lưu trong thư mục wwwroot/images/</small>
+                        </div>
+
+                        <div class="mb-3">
+                            <label for="moTa" class="form-label">Mô tả</label>
+                            <textarea class="form-control" id="moTa" name="MoTa" rows="3"
+                                      placeholder="Nhập mô tả về xe máy..."></textarea>
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
+                            <i class="fas fa-times"></i> Hủy
+                        </button>
+                        <button type="submit" class="btn btn-primary" id="btnSave">
+                            <i class="fas fa-save"></i> Lưu
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal Xác nhận Xóa -->
+    <div class="modal fade" id="deleteModal" tabindex="-1">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content">
+                <div class="modal-header bg-danger text-white">
+                    <h5 class="modal-title">
+                        <i class="fas fa-exclamation-triangle"></i> Xác nhận xóa
+                    </h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <p class="mb-2">Bạn có chắc chắn muốn xóa xe:</p>
+                    <p class="fw-bold text-danger" id="deleteXeName"></p>
+                    <p class="text-muted mb-0">
+                        <i class="fas fa-info-circle"></i> Hành động này không thể hoàn tác!
+                    </p>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
+                        <i class="fas fa-times"></i> Hủy
+                    </button>
+                    <button type="button" class="btn btn-danger" id="btnConfirmDelete">
+                        <i class="fas fa-trash"></i> Xóa
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
 
     <!-- Bootstrap 5 JS -->
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
 
     <!-- Custom JS -->
-    <link rel="stylesheet" href="/js/MotorbikeOnline.js">
+    <script src="~/js/MotorbikeOnlineAdmin.js"></script>
 </body>
 
 </html>
