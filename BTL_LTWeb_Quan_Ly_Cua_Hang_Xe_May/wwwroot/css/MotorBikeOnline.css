@@ -683,3 +683,13 @@ body {
         padding: 10px;
     }
 }
+
+/* ==================== NO ADMIN MODE ==================== */
+/* Khi không phải admin, card không cần padding bottom cho actions */
+.product-card:not(:has(.product-actions)) {
+    padding-bottom: 0;
+}
+
+.product-card:not(:has(.product-actions)) .product-info {
+    padding-bottom: 12px;
+}
