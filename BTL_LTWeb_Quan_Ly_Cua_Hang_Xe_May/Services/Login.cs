@@ -1,6 +1,6 @@
-﻿using BTL_LTWeb_Quan_Ly_Cua_Hang_Xe_May.Models.EF;
+﻿using Microsoft.EntityFrameworkCore;
+using BTL_LTWeb_Quan_Ly_Cua_Hang_Xe_May.Models.EF;
 using BTL_LTWeb_Quan_Ly_Cua_Hang_Xe_May.Models.Entities;
-using Microsoft.EntityFrameworkCore;
 
 namespace BTL_LTWeb_Quan_Ly_Cua_Hang_Xe_May.Services
 {
@@ -14,23 +14,24 @@ namespace BTL_LTWeb_Quan_Ly_Cua_Hang_Xe_May.Services
         }
 
         // Kiểm tra đăng nhập
-        public async Task<TaiKhoan?> ValidateUserAsync(string tenDangNhap, string matKhau)
+        public async Task<User?> ValidateUserAsync(string phoneNumber, string password)
         {
-            // Tìm tài khoản với tên đăng nhập và mật khẩu
-            var taiKhoan = await _context.TaiKhoan
-                .FirstOrDefaultAsync(t => t.TenDangNhap == tenDangNhap && t.MatKhau == matKhau);
-            
-            return taiKhoan;
+            // Tìm tài khoản với số điện thoại và mật khẩu
+            var user = await _context.Users
+                .Include(u => u.Role)
+                .FirstOrDefaultAsync(u => u.PhoneNumber == phoneNumber && u.Password == password && u.Status == "Active");
+
+            return user;
         }
 
         // Đăng ký tài khoản mới
-        public async Task<bool> RegisterUserAsync(TaiKhoan taiKhoan)
+        public async Task<bool> RegisterUserAsync(User user)
         {
             try
             {
-                // Kiểm tra xem tên đăng nhập đã tồn tại chưa
-                var existingUser = await _context.TaiKhoan
-                    .FirstOrDefaultAsync(t => t.TenDangNhap == taiKhoan.TenDangNhap);
+                // Kiểm tra xem số điện thoại đã tồn tại chưa
+                var existingUser = await _context.Users
+                    .FirstOrDefaultAsync(u => u.PhoneNumber == user.PhoneNumber);
 
                 if (existingUser != null)
                 {
@@ -38,7 +39,7 @@ namespace BTL_LTWeb_Quan_Ly_Cua_Hang_Xe_May.Services
                 }
 
                 // Thêm tài khoản mới
-                _context.TaiKhoan.Add(taiKhoan);
+                _context.Users.Add(user);
                 await _context.SaveChangesAsync();
                 return true;
             }
@@ -48,32 +49,37 @@ namespace BTL_LTWeb_Quan_Ly_Cua_Hang_Xe_May.Services
             }
         }
 
-        // Lấy thông tin tài khoản theo tên đăng nhập
-        public async Task<TaiKhoan?> GetUserByUsernameAsync(string tenDangNhap)
+        // Lấy thông tin tài khoản theo số điện thoại
+        public async Task<User?> GetUserByPhoneAsync(string phoneNumber)
         {
-            return await _context.TaiKhoan
-                .FirstOrDefaultAsync(t => t.TenDangNhap == tenDangNhap);
+            return await _context.Users
+                .Include(u => u.Role)
+                .FirstOrDefaultAsync(u => u.PhoneNumber == phoneNumber);
         }
 
         // Lấy tất cả tài khoản
-        public async Task<List<TaiKhoan>> GetAllUsersAsync()
+        public async Task<List<User>> GetAllUsersAsync()
         {
             try
             {
-                return await _context.TaiKhoan.ToListAsync();
+                return await _context.Users
+                    .Include(u => u.Role)
+                    .ToListAsync();
             }
             catch
             {
-                return new List<TaiKhoan>();
+                return new List<User>();
             }
         }
 
         // Lấy tài khoản theo ID
-        public async Task<TaiKhoan?> GetUserByIdAsync(int id)
+        public async Task<User?> GetUserByIdAsync(int id)
         {
             try
             {
-                return await _context.TaiKhoan.FindAsync(id);
+                return await _context.Users
+                    .Include(u => u.Role)
+                    .FirstOrDefaultAsync(u => u.UserId == id);
             }
             catch
             {
@@ -82,23 +88,22 @@ namespace BTL_LTWeb_Quan_Ly_Cua_Hang_Xe_May.Services
         }
 
         // Cập nhật tài khoản
-        public async Task<bool> UpdateUserAsync(TaiKhoan taiKhoan)
+        public async Task<bool> UpdateUserAsync(User user)
         {
             try
             {
-                var existingUser = await _context.TaiKhoan.FindAsync(taiKhoan.ID);
+                var existingUser = await _context.Users.FindAsync(user.UserId);
                 if (existingUser == null)
                 {
                     return false;
                 }
 
-                existingUser.TenDangNhap = taiKhoan.TenDangNhap;
-                existingUser.MatKhau = taiKhoan.MatKhau;
-                existingUser.HovaTen = taiKhoan.HovaTen;
-                existingUser.NgaySinh = taiKhoan.NgaySinh;
-                existingUser.GioiTinh = taiKhoan.GioiTinh;
-                existingUser.Email = taiKhoan.Email;
-                existingUser.VaiTro = taiKhoan.VaiTro;
+                existingUser.FullName = user.FullName;
+                existingUser.PhoneNumber = user.PhoneNumber;
+                existingUser.Email = user.Email;
+                existingUser.Password = user.Password;
+                existingUser.RoleId = user.RoleId;
+                existingUser.Status = user.Status;
 
                 await _context.SaveChangesAsync();
                 return true;
@@ -114,13 +119,13 @@ namespace BTL_LTWeb_Quan_Ly_Cua_Hang_Xe_May.Services
         {
             try
             {
-                var user = await _context.TaiKhoan.FindAsync(id);
+                var user = await _context.Users.FindAsync(id);
                 if (user == null)
                 {
                     return false;
                 }
 
-                _context.TaiKhoan.Remove(user);
+                _context.Users.Remove(user);
                 await _context.SaveChangesAsync();
                 return true;
             }
@@ -130,18 +135,56 @@ namespace BTL_LTWeb_Quan_Ly_Cua_Hang_Xe_May.Services
             }
         }
 
-        // Lấy tài khoản theo vai trò
-        public async Task<List<TaiKhoan>> GetUsersByRoleAsync(string vaiTro)
+        // Lấy tài khoản theo vai trò (RoleId)
+        public async Task<List<User>> GetUsersByRoleAsync(int roleId)
         {
             try
             {
-                return await _context.TaiKhoan
-                    .Where(t => t.VaiTro == vaiTro)
+                return await _context.Users
+                    .Include(u => u.Role)
+                    .Where(u => u.RoleId == roleId)
                     .ToListAsync();
             }
             catch
             {
-                return new List<TaiKhoan>();
+                return new List<User>();
+            }
+        }
+
+        // Lấy tài khoản theo tên vai trò
+        public async Task<List<User>> GetUsersByRoleNameAsync(string roleName)
+        {
+            try
+            {
+                return await _context.Users
+                    .Include(u => u.Role)
+                    .Where(u => u.Role.RoleName == roleName)
+                    .ToListAsync();
+            }
+            catch
+            {
+                return new List<User>();
+            }
+        }
+
+        // Thay đổi mật khẩu
+        public async Task<bool> ChangePasswordAsync(int userId, string oldPassword, string newPassword)
+        {
+            try
+            {
+                var user = await _context.Users.FindAsync(userId);
+                if (user == null || user.Password != oldPassword)
+                {
+                    return false;
+                }
+
+                user.Password = newPassword;
+                await _context.SaveChangesAsync();
+                return true;
+            }
+            catch
+            {
+                return false;
             }
         }
     }

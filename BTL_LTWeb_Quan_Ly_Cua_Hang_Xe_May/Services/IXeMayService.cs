@@ -5,24 +5,48 @@ namespace BTL_LTWeb_Quan_Ly_Cua_Hang_Xe_May.Services
     public interface IXeMayService
     {
         // Lấy tất cả xe máy
-        Task<List<XeMay>> GetAllXeMayAsync();
-        
+        Task<List<Vehicle>> GetAllVehiclesAsync();
+
         // Lấy xe máy theo ID
-        Task<XeMay?> GetXeMayByIdAsync(int id);
-        
+        Task<Vehicle?> GetVehicleByIdAsync(int id);
+
         // Thêm xe máy mới
-        Task<bool> AddXeMayAsync(XeMay xeMay);
-        
+        Task<bool> AddVehicleAsync(Vehicle vehicle);
+
         // Cập nhật xe máy
-        Task<bool> UpdateXeMayAsync(XeMay xeMay);
-        
+        Task<bool> UpdateVehicleAsync(Vehicle vehicle);
+
         // Xóa xe máy
-        Task<bool> DeleteXeMayAsync(int id);
-        
-        // Tìm kiếm xe máy theo tên
-        Task<List<XeMay>> SearchXeMayByNameAsync(string tenXe);
-        
+        Task<bool> DeleteVehicleAsync(int id);
+
+        // Tìm kiếm xe máy theo tiêu đề
+        Task<List<Vehicle>> SearchVehiclesByTitleAsync(string title);
+
         // Lấy xe máy theo khoảng giá
-        Task<List<XeMay>> GetXeMayByPriceRangeAsync(decimal minPrice, decimal maxPrice);
+        Task<List<Vehicle>> GetVehiclesByPriceRangeAsync(decimal minPrice, decimal maxPrice);
+
+        // Lấy xe máy theo hãng
+        Task<List<Vehicle>> GetVehiclesByBrandAsync(int brandId);
+
+        // Lấy xe máy theo danh mục
+        Task<List<Vehicle>> GetVehiclesByCategoryAsync(int categoryId);
+
+        // Lấy xe máy theo cửa hàng
+        Task<List<Vehicle>> GetVehiclesByStoreAsync(int storeId);
+
+        // Lấy xe máy nổi bật
+        Task<List<Vehicle>> GetFeaturedVehiclesAsync();
+
+        // Lấy xe máy theo trạng thái
+        Task<List<Vehicle>> GetVehiclesByStatusAsync(string status);
+
+        // Tăng lượt xem
+        Task<bool> IncreaseViewCountAsync(int vehicleId);
+
+        // Lấy xe máy mới nhất
+        Task<List<Vehicle>> GetLatestVehiclesAsync(int count);
+
+        // Lấy xe máy được xem nhiều nhất
+        Task<List<Vehicle>> GetMostViewedVehiclesAsync(int count);
     }
 }

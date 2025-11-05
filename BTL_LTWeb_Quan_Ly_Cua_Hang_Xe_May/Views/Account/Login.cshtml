@@ -1,4 +1,4 @@
-﻿@model BTL_LTWeb_Quan_Ly_Cua_Hang_Xe_May.Models.Entities.TaiKhoan
+﻿@model BTL_LTWeb_Quan_Ly_Cua_Hang_Xe_May.Models.Entities.User
 @section Styles {
     <link rel="stylesheet" href="~/css/Login.css" />
 }
@@ -9,12 +9,12 @@
     </div>
     <div class="text-box-login">
         <div class="name-login">
-            <span>Tên đăng nhập</span>
-            <input type="text" name="TenDangNhap" value="@Model?.TenDangNhap" placeholder="Nhập tên đăng nhập" required>
+            <span>Số điện thoại</span>
+            <input type="text" name="phoneNumber" placeholder="Nhập số điện thoại" required>
         </div>
         <div class="password-login">
             <span>Mật khẩu</span>
-            <input type="password" name="MatKhau" placeholder="Nhập mật khẩu" required>
+            <input type="password" name="password" placeholder="Nhập mật khẩu" required>
         </div>
     </div>
     <div class="button-signup" style="text-align:center;margin-top:16px;">
@@ -40,3 +40,4 @@
         </span>
     </div>
 </form>
+

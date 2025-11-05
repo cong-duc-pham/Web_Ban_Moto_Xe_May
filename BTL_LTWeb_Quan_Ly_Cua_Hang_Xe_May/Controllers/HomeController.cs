@@ -1,131 +1,115 @@
-
 using BTL_LTWeb_Quan_Ly_Cua_Hang_Xe_May.Models;
-using BTL_LTWeb_Quan_Ly_Cua_Hang_Xe_May.Models.EF;
 using BTL_LTWeb_Quan_Ly_Cua_Hang_Xe_May.Models.Entities;
 using BTL_LTWeb_Quan_Ly_Cua_Hang_Xe_May.Services;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.EntityFrameworkCore;
-using System.Data;
 using System.Diagnostics;
+using System.Threading.Tasks;
+using System.Collections.Generic;
 
 namespace BTL_LTWeb_Quan_Ly_Cua_Hang_Xe_May.Controllers
 {
+    // ViewModel tổng hợp cho trang chủ
+    public class HomePageViewModel
+    {
+        public List<Vehicle> Vehicles { get; set; }
+        public List<Store> FeaturedStores { get; set; }
+        public List<News> NewsItems { get; set; }
+        // Bạn có thể mở rộng thêm các property: Banner, Danh mục, Promotion...
+    }
+
     public class HomeController : Controller
     {
         private readonly ILogger<HomeController> _logger;
         private readonly IXeMayService _xeMayService;
         private readonly ILoginService _loginService;
+        // Nếu có StoreService, NewsService thì thêm vào và inject ở constructor
 
-        public HomeController(ILogger<HomeController> logger, IXeMayService xeMayService, ILoginService loginService)
+        public HomeController(
+            ILogger<HomeController> logger,
+            IXeMayService xeMayService,
+            ILoginService loginService
+        // Thêm INewsService newsService, IStoreService storeService nếu có
+        )
         {
             _logger = logger;
             _xeMayService = xeMayService;
             _loginService = loginService;
+            // Gán thêm các service khác nếu cần
         }
 
-
-        public IActionResult QaA() { 
-            return View();
-        }
-        public IActionResult Index()
+        public async Task<IActionResult> Index()
         {
-            return View();
+            // Lấy dữ liệu (ở đây stores/news nếu chưa code thì để danh sách rỗng - có thể sửa sau)
+            var vehicles = await _xeMayService.GetAllVehiclesAsync();
+            var stores = new List<Store>();
+            var news = new List<News>();
+
+            var model = new HomePageViewModel
+            {
+                Vehicles = vehicles,
+                FeaturedStores = stores,
+                NewsItems = news
+            };
+
+            return View(model);
         }
 
-        public IActionResult MotorbikeStore()
-        {
-            return View();
-        }
+        public IActionResult QaA() => View();
+        public IActionResult MotorbikeStore() => View();
 
         public async Task<IActionResult> MotorbikeOnline()
         {
-            // Sử dụng service để lấy danh sách xe máy
-            List<XeMay> lstXeMay = await _xeMayService.GetAllXeMayAsync();
-            ViewBag.lstXeMay = lstXeMay;
-            
-            // Kiểm tra vai trò từ session
-            var vaiTro = HttpContext.Session.GetString("VaiTro");
-            ViewBag.IsAdmin = !string.IsNullOrEmpty(vaiTro) && 
-                             (vaiTro.Equals("Admin", StringComparison.OrdinalIgnoreCase) || 
-                              vaiTro.Equals("QuanLy", StringComparison.OrdinalIgnoreCase));
-            
-            return View();
-        }
-        public IActionResult Login()
-        {
+            List<Vehicle> lstVehicle = await _xeMayService.GetAllVehiclesAsync();
+            ViewBag.lstVehicle = lstVehicle;
+            var roleId = HttpContext.Session.GetInt32("RoleId");
+            ViewBag.IsAdmin = roleId.HasValue && roleId.Value == 1;
             return View();
         }
 
-        public IActionResult Register()
-        {
-            return View();
-        }
-        public IActionResult Privacy()
-        {
-            return View();
-        }
+        public IActionResult Login() => View();
+        public IActionResult Register() => View();
+        public IActionResult Privacy() => View();
+        public IActionResult LiquidationCar() => View();
+        public IActionResult News() => View();
 
-        public IActionResult LiquidationCar()
-        {
-            return View();
-        }
-
-        public IActionResult News() {    
-            return View();
-        }
-
-        // ==================== API XE MÁY ====================
-        
-        // Hàm kiểm tra quyền quản lý
+        // ======= API, chức năng CRUD xe giữ nguyên như trước =======
         private bool IsAdmin()
         {
-            var vaiTro = HttpContext.Session.GetString("VaiTro");
-            return !string.IsNullOrEmpty(vaiTro) && 
-                   (vaiTro.Equals("Admin", StringComparison.OrdinalIgnoreCase) || 
-                    vaiTro.Equals("QuanLy", StringComparison.OrdinalIgnoreCase));
+            var roleId = HttpContext.Session.GetInt32("RoleId");
+            return roleId.HasValue && roleId.Value == 1;
         }
-        
-        // API: Thêm xe máy mới
+
         [HttpPost]
-        public async Task<IActionResult> AddXeMay([FromBody] XeMay xeMay)
+        public async Task<IActionResult> AddVehicle([FromBody] Vehicle vehicle)
         {
             try
             {
-                // Kiểm tra quyền
                 if (!IsAdmin())
-                {
                     return Json(new { success = false, message = "Bạn không có quyền thực hiện chức năng này! Chỉ Quản lý mới có thể thêm xe." });
-                }
-                
+
                 if (!ModelState.IsValid)
-                {
                     return Json(new { success = false, message = "Dữ liệu không hợp lệ!" });
-                }
 
-                // Kiểm tra dữ liệu bắt buộc
-                if (string.IsNullOrWhiteSpace(xeMay.TenXe))
-                {
-                    return Json(new { success = false, message = "Tên xe không được để trống!" });
-                }
+                if (string.IsNullOrWhiteSpace(vehicle.Title))
+                    return Json(new { success = false, message = "Tiêu đề xe không được để trống!" });
 
-                if (xeMay.Gia <= 0)
-                {
+                if (vehicle.SalePrice <= 0)
                     return Json(new { success = false, message = "Giá xe phải lớn hơn 0!" });
-                }
 
-                if (string.IsNullOrWhiteSpace(xeMay.HinhAnh))
-                {
-                    return Json(new { success = false, message = "Hình ảnh không được để trống!" });
-                }
+                vehicle.Status = "Available";
+                vehicle.ViewCount = 0;
+                vehicle.IsFeatured = false;
+                vehicle.PostedAt = DateTime.Now;
+                vehicle.UpdatedAt = DateTime.Now;
 
-                var result = await _xeMayService.AddXeMayAsync(xeMay);
-                
+                var result = await _xeMayService.AddVehicleAsync(vehicle);
+
                 if (result)
                 {
-                    _logger.LogInformation($"Đã thêm xe mới: {xeMay.TenXe} - ID: {xeMay.ID}");
+                    _logger.LogInformation($"Đã thêm xe mới: {vehicle.Title} - ID: {vehicle.VehicleId}");
                     return Json(new { success = true, message = "Thêm xe máy thành công!" });
                 }
-                
+
                 return Json(new { success = false, message = "Không thể thêm xe máy. Vui lòng thử lại!" });
             }
             catch (Exception ex)
@@ -135,54 +119,36 @@ namespace BTL_LTWeb_Quan_Ly_Cua_Hang_Xe_May.Controllers
             }
         }
 
-        // API: Sửa thông tin xe máy
         [HttpPost]
-        public async Task<IActionResult> EditXeMay([FromBody] XeMay xeMay)
+        public async Task<IActionResult> EditVehicle([FromBody] Vehicle vehicle)
         {
             try
             {
-                // Kiểm tra quyền
                 if (!IsAdmin())
-                {
                     return Json(new { success = false, message = "Bạn không có quyền thực hiện chức năng này! Chỉ Quản lý mới có thể sửa thông tin xe." });
-                }
-                
+
                 if (!ModelState.IsValid)
-                {
                     return Json(new { success = false, message = "Dữ liệu không hợp lệ!" });
-                }
 
-                // Kiểm tra xe có tồn tại không
-                var existingXe = await _xeMayService.GetXeMayByIdAsync(xeMay.ID);
-                if (existingXe == null)
-                {
+                var existingVehicle = await _xeMayService.GetVehicleByIdAsync(vehicle.VehicleId);
+                if (existingVehicle == null)
                     return Json(new { success = false, message = "Không tìm thấy xe cần sửa!" });
-                }
 
-                // Kiểm tra dữ liệu bắt buộc
-                if (string.IsNullOrWhiteSpace(xeMay.TenXe))
-                {
-                    return Json(new { success = false, message = "Tên xe không được để trống!" });
-                }
+                if (string.IsNullOrWhiteSpace(vehicle.Title))
+                    return Json(new { success = false, message = "Tiêu đề xe không được để trống!" });
 
-                if (xeMay.Gia <= 0)
-                {
+                if (vehicle.SalePrice <= 0)
                     return Json(new { success = false, message = "Giá xe phải lớn hơn 0!" });
-                }
 
-                if (string.IsNullOrWhiteSpace(xeMay.HinhAnh))
-                {
-                    return Json(new { success = false, message = "Hình ảnh không được để trống!" });
-                }
+                vehicle.UpdatedAt = DateTime.Now;
+                var result = await _xeMayService.UpdateVehicleAsync(vehicle);
 
-                var result = await _xeMayService.UpdateXeMayAsync(xeMay);
-                
                 if (result)
                 {
-                    _logger.LogInformation($"Đã cập nhật xe: {xeMay.TenXe} - ID: {xeMay.ID}");
+                    _logger.LogInformation($"Đã cập nhật xe: {vehicle.Title} - ID: {vehicle.VehicleId}");
                     return Json(new { success = true, message = "Cập nhật xe máy thành công!" });
                 }
-                
+
                 return Json(new { success = false, message = "Không thể cập nhật xe máy. Vui lòng thử lại!" });
             }
             catch (Exception ex)
@@ -192,33 +158,26 @@ namespace BTL_LTWeb_Quan_Ly_Cua_Hang_Xe_May.Controllers
             }
         }
 
-        // API: Xóa xe máy
         [HttpPost]
-        public async Task<IActionResult> DeleteXeMay(int id)
+        public async Task<IActionResult> DeleteVehicle(int id)
         {
             try
             {
-                // Kiểm tra quyền
                 if (!IsAdmin())
-                {
                     return Json(new { success = false, message = "Bạn không có quyền thực hiện chức năng này! Chỉ Quản lý mới có thể xóa xe." });
-                }
-                
-                // Kiểm tra xe có tồn tại không
-                var existingXe = await _xeMayService.GetXeMayByIdAsync(id);
-                if (existingXe == null)
-                {
-                    return Json(new { success = false, message = "Không tìm thấy xe cần xóa!" });
-                }
 
-                var result = await _xeMayService.DeleteXeMayAsync(id);
-                
+                var existingVehicle = await _xeMayService.GetVehicleByIdAsync(id);
+                if (existingVehicle == null)
+                    return Json(new { success = false, message = "Không tìm thấy xe cần xóa!" });
+
+                var result = await _xeMayService.DeleteVehicleAsync(id);
+
                 if (result)
                 {
-                    _logger.LogInformation($"Đã xóa xe: {existingXe.TenXe} - ID: {id}");
-                    return Json(new { success = true, message = $"Đã xóa xe '{existingXe.TenXe}' thành công!" });
+                    _logger.LogInformation($"Đã xóa xe: {existingVehicle.Title} - ID: {id}");
+                    return Json(new { success = true, message = $"Đã xóa xe '{existingVehicle.Title}' thành công!" });
                 }
-                
+
                 return Json(new { success = false, message = "Không thể xóa xe máy. Vui lòng thử lại!" });
             }
             catch (Exception ex)
@@ -228,25 +187,37 @@ namespace BTL_LTWeb_Quan_Ly_Cua_Hang_Xe_May.Controllers
             }
         }
 
-        // API: Lấy thông tin xe máy theo ID (dùng cho AJAX)
         [HttpGet]
-        public async Task<IActionResult> GetXeMayById(int id)
+        public async Task<IActionResult> GetVehicleById(int id)
         {
             try
             {
-                var xeMay = await _xeMayService.GetXeMayByIdAsync(id);
-                
-                if (xeMay != null)
-                {
-                    return Json(new { success = true, data = xeMay });
-                }
-                
+                var vehicle = await _xeMayService.GetVehicleByIdAsync(id);
+
+                if (vehicle != null)
+                    return Json(new { success = true, data = vehicle });
+
                 return Json(new { success = false, message = "Không tìm thấy xe máy!" });
             }
             catch (Exception ex)
             {
                 _logger.LogError(ex, $"Lỗi khi lấy thông tin xe máy ID: {id}");
                 return Json(new { success = false, message = "Có lỗi xảy ra: " + ex.Message });
+            }
+        }
+
+        [HttpPost]
+        public async Task<IActionResult> IncreaseViewCount(int id)
+        {
+            try
+            {
+                var result = await _xeMayService.IncreaseViewCountAsync(id);
+                return Json(new { success = result });
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, $"Lỗi khi tăng lượt xem ID: {id}");
+                return Json(new { success = false });
             }
         }
 

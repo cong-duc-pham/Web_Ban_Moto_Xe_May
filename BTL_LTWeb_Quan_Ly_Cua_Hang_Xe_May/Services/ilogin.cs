@@ -4,28 +4,34 @@ namespace BTL_LTWeb_Quan_Ly_Cua_Hang_Xe_May.Services
 {
     public interface ILoginService
     {
-        // Xác thực đăng nhập
-        Task<TaiKhoan?> ValidateUserAsync(string tenDangNhap, string matKhau);
-        
+        // Xác thực đăng nhập bằng số điện thoại và mật khẩu
+        Task<User?> ValidateUserAsync(string phoneNumber, string password);
+
         // Đăng ký tài khoản mới
-        Task<bool> RegisterUserAsync(TaiKhoan taiKhoan);
-        
-        // Lấy tài khoản theo tên đăng nhập
-        Task<TaiKhoan?> GetUserByUsernameAsync(string tenDangNhap);
-        
+        Task<bool> RegisterUserAsync(User user);
+
+        // Lấy tài khoản theo số điện thoại
+        Task<User?> GetUserByPhoneAsync(string phoneNumber);
+
         // Lấy tất cả tài khoản
-        Task<List<TaiKhoan>> GetAllUsersAsync();
-        
+        Task<List<User>> GetAllUsersAsync();
+
         // Lấy tài khoản theo ID
-        Task<TaiKhoan?> GetUserByIdAsync(int id);
-        
+        Task<User?> GetUserByIdAsync(int id);
+
         // Cập nhật tài khoản
-        Task<bool> UpdateUserAsync(TaiKhoan taiKhoan);
-        
+        Task<bool> UpdateUserAsync(User user);
+
         // Xóa tài khoản
         Task<bool> DeleteUserAsync(int id);
-        
-        // Lấy tài khoản theo vai trò
-        Task<List<TaiKhoan>> GetUsersByRoleAsync(string vaiTro);
+
+        // Lấy tài khoản theo RoleId
+        Task<List<User>> GetUsersByRoleAsync(int roleId);
+
+        // Lấy tài khoản theo tên vai trò
+        Task<List<User>> GetUsersByRoleNameAsync(string roleName);
+
+        // Thay đổi mật khẩu
+        Task<bool> ChangePasswordAsync(int userId, string oldPassword, string newPassword);
     }
 }

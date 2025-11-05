@@ -1,5 +1,5 @@
-using BTL_LTWeb_Quan_Ly_Cua_Hang_Xe_May.Models.Entities;
 using BTL_LTWeb_Quan_Ly_Cua_Hang_Xe_May.Services;
+using BTL_LTWeb_Quan_Ly_Cua_Hang_Xe_May.Models.Entities;
 using Microsoft.AspNetCore.Mvc;
 
 namespace BTL_LTWeb_Quan_Ly_Cua_Hang_Xe_May.Controllers
@@ -16,19 +16,19 @@ namespace BTL_LTWeb_Quan_Ly_Cua_Hang_Xe_May.Controllers
         // GET: Danh sách tất cả tài khoản
         public async Task<IActionResult> Index()
         {
-            var danhSachTaiKhoan = await _loginService.GetAllUsersAsync();
-            return View(danhSachTaiKhoan);
+            var danhSachUser = await _loginService.GetAllUsersAsync();
+            return View(danhSachUser);
         }
 
         // GET: Chi tiết tài khoản
         public async Task<IActionResult> Details(int id)
         {
-            var taiKhoan = await _loginService.GetUserByIdAsync(id);
-            if (taiKhoan == null)
+            var user = await _loginService.GetUserByIdAsync(id);
+            if (user == null)
             {
                 return NotFound();
             }
-            return View(taiKhoan);
+            return View(user);
         }
 
         // GET: Form đăng ký
@@ -40,19 +40,23 @@ namespace BTL_LTWeb_Quan_Ly_Cua_Hang_Xe_May.Controllers
         // POST: Đăng ký tài khoản
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Register(TaiKhoan taiKhoan)
+        public async Task<IActionResult> Register(User user)
         {
             if (ModelState.IsValid)
             {
-                // Kiểm tra tên đăng nhập đã tồn tại
-                var existingUser = await _loginService.GetUserByUsernameAsync(taiKhoan.TenDangNhap);
+                // Kiểm tra số điện thoại đã tồn tại
+                var existingUser = await _loginService.GetUserByPhoneAsync(user.PhoneNumber);
                 if (existingUser != null)
                 {
-                    ModelState.AddModelError("TenDangNhap", "Tên đăng nhập đã tồn tại!");
-                    return View(taiKhoan);
+                    ModelState.AddModelError("PhoneNumber", "Số điện thoại đã được đăng ký!");
+                    return View(user);
                 }
 
-                var result = await _loginService.RegisterUserAsync(taiKhoan);
+                // Set giá trị mặc định cho user mới
+                user.Status = "Active";
+                user.RoleId = 3; // Giả sử RoleId = 3 là Customer/Buyer, điều chỉnh theo database
+
+                var result = await _loginService.RegisterUserAsync(user);
                 if (result)
                 {
                     TempData["SuccessMessage"] = "Đăng ký tài khoản thành công!";
@@ -60,7 +64,7 @@ namespace BTL_LTWeb_Quan_Ly_Cua_Hang_Xe_May.Controllers
                 }
                 ModelState.AddModelError("", "Không thể đăng ký tài khoản. Vui lòng thử lại.");
             }
-            return View(taiKhoan);
+            return View(user);
         }
 
         // GET: Form đăng nhập
@@ -72,28 +76,34 @@ namespace BTL_LTWeb_Quan_Ly_Cua_Hang_Xe_May.Controllers
         // POST: Đăng nhập
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Login(string tenDangNhap, string matKhau)
+        public async Task<IActionResult> Login(string phoneNumber, string password)
         {
-            if (string.IsNullOrEmpty(tenDangNhap) || string.IsNullOrEmpty(matKhau))
+            if (string.IsNullOrEmpty(phoneNumber) || string.IsNullOrEmpty(password))
             {
                 ModelState.AddModelError("", "Vui lòng nhập đầy đủ thông tin!");
                 return View();
             }
 
-            var taiKhoan = await _loginService.ValidateUserAsync(tenDangNhap, matKhau);
-            if (taiKhoan != null)
+            var user = await _loginService.ValidateUserAsync(phoneNumber, password);
+            if (user != null)
             {
                 // Lưu thông tin vào session
-                HttpContext.Session.SetString("TenDangNhap", taiKhoan.TenDangNhap);
-                HttpContext.Session.SetString("HoVaTen", taiKhoan.HovaTen);
-                HttpContext.Session.SetString("VaiTro", taiKhoan.VaiTro);
-                HttpContext.Session.SetInt32("UserID", taiKhoan.ID);
+                HttpContext.Session.SetString("PhoneNumber", user.PhoneNumber);
+                HttpContext.Session.SetString("FullName", user.FullName);
+                HttpContext.Session.SetString("RoleName", user.Role.RoleName);
+                HttpContext.Session.SetInt32("UserId", user.UserId);
+                HttpContext.Session.SetInt32("RoleId", user.RoleId);
 
-                TempData["SuccessMessage"] = $"Chào mừng {taiKhoan.HovaTen}!";
+                if (!string.IsNullOrEmpty(user.Email))
+                {
+                    HttpContext.Session.SetString("Email", user.Email);
+                }
+
+                TempData["SuccessMessage"] = $"Chào mừng {user.FullName}!";
                 return RedirectToAction("Index", "Home");
             }
 
-            ModelState.AddModelError("", "Tên đăng nhập hoặc mật khẩu không đúng!");
+            ModelState.AddModelError("", "Số điện thoại hoặc mật khẩu không đúng!");
             return View();
         }
 
@@ -108,46 +118,84 @@ namespace BTL_LTWeb_Quan_Ly_Cua_Hang_Xe_May.Controllers
         // GET: Form chỉnh sửa tài khoản
         public async Task<IActionResult> Edit(int id)
         {
-            var taiKhoan = await _loginService.GetUserByIdAsync(id);
-            if (taiKhoan == null)
+            // Kiểm tra quyền: chỉ cho phép sửa tài khoản của chính mình hoặc admin
+            var currentUserId = HttpContext.Session.GetInt32("UserId");
+            var currentRoleId = HttpContext.Session.GetInt32("RoleId");
+
+            if (currentUserId != id && currentRoleId != 1) // RoleId = 1 là Admin
+            {
+                TempData["ErrorMessage"] = "Bạn không có quyền chỉnh sửa tài khoản này!";
+                return RedirectToAction("Index", "Home");
+            }
+
+            var user = await _loginService.GetUserByIdAsync(id);
+            if (user == null)
             {
                 return NotFound();
             }
-            return View(taiKhoan);
+            return View(user);
         }
 
         // POST: Cập nhật tài khoản
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Edit(int id, TaiKhoan taiKhoan)
+        public async Task<IActionResult> Edit(int id, User user)
         {
-            if (id != taiKhoan.ID)
+            if (id != user.UserId)
             {
                 return BadRequest();
             }
 
+            // Kiểm tra quyền
+            var currentUserId = HttpContext.Session.GetInt32("UserId");
+            var currentRoleId = HttpContext.Session.GetInt32("RoleId");
+
+            if (currentUserId != id && currentRoleId != 1)
+            {
+                TempData["ErrorMessage"] = "Bạn không có quyền chỉnh sửa tài khoản này!";
+                return RedirectToAction("Index", "Home");
+            }
+
             if (ModelState.IsValid)
             {
-                var result = await _loginService.UpdateUserAsync(taiKhoan);
+                var result = await _loginService.UpdateUserAsync(user);
                 if (result)
                 {
+                    // Cập nhật lại session nếu sửa tài khoản của chính mình
+                    if (currentUserId == id)
+                    {
+                        HttpContext.Session.SetString("FullName", user.FullName);
+                        if (!string.IsNullOrEmpty(user.Email))
+                        {
+                            HttpContext.Session.SetString("Email", user.Email);
+                        }
+                    }
+
                     TempData["SuccessMessage"] = "Cập nhật tài khoản thành công!";
                     return RedirectToAction(nameof(Index));
                 }
                 ModelState.AddModelError("", "Không thể cập nhật tài khoản. Vui lòng thử lại.");
             }
-            return View(taiKhoan);
+            return View(user);
         }
 
         // GET: Xác nhận xóa tài khoản
         public async Task<IActionResult> Delete(int id)
         {
-            var taiKhoan = await _loginService.GetUserByIdAsync(id);
-            if (taiKhoan == null)
+            // Chỉ admin mới được xóa tài khoản
+            var currentRoleId = HttpContext.Session.GetInt32("RoleId");
+            if (currentRoleId != 1)
+            {
+                TempData["ErrorMessage"] = "Chỉ Admin mới có quyền xóa tài khoản!";
+                return RedirectToAction(nameof(Index));
+            }
+
+            var user = await _loginService.GetUserByIdAsync(id);
+            if (user == null)
             {
                 return NotFound();
             }
-            return View(taiKhoan);
+            return View(user);
         }
 
         // POST: Xóa tài khoản
@@ -155,6 +203,14 @@ namespace BTL_LTWeb_Quan_Ly_Cua_Hang_Xe_May.Controllers
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> DeleteConfirmed(int id)
         {
+            // Chỉ admin mới được xóa tài khoản
+            var currentRoleId = HttpContext.Session.GetInt32("RoleId");
+            if (currentRoleId != 1)
+            {
+                TempData["ErrorMessage"] = "Chỉ Admin mới có quyền xóa tài khoản!";
+                return RedirectToAction(nameof(Index));
+            }
+
             var result = await _loginService.DeleteUserAsync(id);
             if (result)
             {
@@ -167,49 +223,133 @@ namespace BTL_LTWeb_Quan_Ly_Cua_Hang_Xe_May.Controllers
             return RedirectToAction(nameof(Index));
         }
 
-        // GET: Lấy danh sách tài khoản theo vai trò
-        public async Task<IActionResult> GetByRole(string vaiTro)
+        // GET: Lấy danh sách tài khoản theo RoleId
+        public async Task<IActionResult> GetByRole(int roleId)
         {
-            if (string.IsNullOrEmpty(vaiTro))
+            var danhSachUser = await _loginService.GetUsersByRoleAsync(roleId);
+            ViewBag.RoleId = roleId;
+            return View("Index", danhSachUser);
+        }
+
+        // GET: Lấy danh sách tài khoản theo tên vai trò
+        public async Task<IActionResult> GetByRoleName(string roleName)
+        {
+            if (string.IsNullOrEmpty(roleName))
             {
                 return RedirectToAction(nameof(Index));
             }
 
-            var danhSachTaiKhoan = await _loginService.GetUsersByRoleAsync(vaiTro);
-            ViewBag.VaiTro = vaiTro;
-            return View("Index", danhSachTaiKhoan);
+            var danhSachUser = await _loginService.GetUsersByRoleNameAsync(roleName);
+            ViewBag.RoleName = roleName;
+            return View("Index", danhSachUser);
+        }
+
+        // GET: Form đổi mật khẩu
+        public IActionResult ChangePassword()
+        {
+            return View();
+        }
+
+        // POST: Đổi mật khẩu
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> ChangePassword(string oldPassword, string newPassword, string confirmPassword)
+        {
+            var userId = HttpContext.Session.GetInt32("UserId");
+            if (!userId.HasValue)
+            {
+                TempData["ErrorMessage"] = "Vui lòng đăng nhập để đổi mật khẩu!";
+                return RedirectToAction("Login", "Home");
+            }
+
+            if (string.IsNullOrEmpty(oldPassword) || string.IsNullOrEmpty(newPassword))
+            {
+                ModelState.AddModelError("", "Vui lòng nhập đầy đủ thông tin!");
+                return View();
+            }
+
+            if (newPassword != confirmPassword)
+            {
+                ModelState.AddModelError("", "Mật khẩu mới và xác nhận mật khẩu không khớp!");
+                return View();
+            }
+
+            var result = await _loginService.ChangePasswordAsync(userId.Value, oldPassword, newPassword);
+            if (result)
+            {
+                TempData["SuccessMessage"] = "Đổi mật khẩu thành công!";
+                return RedirectToAction("Index", "Home");
+            }
+
+            ModelState.AddModelError("", "Mật khẩu cũ không đúng!");
+            return View();
         }
 
         // API: Lấy danh sách tài khoản dạng JSON
         [HttpGet]
         public async Task<JsonResult> GetUsersJson()
         {
-            var danhSachTaiKhoan = await _loginService.GetAllUsersAsync();
+            var danhSachUser = await _loginService.GetAllUsersAsync();
             // Ẩn mật khẩu khi trả về JSON
-            var result = danhSachTaiKhoan.Select(t => new
+            var result = danhSachUser.Select(u => new
             {
-                t.ID,
-                t.TenDangNhap,
-                t.HovaTen,
-                t.NgaySinh,
-                t.GioiTinh,
-                t.Email,
-                t.VaiTro
+                u.UserId,
+                u.FullName,
+                u.PhoneNumber,
+                u.Email,
+                u.Status,
+                RoleName = u.Role?.RoleName,
+                u.RoleId
             });
             return Json(result);
         }
 
-        // API: Kiểm tra tên đăng nhập có tồn tại
+        // API: Kiểm tra số điện thoại có tồn tại
         [HttpGet]
-        public async Task<JsonResult> CheckUsernameExists(string tenDangNhap)
+        public async Task<JsonResult> CheckPhoneExists(string phoneNumber)
         {
-            if (string.IsNullOrEmpty(tenDangNhap))
+            if (string.IsNullOrEmpty(phoneNumber))
             {
                 return Json(new { exists = false });
             }
 
-            var user = await _loginService.GetUserByUsernameAsync(tenDangNhap);
+            var user = await _loginService.GetUserByPhoneAsync(phoneNumber);
             return Json(new { exists = user != null });
+        }
+
+        // API: Thay đổi trạng thái tài khoản
+        [HttpPost]
+        public async Task<JsonResult> ChangeStatus(int id, string status)
+        {
+            // Chỉ admin mới được thay đổi trạng thái
+            var currentRoleId = HttpContext.Session.GetInt32("RoleId");
+            if (currentRoleId != 1)
+            {
+                return Json(new { success = false, message = "Chỉ Admin mới có quyền thay đổi trạng thái!" });
+            }
+
+            try
+            {
+                var user = await _loginService.GetUserByIdAsync(id);
+                if (user == null)
+                {
+                    return Json(new { success = false, message = "Không tìm thấy tài khoản" });
+                }
+
+                user.Status = status;
+                var result = await _loginService.UpdateUserAsync(user);
+
+                if (result)
+                {
+                    return Json(new { success = true, message = "Cập nhật trạng thái thành công" });
+                }
+
+                return Json(new { success = false, message = "Không thể cập nhật trạng thái" });
+            }
+            catch (Exception ex)
+            {
+                return Json(new { success = false, message = ex.Message });
+            }
         }
     }
 }

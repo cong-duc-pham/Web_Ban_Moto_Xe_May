@@ -1,15 +1,17 @@
-using BTL_LTWeb_Quan_Ly_Cua_Hang_Xe_May.Models.EF;
 using BTL_LTWeb_Quan_Ly_Cua_Hang_Xe_May.Services;
-using Microsoft.AspNetCore.Builder;
+using BTL_LTWeb_Quan_Ly_Cua_Hang_Xe_May.Models.EF;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.SqlServer;
 
 var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container.
 builder.Services.AddControllersWithViews();
 
-builder.Services.AddDbContext<ApplicationDbContext>(options => options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")), ServiceLifetime.Scoped);
+// Đăng ký DbContext với Database First
+var connectionString = builder.Configuration.GetConnectionString("DefaultConnection");
+builder.Services.AddDbContext<ApplicationDbContext>(options =>
+    options.UseSqlServer(connectionString),
+    ServiceLifetime.Scoped);
 
 // Đăng ký service Login
 builder.Services.AddScoped<ILoginService, Login>();
@@ -26,8 +28,6 @@ builder.Services.AddSession(options =>
 });
 
 var app = builder.Build();
-
-
 
 // Configure the HTTP request pipeline.
 if (!app.Environment.IsDevelopment())
@@ -50,6 +50,4 @@ app.MapControllerRoute(
     pattern: "{controller=Home}/{action=Index}/{id?}")
     .WithStaticAssets();
 
-
 app.Run();
-    
