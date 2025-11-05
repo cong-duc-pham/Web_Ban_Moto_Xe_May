@@ -292,17 +292,18 @@
                     </div>
                 </div>
             }
-            
+
             <div class="row g-3" id="productGrid">
                 @{
                     if (ViewBag.lstXeMay != null)
                     {
                         foreach (XeMay xe in ViewBag.lstXeMay)
                         {
-                            <div class="col-lg-2 col-md-3 col-6">
+                            <div class="col-lg-2 col-md-2 col-sm-4 col-6">
                                 <div class="product-card" data-id="@xe.ID">
                                     <div class="product-image">
-                                        <img src="~/images/@xe.HinhAnh" alt="@xe.TenXe" onerror="this.src='https://via.placeholder.com/300x200?text=No+Image'" />
+                                        <img src="~/images/@xe.HinhAnh" alt="@xe.TenXe"
+                                             onerror="this.src='https://via.placeholder.com/300x200?text=No+Image'" />
                                         <span class="product-badge">
                                             <i class="fas fa-check-circle"></i> CHÍNH HÃNG
                                         </span>
@@ -318,11 +319,11 @@
                                     @if (ViewBag.IsAdmin == true)
                                     {
                                         <div class="product-actions">
-                                            <button class="btn btn-sm btn-warning" 
+                                            <button class="btn btn-sm btn-warning"
                                                     onclick='showEditModal(@xe.ID, @Html.Raw(System.Text.Json.JsonSerializer.Serialize(xe.TenXe)), @xe.Gia, @Html.Raw(System.Text.Json.JsonSerializer.Serialize(xe.HinhAnh)), @Html.Raw(System.Text.Json.JsonSerializer.Serialize(xe.MoTa ?? "")))'>
                                                 <i class="fas fa-edit"></i> Sửa
                                             </button>
-                                            <button class="btn btn-sm btn-danger" 
+                                            <button class="btn btn-sm btn-danger"
                                                     onclick='confirmDelete(@xe.ID, @Html.Raw(System.Text.Json.JsonSerializer.Serialize(xe.TenXe)))'>
                                                 <i class="fas fa-trash"></i> Xóa
                                             </button>
@@ -334,7 +335,7 @@
                     }
                 }
             </div>
-        </div>
+
     </section>
 
     <!-- Modal Thêm/Sửa Xe Máy -->
