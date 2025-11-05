@@ -10,5 +10,6 @@ namespace BTL_LTWeb_Quan_Ly_Cua_Hang_Xe_May.Models.Entities
         public decimal Gia { get; set; }
         public string HinhAnh { get; set; }
         public string MoTa { get; set; }
+
     }
 }
