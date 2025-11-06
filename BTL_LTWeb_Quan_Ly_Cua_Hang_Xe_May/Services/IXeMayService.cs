@@ -60,6 +60,13 @@ namespace BTL_LTWeb_Quan_Ly_Cua_Hang_Xe_May.Services
 
         // Thêm hình ảnh xe máy
         Task<bool> AddVehicleImageAsync(VehicleImage vehicleImage);
+
+        // Quản lý đơn hàng
+        Task<OrderInfo?> CreateOrderAsync(OrderInfo order);
+        Task<List<OrderInfo>> GetOrdersByCustomerIdAsync(int customerId);
+        Task<List<OrderInfo>> GetAllOrdersAsync();
+        Task<bool> UpdateOrderStatusAsync(int orderId, string status, string? cancelReason = null);
+        Task<bool> UpdateVehicleStatusAsync(int vehicleId, string status);
     }
 }
 

@@ -338,6 +338,118 @@ function showAlert(type, message) {
     }, 5000);
 }
 
+// ===== QUẢN LÝ MUA XE =====
+
+// Hiển thị modal mua xe
+function showBuyModal(vehicleId, vehicleName, vehiclePrice) {
+    document.getElementById('buyVehicleId').value = vehicleId;
+    document.getElementById('buyVehicleName').textContent = vehicleName;
+    document.getElementById('buyVehiclePrice').textContent = vehiclePrice.toLocaleString('vi-VN') + ' đ';
+    
+    // Reset form
+    document.getElementById('customerAddress').value = '';
+    document.getElementById('depositAmount').value = '';
+    document.getElementById('paymentMethod').value = 'Tiền mặt';
+    document.getElementById('orderNote').value = '';
+    
+    // Hiển thị modal
+    const modal = new bootstrap.Modal(document.getElementById('buyModal'));
+    modal.show();
+}
+
+// Xử lý form mua xe
+document.addEventListener('DOMContentLoaded', function() {
+    const buyForm = document.getElementById('buyForm');
+    if (buyForm) {
+        buyForm.addEventListener('submit', async function(e) {
+            e.preventDefault();
+            
+            const vehicleId = parseInt(document.getElementById('buyVehicleId').value);
+            const customerAddress = document.getElementById('customerAddress').value.trim();
+            const depositAmount = document.getElementById('depositAmount').value;
+            const paymentMethod = document.getElementById('paymentMethod').value;
+            const orderNote = document.getElementById('orderNote').value.trim();
+            
+            // Validate
+            if (!customerAddress) {
+                alert('Vui lòng nhập địa chỉ nhận xe!');
+                document.getElementById('customerAddress').focus();
+                return;
+            }
+            
+            // Kiểm tra ký tự hợp lệ trong địa chỉ
+            if (customerAddress.length < 5) {
+                alert('Địa chỉ phải có ít nhất 5 ký tự!');
+                document.getElementById('customerAddress').focus();
+                return;
+            }
+            
+            // Log để debug
+            console.log('VehicleId:', vehicleId);
+            console.log('CustomerAddress:', customerAddress);
+            console.log('DepositAmount:', depositAmount);
+            console.log('PaymentMethod:', paymentMethod);
+            console.log('Note:', orderNote);
+            
+            const data = {
+                vehicleId: vehicleId,
+                customerAddress: customerAddress,
+                depositAmount: depositAmount ? parseFloat(depositAmount) : null,
+                paymentMethod: paymentMethod,
+                note: orderNote || null
+            };
+            
+            try {
+                console.log('Đang gửi request:', JSON.stringify(data, null, 2));
+                
+                const response = await fetch('/Home/BuyVehicle', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json; charset=utf-8',
+                    },
+                    body: JSON.stringify(data)
+                });
+                
+                console.log('Response status:', response.status);
+                
+                if (!response.ok) {
+                    const errorText = await response.text();
+                    console.error('Response error:', errorText);
+                    alert('Lỗi server: ' + response.status);
+                    return;
+                }
+                
+                const result = await response.json();
+                console.log('Result:', result);
+                
+                if (result.success) {
+                    // Đóng modal
+                    const modal = bootstrap.Modal.getInstance(document.getElementById('buyModal'));
+                    if (modal) {
+                        modal.hide();
+                    }
+                    
+                    // Hiển thị thông báo thành công với tùy chọn
+                    const viewOrder = confirm(result.message + '\n\nBạn có muốn xem đơn hàng ngay không?');
+                    
+                    if (viewOrder) {
+                        // Chuyển đến trang đơn hàng
+                        window.location.href = '/Home/MyOrders';
+                    } else {
+                        // Reload trang để cập nhật danh sách xe
+                        location.reload();
+                    }
+                } else {
+                    alert('Lỗi: ' + result.message);
+                }
+            } catch (error) {
+                console.error('Error:', error);
+                alert('Có lỗi xảy ra khi đặt mua xe: ' + error.message);
+            }
+        });
+    }
+});
+
 // Animation cho alert
 const style = document.createElement('style');
 style.textContent = `

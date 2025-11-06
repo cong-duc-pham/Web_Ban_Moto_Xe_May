@@ -144,30 +144,49 @@
                     </div>
                 </div>
                 <div class="col-md-3">
+                    @{
+                        var fullName = Context.Session.GetString("FullName");
+                        var isLoggedIn = !string.IsNullOrEmpty(fullName);
+                    }
+                    
                     <div class="d-flex align-items-center justify-content-end">
                         <i class="fas fa-bell header-icon"></i>
                         <i class="fas fa-comment-dots header-icon"></i>
-                        <div class="user-info ms-2">
-                           
-                            @* <span class="d-none d-md-inline">Quản lý tin</span> *@
-                        </div>
-                        <div class="dropdown ms-2">
-                            <a href="#" class="d-flex align-items-center dropdown-toggle" data-bs-toggle="dropdown">
-                                <img src="https://i.pravatar.cc/32" alt="User" class="user-avatar">
-                                <span class="d-none d-md-inline ms-1">Hoàng Thanh Dat</span>
-                                <i class="fas fa-chevron-down ms-1"></i>
+                        
+                        @if (isLoggedIn)
+                        {
+                            <!-- Hiển thị khi đã đăng nhập -->
+                            <div class="dropdown ms-2">
+                                <a href="#" class="d-flex align-items-center dropdown-toggle" data-bs-toggle="dropdown">
+                                    <img src="https://i.pravatar.cc/32" alt="User" class="user-avatar">
+                                    <span class="d-none d-md-inline ms-1">@fullName</span>
+                                    <i class="fas fa-chevron-down ms-1"></i>
+                                </a>
+                                <ul class="dropdown-menu dropdown-menu-end">
+                                    <li><a class="dropdown-item" href="/Account/Profile"><i class="fas fa-user me-2"></i>Tài khoản của tôi</a></li>
+                                    @if (ViewBag.IsAdmin == true)
+                                    {
+                                        <li><a class="dropdown-item" href="/Home/ManageOrders"><i class="fas fa-tasks me-2"></i>Quản lý đơn hàng</a></li>
+                                    }
+                                    else
+                                    {
+                                        <li><a class="dropdown-item" href="/Home/MyOrders"><i class="fas fa-shopping-bag me-2"></i>Đơn hàng của tôi</a></li>
+                                    }
+                                    <li><a class="dropdown-item" href="#"><i class="fas fa-bookmark me-2"></i>Tin đã lưu</a></li>
+                                    <li><hr class="dropdown-divider"></li>
+                                    <li><a class="dropdown-item text-danger" href="/Account/Logout"><i class="fas fa-sign-out-alt me-2"></i>Đăng xuất</a></li>
+                                </ul>
+                            </div>
+                        }
+                        else
+                        {
+                            <!-- Hiển thị khi chưa đăng nhập -->
+                            <a href="/Account/Login" class="btn btn-outline-primary btn-sm ms-2">
+                                <i class="fas fa-sign-in-alt me-1"></i> Đăng nhập
                             </a>
-                            <ul class="dropdown-menu">
-                                <li><a class="dropdown-item" href="#">Tài khoản của tôi</a></li>
-                                <li><a class="dropdown-item" href="#">Tin đã đăng</a></li>
-                                <li><a class="dropdown-item" href="#">Tin đã lưu</a></li>
-                                <li>
-                                    <hr class="dropdown-divider">
-                                </li>
-                                <li><a class="dropdown-item" href="#">Đăng xuất</a></li>
-                            </ul>
-                        </div>
-                        <a asp-controller="Home" asp-action="LiquidationCar" class="btn btn-info">
+                        }
+                        
+                        <a asp-controller="Home" asp-action="LiquidationCar" class="btn btn-info ms-2">
                             BÁN XE
                         </a>
                     </div>
@@ -353,6 +372,25 @@
                                             </button>
                                         </div>
                                     }
+                                    else if (isLoggedIn)
+                                    {
+                                        <!-- Nút mua xe cho khách hàng đã đăng nhập -->
+                                        <div class="product-actions">
+                                            <button class="btn btn-sm btn-success w-100"
+                                                    onclick='showBuyModal(@xe.VehicleId, @Html.Raw(System.Text.Json.JsonSerializer.Serialize(xe.Title)), @(xe.SalePrice ?? 0))'>
+                                                <i class="fas fa-shopping-cart"></i> Mua xe ngay
+                                            </button>
+                                        </div>
+                                    }
+                                    else
+                                    {
+                                        <!-- Nút đăng nhập để mua -->
+                                        <div class="product-actions">
+                                            <a href="/Account/Login" class="btn btn-sm btn-outline-success w-100">
+                                                <i class="fas fa-sign-in-alt"></i> Đăng nhập để mua
+                                            </a>
+                                        </div>
+                                    }
                                 </div>
                             </div>
                         }
@@ -510,6 +548,71 @@
                         </button>
                         <button type="submit" class="btn btn-primary" id="btnSave">
                             <i class="fas fa-save"></i> Lưu
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal Mua Xe -->
+    <div class="modal fade" id="buyModal" tabindex="-1">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content">
+                <div class="modal-header bg-success text-white">
+                    <h5 class="modal-title">
+                        <i class="fas fa-shopping-cart"></i> Xác nhận mua xe
+                    </h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+                </div>
+                <form id="buyForm">
+                    <div class="modal-body">
+                        <input type="hidden" id="buyVehicleId" />
+                        
+                        <div class="alert alert-info mb-3">
+                            <strong>Xe:</strong> <span id="buyVehicleName"></span><br>
+                            <strong>Giá:</strong> <span id="buyVehiclePrice"></span>
+                        </div>
+
+                        <div class="mb-3">
+                            <label for="customerAddress" class="form-label">Địa chỉ nhận xe <span class="text-danger">*</span></label>
+                            <textarea class="form-control" id="customerAddress" rows="2" required
+                                      placeholder="Nhập địa chỉ chi tiết để nhận xe..."></textarea>
+                        </div>
+
+                        <div class="mb-3">
+                            <label for="depositAmount" class="form-label">Tiền đặt cọc (nếu có)</label>
+                            <input type="number" class="form-control" id="depositAmount" 
+                                   placeholder="Nhập số tiền đặt cọc (VNĐ)" min="0" />
+                        </div>
+
+                        <div class="mb-3">
+                            <label for="paymentMethod" class="form-label">Phương thức thanh toán</label>
+                            <select class="form-select" id="paymentMethod">
+                                <option value="Tiền mặt">Tiền mặt</option>
+                                <option value="Chuyển khoản">Chuyển khoản</option>
+                                <option value="Trả góp">Trả góp</option>
+                            </select>
+                        </div>
+
+                        <div class="mb-3">
+                            <label for="orderNote" class="form-label">Ghi chú</label>
+                            <textarea class="form-control" id="orderNote" rows="2"
+                                      placeholder="Ghi chú thêm về đơn hàng (nếu có)..."></textarea>
+                        </div>
+
+                        <div class="alert alert-warning mb-0">
+                            <i class="fas fa-info-circle"></i> <strong>Lưu ý:</strong> 
+                            Sau khi xác nhận, đơn hàng sẽ được gửi đến cửa hàng để xác nhận. 
+                            Xe sẽ tạm thời ẩn khỏi trang bán cho đến khi có quyết định từ cửa hàng.
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
+                            <i class="fas fa-times"></i> Hủy
+                        </button>
+                        <button type="submit" class="btn btn-success">
+                            <i class="fas fa-check"></i> Xác nhận mua
                         </button>
                     </div>
                 </form>

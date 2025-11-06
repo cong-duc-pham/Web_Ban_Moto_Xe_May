@@ -39,6 +39,18 @@ namespace BTL_LTWeb_Quan_Ly_Cua_Hang_Xe_May.Controllers
 
         public async Task<IActionResult> Index()
         {
+            // Debug session
+            var roleName = HttpContext.Session.GetString("RoleName");
+            var roleId = HttpContext.Session.GetInt32("RoleId");
+            var userId = HttpContext.Session.GetInt32("UserId");
+            var fullName = HttpContext.Session.GetString("FullName");
+            
+            _logger.LogInformation($"=== INDEX PAGE - Session Info ===");
+            _logger.LogInformation($"FullName: {fullName}");
+            _logger.LogInformation($"UserId: {userId}");
+            _logger.LogInformation($"RoleName: '{roleName}'");
+            _logger.LogInformation($"RoleId: {roleId}");
+            
             // Lấy dữ liệu (ở đây stores/news nếu chưa code thì để danh sách rỗng - có thể sửa sau)
             var vehicles = await _xeMayService.GetAllVehiclesAsync();
             var stores = new List<Store>();
@@ -62,12 +74,35 @@ namespace BTL_LTWeb_Quan_Ly_Cua_Hang_Xe_May.Controllers
             _logger.LogInformation("=== VÀO TRANG MOTORBIKE ONLINE ===");
             
             List<Vehicle> lstVehicle = await _xeMayService.GetAllVehiclesAsync();
-            ViewBag.lstVehicle = lstVehicle;
-            _logger.LogInformation($"Số lượng xe: {lstVehicle?.Count ?? 0}");
+            _logger.LogInformation($"Tổng số xe trong database: {lstVehicle?.Count ?? 0}");
             
             var roleId = HttpContext.Session.GetInt32("RoleId");
             ViewBag.IsAdmin = roleId.HasValue && roleId.Value == 1;
             _logger.LogInformation($"IsAdmin: {ViewBag.IsAdmin}, RoleId: {roleId}");
+            
+            // Log trạng thái của các xe để debug
+            if (lstVehicle != null && lstVehicle.Any())
+            {
+                foreach (var v in lstVehicle.Take(5))
+                {
+                    _logger.LogInformation($"Xe ID={v.VehicleId}: Status='{v.Status}'");
+                }
+            }
+            
+            // Nếu là Admin, hiển thị tất cả xe
+            // Nếu là khách hàng, chỉ hiển thị xe "Available" (đang bán)
+            if (!ViewBag.IsAdmin)
+            {
+                var beforeFilter = lstVehicle.Count;
+                lstVehicle = lstVehicle.Where(v => 
+                    !string.IsNullOrEmpty(v.Status) && 
+                    v.Status.Trim().Equals("Available", StringComparison.OrdinalIgnoreCase)
+                ).ToList();
+                _logger.LogInformation($"Lọc xe: {beforeFilter} -> {lstVehicle.Count} (chỉ 'Available')");
+            }
+            
+            ViewBag.lstVehicle = lstVehicle;
+            _logger.LogInformation($"Số lượng xe hiển thị: {lstVehicle?.Count ?? 0}");
             
             // Load dropdown data
             var stores = await _xeMayService.GetAllStoresAsync();
@@ -310,10 +345,314 @@ namespace BTL_LTWeb_Quan_Ly_Cua_Hang_Xe_May.Controllers
             }
         }
 
+        // ===== QUẢN LÝ ĐƠN HÀNG =====
+
+        // Khách hàng mua xe
+        [HttpPost]
+        public async Task<IActionResult> BuyVehicle([FromBody] BuyVehicleRequest request)
+        {
+            try
+            {
+                _logger.LogInformation("=== BẮT ĐẦU MUA XE ===");
+                
+                // Validate request
+                if (request == null)
+                {
+                    _logger.LogWarning("Request null");
+                    return Json(new { success = false, message = "Dữ liệu không hợp lệ!" });
+                }
+
+                _logger.LogInformation($"VehicleId: {request.VehicleId}");
+                _logger.LogInformation($"CustomerAddress: {request.CustomerAddress}");
+                _logger.LogInformation($"DepositAmount: {request.DepositAmount}");
+                _logger.LogInformation($"PaymentMethod: {request.PaymentMethod}");
+                
+                // Validate địa chỉ
+                if (string.IsNullOrWhiteSpace(request.CustomerAddress))
+                {
+                    _logger.LogWarning("CustomerAddress rỗng");
+                    return Json(new { success = false, message = "Vui lòng nhập địa chỉ nhận xe!" });
+                }
+
+                // Kiểm tra đăng nhập - Đọc UserId từ Session (đã lưu bằng SetInt32)
+                var userId = HttpContext.Session.GetInt32("UserId");
+                _logger.LogInformation($"UserId from session: {userId}");
+                
+                if (!userId.HasValue)
+                {
+                    _logger.LogWarning("UserId null - chưa đăng nhập");
+                    return Json(new { success = false, message = "Vui lòng đăng nhập để mua xe!" });
+                }
+                
+                _logger.LogInformation($"UserId: {userId.Value}");
+                
+                var fullName = HttpContext.Session.GetString("FullName") ?? "";
+                var phoneNumber = HttpContext.Session.GetString("PhoneNumber") ?? "";
+                
+                _logger.LogInformation($"FullName: '{fullName}', PhoneNumber: '{phoneNumber}'");
+
+                // Kiểm tra xe tồn tại và đang bán
+                var vehicle = await _xeMayService.GetVehicleByIdAsync(request.VehicleId);
+                if (vehicle == null)
+                {
+                    return Json(new { success = false, message = "Xe không tồn tại!" });
+                }
+
+                if (vehicle.Status != "Available")
+                {
+                    return Json(new { success = false, message = "Xe này hiện không còn bán!" });
+                }
+
+                // Tạo mã đơn hàng
+                // Rút ngắn OrderNumber: chỉ lấy YYMMDDHHmmss (12 ký tự) thay vì yyyyMMddHHmmss (14 ký tự)
+                // Format: ORD + YYMMDDHHmmss = 15 ký tự (dưới 20)
+                var orderNumber = $"ORD{DateTime.Now:yyMMddHHmmss}";
+                _logger.LogInformation($"OrderNumber: {orderNumber} (Length: {orderNumber.Length})");
+
+                // Tạo đơn hàng
+                _logger.LogInformation("Đang tạo OrderInfo object...");
+                // Xử lý PaymentMethod - cắt ngắn nếu quá dài
+                var paymentMethod = string.IsNullOrWhiteSpace(request.PaymentMethod) 
+                    ? "Cash" 
+                    : (request.PaymentMethod.Length > 20 
+                        ? request.PaymentMethod.Substring(0, 20) 
+                        : request.PaymentMethod);
+                
+                _logger.LogInformation($"PaymentMethod after trim: '{paymentMethod}' (Length: {paymentMethod.Length})");
+                
+                var order = new OrderInfo
+                {
+                    OrderNumber = orderNumber,
+                    VehicleId = vehicle.VehicleId,
+                    StoreId = vehicle.StoreId ?? 1, // Default store nếu không có
+                    CustomerId = userId.Value,
+                    CustomerName = fullName,
+                    CustomerPhone = phoneNumber,
+                    CustomerAddress = request.CustomerAddress ?? "",
+                    VehiclePrice = vehicle.SalePrice ?? 0,
+                    DepositAmount = request.DepositAmount ?? 0,
+                    TotalPrice = vehicle.SalePrice ?? 0,
+                    PaymentMethod = paymentMethod,
+                    PaymentStatus = "Unpaid",
+                    OrderStatus = "Pending",
+                    Note = request.Note ?? "",
+                    OrderedAt = DateTime.Now
+                };
+                
+                _logger.LogInformation($"Order created: CustomerId={order.CustomerId}, VehicleId={order.VehicleId}, CustomerName='{order.CustomerName}'");
+                _logger.LogInformation($"📋 Full Order Details:");
+                _logger.LogInformation($"  OrderNumber: {order.OrderNumber} (Length: {order.OrderNumber.Length})");
+                _logger.LogInformation($"  PaymentMethod: '{order.PaymentMethod}' (Length: {order.PaymentMethod.Length})");
+                _logger.LogInformation($"  PaymentStatus: '{order.PaymentStatus}' (Length: {order.PaymentStatus.Length})");
+                _logger.LogInformation($"  OrderStatus: '{order.OrderStatus}' (Length: {order.OrderStatus.Length})");
+                _logger.LogInformation($"  Note: '{order.Note}' (Length: {order.Note.Length})");
+                _logger.LogInformation("Đang gọi CreateOrderAsync...");
+
+                var createdOrder = await _xeMayService.CreateOrderAsync(order);
+                
+                _logger.LogInformation($"CreateOrderAsync returned: {(createdOrder != null ? "Success" : "Null")}");
+                
+                if (createdOrder != null)
+                {
+                    // Cập nhật trạng thái xe sang "Pending" để ẩn khỏi trang web
+                    await _xeMayService.UpdateVehicleStatusAsync(vehicle.VehicleId, "Pending");
+                    
+                    return Json(new { 
+                        success = true, 
+                        message = "Đặt mua xe thành công! Vui lòng chờ xác nhận từ cửa hàng.",
+                        orderId = createdOrder.OrderId 
+                    });
+                }
+
+                return Json(new { success = false, message = "Có lỗi xảy ra khi tạo đơn hàng!" });
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Lỗi khi tạo đơn hàng");
+                return Json(new { success = false, message = $"Lỗi: {ex.Message}" });
+            }
+        }
+
+        // DEBUG: Xem trạng thái tất cả xe (JSON)
+        public async Task<IActionResult> DebugVehicles()
+        {
+            var vehicles = await _xeMayService.GetAllVehiclesAsync();
+            
+            var debugInfo = vehicles.Select(v => new
+            {
+                v.VehicleId,
+                v.Title,
+                Status = v.Status,
+                StatusLength = v.Status?.Length ?? 0,
+                StatusBytes = v.Status != null ? System.Text.Encoding.UTF8.GetBytes(v.Status) : null,
+                v.PostedAt
+            }).ToList();
+            
+            return Json(new { 
+                TotalVehicles = vehicles.Count,
+                Vehicles = debugInfo,
+                StatusGroups = vehicles.GroupBy(v => v.Status).Select(g => new { Status = g.Key, Count = g.Count() })
+            });
+        }
+
+        // DEBUG: Xem trạng thái xe (HTML dễ đọc)
+        public async Task<IActionResult> DebugVehiclesPage()
+        {
+            var vehicles = await _xeMayService.GetAllVehiclesAsync();
+            ViewBag.AllVehicles = vehicles;
+            
+            var roleId = HttpContext.Session.GetInt32("RoleId");
+            ViewBag.CurrentRoleId = roleId;
+            ViewBag.IsAdminSession = roleId.HasValue && roleId.Value == 1;
+            
+            // Lọc như code thật
+            var filteredVehicles = vehicles.Where(v => 
+                !string.IsNullOrEmpty(v.Status) && 
+                v.Status.Trim().Equals("Available", StringComparison.OrdinalIgnoreCase)
+            ).ToList();
+            
+            ViewBag.FilteredVehicles = filteredVehicles;
+            
+            return View();
+        }
+
+        // Xem đơn hàng của khách hàng
+        public async Task<IActionResult> MyOrders()
+        {
+            var userId = HttpContext.Session.GetInt32("UserId");
+            if (!userId.HasValue)
+            {
+                return RedirectToAction("Login", "Account");
+            }
+
+            var orders = await _xeMayService.GetOrdersByCustomerIdAsync(userId.Value);
+            
+            return View(orders);
+        }
+
+        // Quản lý đơn hàng (Admin)
+        public async Task<IActionResult> ManageOrders()
+        {
+            // Kiểm tra quyền admin
+            var roleName = HttpContext.Session.GetString("RoleName");
+            var roleId = HttpContext.Session.GetInt32("RoleId");
+            
+            _logger.LogInformation($"ManageOrders - RoleName: {roleName}, RoleId: {roleId}");
+            
+            // Kiểm tra quyền: RoleName = "Admin" (không phân biệt hoa thường) HOẶC RoleId = 1
+            bool isAdmin = (roleName != null && roleName.Equals("Admin", StringComparison.OrdinalIgnoreCase)) 
+                        || (roleId.HasValue && roleId.Value == 1);
+            
+            if (!isAdmin)
+            {
+                TempData["ErrorMessage"] = "Bạn không có quyền truy cập chức năng này!";
+                _logger.LogWarning($"Access denied - RoleName: {roleName}, RoleId: {roleId}");
+                return RedirectToAction("Index");
+            }
+
+            var orders = await _xeMayService.GetAllOrdersAsync();
+            return View(orders);
+        }
+
+        // Xác nhận đơn hàng (Admin)
+        [HttpPost]
+        public async Task<IActionResult> ApproveOrder(int orderId)
+        {
+            try
+            {
+                // Kiểm tra quyền admin
+                var roleName = HttpContext.Session.GetString("RoleName");
+                var roleId = HttpContext.Session.GetInt32("RoleId");
+                bool isAdmin = (roleName != null && roleName.Equals("Admin", StringComparison.OrdinalIgnoreCase)) 
+                            || (roleId.HasValue && roleId.Value == 1);
+                
+                if (!isAdmin)
+                {
+                    return Json(new { success = false, message = "Bạn không có quyền thực hiện thao tác này!" });
+                }
+
+                var result = await _xeMayService.UpdateOrderStatusAsync(orderId, "Approved");
+                
+                if (result)
+                {
+                    return Json(new { success = true, message = "Đã xác nhận đơn hàng!" });
+                }
+
+                return Json(new { success = false, message = "Không tìm thấy đơn hàng!" });
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, $"Lỗi khi xác nhận đơn hàng ID: {orderId}");
+                return Json(new { success = false, message = $"Lỗi: {ex.Message}" });
+            }
+        }
+
+        // Từ chối đơn hàng (Admin)
+        [HttpPost]
+        public async Task<IActionResult> RejectOrder([FromBody] RejectOrderRequest request)
+        {
+            try
+            {
+                // Kiểm tra quyền admin
+                var roleName = HttpContext.Session.GetString("RoleName");
+                var roleId = HttpContext.Session.GetInt32("RoleId");
+                bool isAdmin = (roleName != null && roleName.Equals("Admin", StringComparison.OrdinalIgnoreCase)) 
+                            || (roleId.HasValue && roleId.Value == 1);
+                
+                if (!isAdmin)
+                {
+                    return Json(new { success = false, message = "Bạn không có quyền thực hiện thao tác này!" });
+                }
+
+                var result = await _xeMayService.UpdateOrderStatusAsync(request.OrderId, "Rejected", request.CancelReason);
+                
+                if (result)
+                {
+                    return Json(new { success = true, message = "Đã từ chối đơn hàng. Xe đã được đưa trở lại trang bán!" });
+                }
+
+                return Json(new { success = false, message = "Không tìm thấy đơn hàng!" });
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, $"Lỗi khi từ chối đơn hàng ID: {request.OrderId}");
+                return Json(new { success = false, message = $"Lỗi: {ex.Message}" });
+            }
+        }
+
         [ResponseCache(Duration = 0, Location = ResponseCacheLocation.None, NoStore = true)]
         public IActionResult Error()
         {
             return View(new ErrorViewModel { RequestId = Activity.Current?.Id ?? HttpContext.TraceIdentifier });
         }
+    }
+
+    // Request models
+    public class BuyVehicleRequest
+    {
+        public int VehicleId { get; set; }
+        
+        private string? _customerAddress;
+        public string? CustomerAddress 
+        { 
+            get => _customerAddress;
+            set => _customerAddress = value?.Trim();
+        }
+        
+        public decimal? DepositAmount { get; set; }
+        public string PaymentMethod { get; set; } = "Tiền mặt";
+        
+        private string? _note;
+        public string? Note 
+        { 
+            get => _note;
+            set => _note = value?.Trim();
+        }
+    }
+
+    public class RejectOrderRequest
+    {
+        public int OrderId { get; set; }
+        public string? CancelReason { get; set; }
     }
 }

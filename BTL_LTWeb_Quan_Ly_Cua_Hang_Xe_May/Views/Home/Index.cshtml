@@ -104,13 +104,38 @@ else
                     <button class="btn-icon d-none d-md-inline-flex" aria-label="Thông báo">
                         <i class="far fa-bell"></i>
                     </button>
-                    <a href="/Account/Login">
-                       <button class="btn btn-outline-primary d-none d-md-inline-flex"> Đăng nhập</button></a>
+                    
+                    @{
+                        var fullName = Context.Session.GetString("FullName");
+                        var isLoggedIn = !string.IsNullOrEmpty(fullName);
+                    }
+                    
+                    @if (isLoggedIn)
+                    {
+                        <!-- Hiển thị khi đã đăng nhập -->
+                        <div class="dropdown d-none d-md-inline-flex">
+                            <button class="btn btn-outline-primary dropdown-toggle" type="button" id="userDropdown" data-bs-toggle="dropdown" aria-expanded="false">
+                                <i class="fas fa-user-circle me-1"></i> @fullName
+                            </button>
+                            <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="userDropdown">
+                                <li><a class="dropdown-item" href="/Account/Profile"><i class="fas fa-user me-2"></i>Tài khoản</a></li>
+                                <li><a class="dropdown-item" href="/Account/MyOrders"><i class="fas fa-shopping-bag me-2"></i>Đơn hàng</a></li>
+                                <li><hr class="dropdown-divider"></li>
+                                <li><a class="dropdown-item text-danger" href="/Account/Logout"><i class="fas fa-sign-out-alt me-2"></i>Đăng xuất</a></li>
+                            </ul>
+                        </div>
+                    }
+                    else
+                    {
+                        <!-- Hiển thị khi chưa đăng nhập -->
+                        <a href="/Account/Login">
+                            <button class="btn btn-outline-primary d-none d-md-inline-flex">
+                                <i class="fas fa-sign-in-alt me-1"></i> Đăng nhập
+                            </button>
+                        </a>
+                    }
+                    
                     <button class="btn btn-primary">Bán xe</button>
-                    <button class="btn-icon d-none d-md-inline-flex">
-                        <i class="fas fa-user-circle"></i>
-                        <i class="fas fa-chevron-down ms-1 fs-6"></i>
-                    </button>
                     <button class="btn-icon d-lg-none" id="mobileMenuToggle">
                         <i class="fas fa-bars"></i>
                     </button>
@@ -816,12 +841,22 @@ else
     <!-- Bootstrap 5 JS -->
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
 
-    <!-- Bootstrap 5 JS -->
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
-
     <!-- Custom JS -->
     <script src="../js/main.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/swiper@10/swiper-bundle.min.js"></script>
+    
+    <!-- Initialize dropdown -->
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // Khởi tạo tất cả dropdown
+            var dropdownElementList = [].slice.call(document.querySelectorAll('.dropdown-toggle'));
+            var dropdownList = dropdownElementList.map(function (dropdownToggleEl) {
+                return new bootstrap.Dropdown(dropdownToggleEl);
+            });
+            
+            console.log('Dropdowns initialized:', dropdownList.length);
+        });
+    </script>
 </body>
 
 </html>

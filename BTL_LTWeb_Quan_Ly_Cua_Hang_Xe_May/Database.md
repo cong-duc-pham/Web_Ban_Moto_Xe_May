@@ -1,235 +1,222 @@
-# 📦 HƯỚNG DẪN THÊM DỮ LIỆU MẪU VÀO DATABASE
+-- Bảng Vai trò
+CREATE TABLE Role (
+    RoleId INT PRIMARY KEY IDENTITY(1,1),               -- Khóa chính (mã vai trò)
+    RoleName NVARCHAR(50) NOT NULL,                     -- Tên vai trò
+    Description NVARCHAR(255)                           -- Mô tả vai trò
+);
 
-## 🎯 Mục đích
-Thêm dữ liệu mẫu cho:
-- **Store** (Cửa hàng): 5 cửa hàng
-- **VehicleCategory** (Danh mục): 8 loại xe
-- **Brand** (Thương hiệu): 12 hãng xe
-- **Vehicle** (Xe): 12 xe mẫu
-- **VehicleImage** (Hình ảnh): 20 ảnh
+-- Bảng Người dùng
+CREATE TABLE [User] (
+    UserId INT PRIMARY KEY IDENTITY(1,1),               -- Khóa chính (mã người dùng)
+    FullName NVARCHAR(100) NOT NULL,                    -- Họ và tên
+    PhoneNumber VARCHAR(15) UNIQUE NOT NULL,            -- Số điện thoại
+    Email VARCHAR(100),                                 -- Địa chỉ email
+    Password VARCHAR(255) NOT NULL,                     -- Mật khẩu
+    RoleId INT NOT NULL,                                -- Khóa ngoại tới bảng Role
+    Status VARCHAR(20) NOT NULL DEFAULT 'Active',       -- Trạng thái hoạt động
+    FOREIGN KEY (RoleId) REFERENCES Role(RoleId)
+);
 
----
+-- Bảng Cửa hàng
+CREATE TABLE Store (
+    StoreId INT PRIMARY KEY IDENTITY(1,1),              -- Khóa chính (mã cửa hàng)
+    OwnerId INT NOT NULL,                               -- Mã người chủ (khóa ngoại User)
+    StoreName NVARCHAR(150) NOT NULL,                   -- Tên cửa hàng
+    PhoneNumber VARCHAR(15) NOT NULL,                   -- Số điện thoại cửa hàng
+    Address NVARCHAR(255) NOT NULL,                     -- Địa chỉ
+    Description NVARCHAR(1000),                         -- Mô tả cửa hàng
+    Image VARCHAR(255),                                 -- Ảnh đại diện cửa hàng
+    Rating DECIMAL(2,1) DEFAULT 0,                      -- Điểm đánh giá trung bình
+    TotalRating INT DEFAULT 0,                          -- Tổng số đánh giá
+    Status VARCHAR(20) NOT NULL DEFAULT 'Active',       -- Trạng thái
+    CreatedAt DATETIME2 DEFAULT GETDATE(),              -- Ngày tạo cửa hàng
+    FOREIGN KEY (OwnerId) REFERENCES [User](UserId)
+);
 
-## 📋 BƯỚC 1: Chạy File SQL
+-- Bảng Danh mục xe
+CREATE TABLE VehicleCategory (
+    CategoryId INT PRIMARY KEY IDENTITY(1,1),           -- Mã danh mục xe
+    CategoryName NVARCHAR(50) NOT NULL,                 -- Tên danh mục xe
+    CategoryCode VARCHAR(20) UNIQUE NOT NULL,           -- Mã code danh mục
+    DisplayOrder INT DEFAULT 0                          -- Thứ tự hiển thị
+);
 
-### Cách 1: Sử dụng SQL Server Management Studio (SSMS)
+-- Bảng Hãng xe
+CREATE TABLE Brand (
+    BrandId INT PRIMARY KEY IDENTITY(1,1),              -- Mã hãng xe
+    BrandName NVARCHAR(50) NOT NULL,                    -- Tên hãng
+    BrandCode VARCHAR(20) UNIQUE NOT NULL,              -- Mã hãng code
+    Logo VARCHAR(255)                                   -- Logo hãng xe
+);
 
-1. Mở **SQL Server Management Studio**
-2. Kết nối đến server: `localhost,1434`
-3. Login: `Admin_QLCHXM` / Password: `123`
-4. Click **New Query**
-5. Chạy **LẦN LƯỢT** các file:
+-- Bảng Xe
+CREATE TABLE Vehicle (
+    VehicleId INT PRIMARY KEY IDENTITY(1,1),            -- Mã xe
+    StoreId INT,                                        -- Khóa ngoại cửa hàng
+    CategoryId INT,                                     -- Khóa ngoại danh mục xe
+    BrandId INT,                                        -- Khóa ngoại hãng xe
+    Title NVARCHAR(255),                                -- Tiêu đề xe
+    Model NVARCHAR(100),                                -- Dòng xe/model
+    Condition VARCHAR(20),                              -- Tình trạng
+    ManufactureYear INT,                                -- Năm sản xuất
+    SalePrice DECIMAL(15,0),                            -- Giá bán
+    OriginalPrice DECIMAL(15,0),                        -- Giá gốc
+    EngineCapacity INT,                                 -- Dung tích xi lanh
+    Color NVARCHAR(50),                                 -- Màu sắc
+    Odometer INT,                                       -- Số km đã đi
+    BodyType NVARCHAR(50),                              -- Kiểu dáng
+    Transmission VARCHAR(20),                           -- Hộp số
+    FuelType VARCHAR(20),                               -- Nhiên liệu
+    Seats INT,                                          -- Số ghế ngồi
+    Origin NVARCHAR(50),                                -- Xuất xứ
+    Description NVARCHAR(MAX),                          -- Mô tả
+    LicensePlate VARCHAR(20),                           -- Biển số xe
+    FirstOwner BIT DEFAULT 1,                           -- Chủ đầu tiên
+    Status VARCHAR(20) NOT NULL DEFAULT 'Available',    -- Trạng thái xe
+    IsFeatured BIT DEFAULT 0,                           -- Xe nổi bật
+    ViewCount INT DEFAULT 0,                            -- Lượt xem
+    PostedAt DATETIME2 DEFAULT GETDATE(),               -- Ngày đăng
+    UpdatedAt DATETIME2 DEFAULT GETDATE(),              -- Ngày cập nhật
+    FOREIGN KEY (StoreId) REFERENCES Store(StoreId) ON DELETE CASCADE,
+    FOREIGN KEY (CategoryId) REFERENCES VehicleCategory(CategoryId),
+    FOREIGN KEY (BrandId) REFERENCES Brand(BrandId)
+);
 
-#### a) Thêm Store, Category, Brand:
-```sql
--- Mở và chạy file: insert_sample_data.sql
-```
-- Click **Open** → Chọn file `insert_sample_data.sql`
-- Click **Execute** (F5)
-- Xem kết quả ở Messages tab
 
-#### b) Thêm Vehicle và Images:
-```sql
--- Mở và chạy file: insert_vehicle_data.sql
-```
-- Click **Open** → Chọn file `insert_vehicle_data.sql`
-- Click **Execute** (F5)
-- Xem danh sách xe vừa thêm
 
----
+-- Bảng Hình ảnh xe
+CREATE TABLE VehicleImage (
+    ImageId INT PRIMARY KEY IDENTITY(1,1),              -- Mã hình ảnh xe
+    VehicleId INT NOT NULL,                             -- Khóa ngoại xe
+    ImagePath VARCHAR(255) NOT NULL,                    -- Đường dẫn ảnh
+    IsPrimary BIT DEFAULT 0,                            -- Ảnh chính
+    DisplayOrder INT DEFAULT 0,                         -- Thứ tự hiển thị
+    FOREIGN KEY (VehicleId) REFERENCES Vehicle(VehicleId) ON DELETE CASCADE
+);
 
-### Cách 2: Sử dụng Azure Data Studio
+-- Bảng Yêu thích
+CREATE TABLE Favorite (
+    FavoriteId INT PRIMARY KEY IDENTITY(1,1),           -- Mã yêu thích
+    UserId INT NOT NULL,                                -- Khóa ngoại người dùng
+    VehicleId INT NOT NULL,                             -- Khóa ngoại xe
+    CreatedAt DATETIME2 DEFAULT GETDATE(),              -- Ngày tạo
+    FOREIGN KEY (UserId) REFERENCES [User](UserId) ON DELETE CASCADE,
+    FOREIGN KEY (VehicleId) REFERENCES Vehicle(VehicleId) ON DELETE CASCADE,
+    CONSTRAINT UQ_Favorite_UserVehicle UNIQUE (UserId, VehicleId)
+);
 
-1. Mở **Azure Data Studio**
-2. Connect đến server
-3. Click **New Query**
-4. Copy nội dung từ `insert_sample_data.sql` → Paste → **Run**
-5. Copy nội dung từ `insert_vehicle_data.sql` → Paste → **Run**
+-- Bảng Thông tin đơn hàng
+CREATE TABLE OrderInfo (
+    OrderId INT PRIMARY KEY IDENTITY(1,1),              -- Mã đơn hàng
+    OrderNumber VARCHAR(20) UNIQUE NOT NULL,            -- Mã đơn
+    VehicleId INT NOT NULL,                             -- Khóa ngoại xe
+    StoreId INT NOT NULL,                               -- Khóa ngoại cửa hàng
+    CustomerId INT NOT NULL,                            -- Khóa ngoại người mua
+    CustomerName NVARCHAR(100) NOT NULL,                -- Tên khách hàng
+    CustomerPhone VARCHAR(15) NOT NULL,                 -- Số điện thoại khách
+    CustomerAddress NVARCHAR(255),                      -- Địa chỉ khách
+    VehiclePrice DECIMAL(15,0) NOT NULL,                -- Giá trị xe
+    DepositAmount DECIMAL(15,0) DEFAULT 0,              -- Số tiền đặt cọc
+    TotalPrice DECIMAL(15,0) NOT NULL,                  -- Tổng tiền đơn
+    PaymentMethod VARCHAR(20) NOT NULL DEFAULT 'Cash',  -- Phương thức thanh toán
+    PaymentStatus VARCHAR(20) NOT NULL DEFAULT 'Unpaid', -- Trạng thái thanh toán
+    OrderStatus VARCHAR(20) NOT NULL DEFAULT 'Pending', -- Trạng thái đơn hàng
+    Note NVARCHAR(500),                                 -- Ghi chú
+    CancelReason NVARCHAR(500),                         -- Lý do hủy
+    OrderedAt DATETIME2 DEFAULT GETDATE(),              -- Ngày đặt đơn
+    CompletedAt DATETIME2 NULL,                         -- Ngày hoàn thành
+    FOREIGN KEY (VehicleId) REFERENCES Vehicle(VehicleId),
+    FOREIGN KEY (StoreId) REFERENCES Store(StoreId),
+    FOREIGN KEY (CustomerId) REFERENCES [User](UserId)
+);
 
----
+-- Bảng Trả góp
+CREATE TABLE Installment (
+    InstallmentId INT PRIMARY KEY IDENTITY(1,1),        -- Mã trả góp
+    OrderId INT NOT NULL,                               -- Khóa ngoại đơn hàng
+    BankName NVARCHAR(100),                             -- Ngân hàng
+    LoanAmount DECIMAL(15,0) NOT NULL,                  -- Số tiền vay
+    DownPayment DECIMAL(15,0) NOT NULL,                 -- Trả trước
+    InterestRate DECIMAL(5,2),                          -- Lãi suất
+    Months INT NOT NULL,                                -- Thời gian trả góp (tháng)
+    MonthlyPayment DECIMAL(15,0) NOT NULL,              -- Số tiền trả hàng tháng
+    Status VARCHAR(20) NOT NULL DEFAULT 'Pending',      -- Trạng thái trả góp
+    CreatedAt DATETIME2 DEFAULT GETDATE(),              -- Ngày tạo
+    FOREIGN KEY (OrderId) REFERENCES OrderInfo(OrderId) ON DELETE CASCADE
+);
 
-### Cách 3: Sử dụng Command Line (sqlcmd)
+-- Bảng Đánh giá
+CREATE TABLE Review (
+    ReviewId INT PRIMARY KEY IDENTITY(1,1),             -- Mã đánh giá
+    StoreId INT NOT NULL,                               -- Khóa ngoại cửa hàng
+    UserId INT NOT NULL,                                -- Khóa ngoại người dùng
+    OrderId INT,                                        -- Khóa ngoại đơn hàng
+    Rating INT NOT NULL CHECK (Rating BETWEEN 1 AND 5), -- Số sao
+    Content NVARCHAR(1000),                             -- Nội dung đánh giá
+    ReviewedAt DATETIME2 DEFAULT GETDATE(),             -- Thời gian đánh giá
+    FOREIGN KEY (StoreId) REFERENCES Store(StoreId) ON DELETE CASCADE,
+    FOREIGN KEY (UserId) REFERENCES [User](UserId) ON DELETE CASCADE,
+    FOREIGN KEY (OrderId) REFERENCES OrderInfo(OrderId)
+);
 
-```powershell
-# Di chuyển đến thư mục project
-cd f:\BTL_LTWeb\BTL_LTWeb_Quan_Ly_Cua_Hang_Xe_May
+-- Bảng Tin tức
+CREATE TABLE News (
+    NewsId INT PRIMARY KEY IDENTITY(1,1),               -- Mã tin tức
+    AuthorId INT NOT NULL,                              -- Khóa ngoại người đăng
+    Title NVARCHAR(255) NOT NULL,                       -- Tiêu đề
+    Summary NVARCHAR(500),                              -- Tóm tắt
+    Content NVARCHAR(MAX) NOT NULL,                     -- Nội dung
+    Thumbnail VARCHAR(255),                             -- Ảnh đại diện
+    NewsType VARCHAR(20) NOT NULL DEFAULT 'News',       -- Loại tin
+    ViewCount INT DEFAULT 0,                            -- Lượt xem
+    Status VARCHAR(20) NOT NULL DEFAULT 'Draft',        -- Trạng thái
+    PublishedAt DATETIME2 NULL,                         -- Ngày xuất bản
+    CreatedAt DATETIME2 DEFAULT GETDATE(),              -- Ngày tạo
+    FOREIGN KEY (AuthorId) REFERENCES [User](UserId)
+);
 
-# Chạy file 1: Thêm Store, Category, Brand
-sqlcmd -S localhost,1434 -U Admin_QLCHXM -P 123 -d QLCHXM -i insert_sample_data.sql
+-- Bảng Banner
+CREATE TABLE Banner (
+    BannerId INT PRIMARY KEY IDENTITY(1,1),             -- Mã banner
+    Title NVARCHAR(150),                                -- Tiêu đề
+    ImagePath VARCHAR(255) NOT NULL,                    -- Đường dẫn ảnh
+    Link VARCHAR(255),                                  -- Link
+    Position VARCHAR(20) NOT NULL DEFAULT 'Homepage',   -- Vị trí hiển thị
+    DisplayOrder INT DEFAULT 0,                         -- Thứ tự hiển thị
+    StartDate DATETIME2,                                -- Ngày bắt đầu
+    EndDate DATETIME2,                                  -- Ngày kết thúc
+    IsActive BIT DEFAULT 1,                             -- Trạng thái hoạt động
+    CreatedAt DATETIME2 DEFAULT GETDATE()               -- Ngày tạo
+);
 
-# Chạy file 2: Thêm Vehicle và Images
-sqlcmd -S localhost,1434 -U Admin_QLCHXM -P 123 -d QLCHXM -i insert_vehicle_data.sql
-```
+-- Bảng Thông báo
+CREATE TABLE Notification (
+    NotificationId INT PRIMARY KEY IDENTITY(1,1),       -- Mã thông báo
+    UserId INT NOT NULL,                                -- Khóa ngoại người nhận
+    NotificationType VARCHAR(20) NOT NULL DEFAULT 'System', -- Loại thông báo
+    Title NVARCHAR(150) NOT NULL,                       -- Tiêu đề
+    Content NVARCHAR(500),                              -- Nội dung
+    Link VARCHAR(255),                                  -- Link kèm
+    IsRead BIT DEFAULT 0,                               -- Đã đọc/chưa
+    CreatedAt DATETIME2 DEFAULT GETDATE(),              -- Ngày tạo
+    FOREIGN KEY (UserId) REFERENCES [User](UserId) ON DELETE CASCADE
+);
 
----
 
-## ✅ BƯỚC 2: Kiểm Tra Dữ Liệu
+INSERT INTO Brand (BrandName, BrandCode)
+VALUES
+(N'Honda', 'HONDA'),
+(N'Yamaha', 'YAMAHA'),
+(N'Suzuki', 'SUZUKI');
 
-Chạy các query sau để kiểm tra:
+INSERT INTO Store (OwnerId, StoreName, PhoneNumber, Address, Description, Image, Rating, TotalRating, Status)
+VALUES
+(1, N'Cửa hàng xe máy Minh Tâm', '0905123456', N'123 Nguyễn Văn Linh, Đà Nẵng', N'Chuyên bán các dòng xe Honda và Yamaha chính hãng.', 'store1.jpg', 4.5, 120, 'Active');
 
-```sql
-USE QLCHXM;
-
--- Kiểm tra Store
-SELECT StoreId, StoreName, Phone FROM Store;
-
--- Kiểm tra Category
-SELECT CategoryId, CategoryName FROM VehicleCategory;
-
--- Kiểm tra Brand
-SELECT BrandId, BrandName, Country FROM Brand;
-
--- Kiểm tra Vehicle
-SELECT 
-    V.VehicleId,
-    V.Title,
-    B.BrandName,
-    V.SalePrice,
-    COUNT(VI.ImageId) AS TotalImages
-FROM Vehicle V
-LEFT JOIN Brand B ON V.BrandId = B.BrandId
-LEFT JOIN VehicleImage VI ON V.VehicleId = VI.VehicleId
-GROUP BY V.VehicleId, V.Title, B.BrandName, V.SalePrice;
-```
-
-**Kết quả mong đợi:**
-- ✅ 5 Store
-- ✅ 8 VehicleCategory
-- ✅ 12 Brand
-- ✅ 12 Vehicle
-- ✅ 20 VehicleImage
-
----
-
-## 🚀 BƯỚC 3: Chạy Ứng Dụng
-
-Sau khi đã có dữ liệu:
-
-```powershell
-cd f:\BTL_LTWeb\BTL_LTWeb_Quan_Ly_Cua_Hang_Xe_May
-dotnet run
-```
-
-Vào trang: `http://localhost:5000/Home/MotorbikeOnline`
-
-**Bạn sẽ thấy:**
-- 12 xe hiển thị
-- Chia thành 4 hàng, mỗi hàng 3 xe
-- Có hình ảnh, tên xe, giá, mô tả
-
----
-
-## 🔧 BƯỚC 4: Test Thêm Xe Mới
-
-1. **Đăng nhập** với tài khoản Admin (RoleId = 1)
-2. Vào trang **MotorbikeOnline**
-3. Click nút **"Thêm xe mới"**
-4. Điền thông tin:
-   - **Tên xe**: Honda SH 160i
-   - **Giá**: 80000000
-   - **Mô tả**: Xe tay ga cao cấp
-
-5. Click **Lưu**
-
-**Giờ sẽ KHÔNG còn lỗi "Không thể thêm xe"** vì:
-- ✅ StoreId = 1 đã có trong database
-- ✅ CategoryId = 1 đã có trong database
-- ✅ BrandId = 1 đã có trong database
-
----
-
-## 📊 Dữ Liệu Mẫu
-
-### 🏪 Store (Cửa hàng)
-| ID | Tên | Địa chỉ |
-|----|-----|---------|
-| 1 | VinFast Official Store | Long Biên, Hà Nội |
-| 2 | Honda Đại Lý Chính Hãng | Hoàng Mai, Hà Nội |
-| 3 | Yamaha Việt Nam | Đống Đa, Hà Nội |
-| 4 | Piaggio Vespa Showroom | Cầu Giấy, Hà Nội |
-| 5 | SYM Việt Nam | Cầu Giấy, Hà Nội |
-
-### 📦 VehicleCategory (Danh mục)
-| ID | Tên |
-|----|-----|
-| 1 | Xe ga |
-| 2 | Xe số |
-| 3 | Xe côn tay |
-| 4 | Xe điện |
-| 5 | Xe PKL |
-| 6 | Xe mô tô |
-| 7 | Xe tay ga cao cấp |
-| 8 | Xe cub |
-
-### 🏭 Brand (Thương hiệu)
-| ID | Tên | Quốc gia |
-|----|-----|----------|
-| 1 | Honda | Japan |
-| 2 | Yamaha | Japan |
-| 3 | VinFast | Vietnam |
-| 4 | SYM | Taiwan |
-| 5 | Piaggio | Italy |
-| 6 | Vespa | Italy |
-| 7 | Suzuki | Japan |
-| 8 | Kawasaki | Japan |
-| 9 | Ducati | Italy |
-| 10 | BMW | Germany |
-| 11 | Harley-Davidson | USA |
-| 12 | KTM | Austria |
-
-### 🏍️ Vehicle (Xe mẫu)
-1. VinFast Klara S - 39,900,000đ
-2. VinFast Evo200 - 45,900,000đ
-3. Honda Air Blade 160 - 55,000,000đ
-4. Honda Wave Alpha - 19,500,000đ
-5. Honda Winner X - 48,000,000đ
-6. Yamaha NVX 155 - 54,900,000đ
-7. Yamaha Exciter 155 - 48,500,000đ
-8. Yamaha Janus - 31,500,000đ
-9. SYM Star SR 170 - 48,000,000đ
-10. SYM Attila Venus - 33,500,000đ
-11. Vespa Primavera 125 - 84,000,000đ
-12. Vespa Sprint 150 - 96,000,000đ
-
----
-
-## ⚠️ Lưu Ý Quan Trọng
-
-### 1. Hình Ảnh Xe
-File SQL tạo reference đến hình ảnh trong thư mục `/images/vehicles/`.
-Hiện tại **chưa có file ảnh thật**, nên:
-- Ảnh sẽ hiển thị placeholder: `https://via.placeholder.com/400x300?text=No+Image`
-- Hoặc bạn có thể thêm ảnh thật vào: `wwwroot/images/vehicles/`
-
-### 2. Nếu Chạy Lại Script
-Nếu bạn chạy lại script và bị lỗi **"Violation of PRIMARY KEY constraint"**:
-
-```sql
--- Xóa dữ liệu cũ trước
-DELETE FROM VehicleImage;
-DELETE FROM Vehicle;
-DELETE FROM Store;
-DELETE FROM VehicleCategory;
-DELETE FROM Brand;
-
--- Reset Identity
-DBCC CHECKIDENT ('VehicleImage', RESEED, 0);
-DBCC CHECKIDENT ('Vehicle', RESEED, 0);
-DBCC CHECKIDENT ('Store', RESEED, 0);
-DBCC CHECKIDENT ('VehicleCategory', RESEED, 0);
-DBCC CHECKIDENT ('Brand', RESEED, 0);
-
--- Sau đó chạy lại insert_sample_data.sql và insert_vehicle_data.sql
-```
-
----
-
-## 🎉 Hoàn Thành!
-
-Sau khi chạy xong:
-- ✅ Database có đầy đủ dữ liệu mẫu
-- ✅ Có thể test chức năng xem danh sách xe
-- ✅ Có thể test chức năng thêm/sửa/xóa xe
-- ✅ Không còn lỗi Foreign Key khi thêm xe mới
-
-**Bây giờ hãy chạy ứng dụng và test thôi! 🚀**
+INSERT INTO VehicleCategory (CategoryName, CategoryCode, DisplayOrder)
+VALUES
+(N'Xe số', 'XESO', 1),
+(N'Xe tay ga', 'XETAYGA', 2),
+(N'Xe côn tay', 'XECONTAY', 3),
+(N'Xe điện', 'XE DIEN', 4),
+(N'Xe mô tô', 'XEMOTO', 5);

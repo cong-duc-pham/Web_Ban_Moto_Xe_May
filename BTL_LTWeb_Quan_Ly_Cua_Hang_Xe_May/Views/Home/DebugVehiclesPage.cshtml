@@ -1,0 +1,163 @@
+@using BTL_LTWeb_Quan_Ly_Cua_Hang_Xe_May.Models.Entities
+@{
+    var allVehicles = ViewBag.AllVehicles as List<Vehicle>;
+    var filteredVehicles = ViewBag.FilteredVehicles as List<Vehicle>;
+    var roleId = ViewBag.CurrentRoleId as int?;
+    var isAdmin = ViewBag.IsAdminSession as bool? ?? false;
+}
+
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Debug - Vehicle Status</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    <style>
+        .status-ok { background: #d4edda; }
+        .status-wrong { background: #f8d7da; }
+        .status-waiting { background: #fff3cd; }
+    </style>
+</head>
+<body>
+    <div class="container py-4">
+        <h1>🔍 DEBUG: Trạng thái xe</h1>
+        
+        <div class="alert alert-info mb-4">
+            <h5>Thông tin Session hiện tại:</h5>
+            <ul class="mb-0">
+                <li><strong>RoleId:</strong> @(roleId?.ToString() ?? "NULL (Chưa đăng nhập)")</li>
+                <li><strong>IsAdmin:</strong> @isAdmin</li>
+                <li><strong>User:</strong> @Context.Session.GetString("FullName") (@Context.Session.GetString("PhoneNumber"))</li>
+            </ul>
+        </div>
+
+        <div class="row mb-4">
+            <div class="col-md-4">
+                <div class="card text-center">
+                    <div class="card-body">
+                        <h3 class="text-primary">@(allVehicles?.Count ?? 0)</h3>
+                        <p class="mb-0">Tổng số xe trong database</p>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="card text-center">
+                    <div class="card-body">
+                        <h3 class="text-success">@(filteredVehicles?.Count ?? 0)</h3>
+                        <p class="mb-0">Xe có Status = "Available"</p>
+                        <small class="text-muted">(Khách hàng sẽ thấy)</small>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="card text-center">
+                    <div class="card-body">
+                        <h3 class="text-warning">@((allVehicles?.Count ?? 0) - (filteredVehicles?.Count ?? 0))</h3>
+                        <p class="mb-0">Xe có Status khác</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <h3>📊 Thống kê theo Status</h3>
+        <table class="table table-bordered mb-4">
+            <thead>
+                <tr>
+                    <th>Status</th>
+                    <th>Số lượng</th>
+                    <th>Ghi chú</th>
+                </tr>
+            </thead>
+            <tbody>
+                @if (allVehicles != null)
+                {
+                    foreach (var group in allVehicles.GroupBy(v => v.Status))
+                    {
+                        var statusClass = "";
+                        var note = "";
+                        
+                        if (group.Key == "Available")
+                        {
+                            statusClass = "status-ok";
+                            note = "✅ OK - Khách hàng sẽ thấy xe này (Đang bán)";
+                        }
+                        else if (group.Key == "Pending")
+                        {
+                            statusClass = "status-waiting";
+                            note = "⏳ Đang có đơn hàng - Xe tạm ẩn";
+                        }
+                        else
+                        {
+                            statusClass = "status-wrong";
+                            note = "❌ Trạng thái không hợp lệ";
+                        }
+                        
+                        <tr class="@statusClass">
+                            <td><strong>@group.Key</strong></td>
+                            <td>@group.Count()</td>
+                            <td>@note</td>
+                        </tr>
+                    }
+                }
+            </tbody>
+        </table>
+
+        <h3>📝 Chi tiết từng xe</h3>
+        <table class="table table-striped">
+            <thead>
+                <tr>
+                    <th>ID</th>
+                    <th>Tên xe</th>
+                    <th>Status</th>
+                    <th>Length</th>
+                    <th>Hiển thị cho Customer?</th>
+                </tr>
+            </thead>
+            <tbody>
+                @if (allVehicles != null)
+                {
+                    foreach (var v in allVehicles.OrderBy(x => x.VehicleId))
+                    {
+                        var willShow = !string.IsNullOrEmpty(v.Status) && 
+                                     v.Status.Trim().Equals("Available", StringComparison.OrdinalIgnoreCase);
+                        
+                        var rowClass = willShow ? "status-ok" : "status-wrong";
+                        
+                        <tr class="@rowClass">
+                            <td>@v.VehicleId</td>
+                            <td>@v.Title</td>
+                            <td><code>[@v.Status]</code></td>
+                            <td>@(v.Status?.Length ?? 0) ký tự</td>
+                            <td>
+                                @if (willShow)
+                                {
+                                    <span class="badge bg-success">✅ CÓ</span>
+                                }
+                                else
+                                {
+                                    <span class="badge bg-danger">❌ KHÔNG</span>
+                                }
+                            </td>
+                        </tr>
+                    }
+                }
+            </tbody>
+        </table>
+
+        <h3>🔧 Mapping trạng thái</h3>
+        <div class="alert alert-info">
+            <h5>Hệ thống sử dụng Status (tiếng Anh):</h5>
+            <ul>
+                <li><strong>"Available"</strong> = Đang bán (Khách hàng thấy được)</li>
+                <li><strong>"Pending"</strong> = Đang chờ xác nhận đơn hàng (Xe ẩn)</li>
+                <li><strong>"Sold"</strong> = Đã bán (Xe ẩn)</li>
+            </ul>
+            <p class="mb-0"><strong>Default trong database:</strong> <code>DEFAULT 'Available'</code></p>
+        </div>
+
+        <div class="mt-4">
+            <a href="/Home/MotorbikeOnline" class="btn btn-primary">Quay lại trang xe</a>
+            <a href="/Home/DebugVehicles" class="btn btn-info">Xem JSON</a>
+        </div>
+    </div>
+</body>
+</html>
