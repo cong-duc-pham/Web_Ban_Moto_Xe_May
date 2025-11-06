@@ -295,43 +295,74 @@
 
             <div class="row g-3" id="productGrid">
                 @{
-                    if (ViewBag.lstXeMay != null)
+                    if (ViewBag.lstVehicle != null && ViewBag.lstVehicle.Count > 0)
                     {
-                        /*foreach (XeMay xe in ViewBag.lstXeMay)
+                        foreach (Vehicle xe in ViewBag.lstVehicle)
                         {
-                            <div class="col-lg-2 col-md-2 col-sm-4 col-6">
-                                <div class="product-card" data-id="@xe.ID">
+                            var imageUrl = xe.VehicleImages != null && xe.VehicleImages.Any() 
+                                ? xe.VehicleImages.First().ImagePath 
+                                : "https://via.placeholder.com/400x300?text=No+Image";
+                            
+                            <div class="col-lg-4 col-md-4 col-6">
+                                <div class="product-card" data-id="@xe.VehicleId">
                                     <div class="product-image">
-                                        <img src="~/images/@xe.HinhAnh" alt="@xe.TenXe"
-                                             onerror="this.src='https:via.placeholder.com/300x200?text=No+Image'" />
+                                        <img src="@imageUrl" alt="@xe.Title"
+                                             onerror="this.src='https://via.placeholder.com/400x300?text=No+Image'" />
                                         <span class="product-badge">
                                             <i class="fas fa-check-circle"></i> CHÍNH HÃNG
                                         </span>
                                     </div>
                                     <div class="product-info">
-                                        <h3 class="product-name">@xe.TenXe</h3>
-                                        <div class="product-price">@string.Format("{0:N0} đ", xe.Gia)</div>
-                                        @if (!string.IsNullOrEmpty(xe.MoTa))
+                                        <h3 class="product-name">@xe.Title</h3>
+                                        <div class="product-price">@string.Format("{0:N0} đ", xe.SalePrice ?? 0)</div>
+                                        @if (!string.IsNullOrEmpty(xe.Description))
                                         {
-                                            <p class="product-desc">@xe.MoTa</p>
+                                            <p class="product-desc">@xe.Description</p>
+                                        }
+                                        @if (!string.IsNullOrEmpty(xe.Model))
+                                        {
+                                            <p class="text-muted small mb-1">Model: @xe.Model</p>
+                                        }
+                                        @if (xe.ManufactureYear.HasValue)
+                                        {
+                                            <p class="text-muted small mb-1">Năm SX: @xe.ManufactureYear</p>
                                         }
                                     </div>
                                     @if (ViewBag.IsAdmin == true)
                                     {
                                         <div class="product-actions">
                                             <button class="btn btn-sm btn-warning"
-                                                    onclick='showEditModal(@xe.ID, @Html.Raw(System.Text.Json.JsonSerializer.Serialize(xe.TenXe)), @xe.Gia, @Html.Raw(System.Text.Json.JsonSerializer.Serialize(xe.HinhAnh)), @Html.Raw(System.Text.Json.JsonSerializer.Serialize(xe.MoTa ?? "")))'>
+                                                    onclick='showEditModal(
+                                                        @xe.VehicleId, 
+                                                        @Html.Raw(System.Text.Json.JsonSerializer.Serialize(xe.Title)), 
+                                                        @(xe.SalePrice ?? 0), 
+                                                        @Html.Raw(System.Text.Json.JsonSerializer.Serialize(xe.Description ?? "")),
+                                                        @(xe.StoreId ?? 0),
+                                                        @(xe.CategoryId ?? 0),
+                                                        @(xe.BrandId ?? 0),
+                                                        @Html.Raw(System.Text.Json.JsonSerializer.Serialize(xe.Model ?? "")),
+                                                        @(xe.ManufactureYear ?? 0),
+                                                        @(xe.EngineCapacity ?? 0),
+                                                        @Html.Raw(System.Text.Json.JsonSerializer.Serialize(xe.Color ?? ""))
+                                                    )'>
                                                 <i class="fas fa-edit"></i> Sửa
                                             </button>
                                             <button class="btn btn-sm btn-danger"
-                                                    onclick='confirmDelete(@xe.ID, @Html.Raw(System.Text.Json.JsonSerializer.Serialize(xe.TenXe)))'>
+                                                    onclick='confirmDelete(@xe.VehicleId, @Html.Raw(System.Text.Json.JsonSerializer.Serialize(xe.Title)))'>
                                                 <i class="fas fa-trash"></i> Xóa
                                             </button>
                                         </div>
                                     }
                                 </div>
                             </div>
-                        }*/
+                        }
+                    }
+                    else
+                    {
+                        <div class="col-12 text-center py-5">
+                            <i class="fas fa-inbox fa-3x text-muted mb-3"></i>
+                            <p class="text-muted">Chưa có xe nào được đăng bán</p>
+                        </div>
                     }
                 }
             </div>
@@ -350,23 +381,121 @@
                     <div class="modal-body">
                         <input type="hidden" id="xeID" name="ID" value="0" />
                         
-                        <div class="mb-3">
-                            <label for="tenXe" class="form-label">Tên xe <span class="text-danger">*</span></label>
-                            <input type="text" class="form-control" id="tenXe" name="TenXe" required 
-                                   placeholder="Ví dụ: VinFast Klara S" />
+                        <div class="row">
+                            <div class="col-md-12 mb-3">
+                                <label for="tenXe" class="form-label">Tên xe <span class="text-danger">*</span></label>
+                                <input type="text" class="form-control" id="tenXe" name="TenXe" required 
+                                       placeholder="Ví dụ: VinFast Klara S" />
+                            </div>
+                        </div>
+
+                        <div class="row">
+                            <div class="col-md-4 mb-3">
+                                <label for="cuaHang" class="form-label">Cửa hàng <span class="text-danger">*</span></label>
+                                <select class="form-select" id="cuaHang" name="StoreId" required>
+                                    <option value="">-- Chọn --</option>
+                                    @{
+                                        var stores = ViewBag.Stores as List<Store>;
+                                        if (stores != null && stores.Count > 0)
+                                        {
+                                            foreach (var store in stores)
+                                            {
+                                                <option value="@store.StoreId">@store.StoreName</option>
+                                            }
+                                        }
+                                        else
+                                        {
+                                            <option disabled>Không có dữ liệu</option>
+                                        }
+                                    }
+                                </select>
+                            </div>
+
+                            <div class="col-md-4 mb-3">
+                                <label for="danhMuc" class="form-label">Danh mục <span class="text-danger">*</span></label>
+                                <select class="form-select" id="danhMuc" name="CategoryId" required>
+                                    <option value="">-- Chọn --</option>
+                                    @{
+                                        var categories = ViewBag.Categories as List<VehicleCategory>;
+                                        if (categories != null && categories.Count > 0)
+                                        {
+                                            foreach (var cat in categories)
+                                            {
+                                                <option value="@cat.CategoryId">@cat.CategoryName</option>
+                                            }
+                                        }
+                                        else
+                                        {
+                                            <option disabled>Không có dữ liệu</option>
+                                        }
+                                    }
+                                </select>
+                            </div>
+
+                            <div class="col-md-4 mb-3">
+                                <label for="thuongHieu" class="form-label">Thương hiệu <span class="text-danger">*</span></label>
+                                <select class="form-select" id="thuongHieu" name="BrandId" required>
+                                    <option value="">-- Chọn --</option>
+                                    @{
+                                        var brands = ViewBag.Brands as List<Brand>;
+                                        if (brands != null && brands.Count > 0)
+                                        {
+                                            foreach (var brand in brands)
+                                            {
+                                                <option value="@brand.BrandId">@brand.BrandName</option>
+                                            }
+                                        }
+                                        else
+                                        {
+                                            <option disabled>Không có dữ liệu</option>
+                                        }
+                                    }
+                                </select>
+                            </div>
+                        </div>
+
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label for="gia" class="form-label">Giá bán (VNĐ) <span class="text-danger">*</span></label>
+                                <input type="number" class="form-control" id="gia" name="Gia" required 
+                                       min="0" step="1000" placeholder="35000000" />
+                            </div>
+
+                            <div class="col-md-6 mb-3">
+                                <label for="model" class="form-label">Model</label>
+                                <input type="text" class="form-control" id="model" name="Model" 
+                                       placeholder="Ví dụ: Klara S 2024" />
+                            </div>
+                        </div>
+
+                        <div class="row">
+                            <div class="col-md-4 mb-3">
+                                <label for="namSX" class="form-label">Năm sản xuất</label>
+                                <input type="number" class="form-control" id="namSX" name="ManufactureYear" 
+                                       min="2000" max="2025" placeholder="2024" />
+                            </div>
+
+                            <div class="col-md-4 mb-3">
+                                <label for="dungTich" class="form-label">Dung tích (cc)</label>
+                                <input type="number" class="form-control" id="dungTich" name="EngineCapacity" 
+                                       min="0" placeholder="150" />
+                            </div>
+
+                            <div class="col-md-4 mb-3">
+                                <label for="mauSac" class="form-label">Màu sắc</label>
+                                <input type="text" class="form-control" id="mauSac" name="Color" 
+                                       placeholder="Đỏ, Đen, Xanh..." />
+                            </div>
                         </div>
 
                         <div class="mb-3">
-                            <label for="gia" class="form-label">Giá (VNĐ) <span class="text-danger">*</span></label>
-                            <input type="number" class="form-control" id="gia" name="Gia" required 
-                                   min="0" step="1000" placeholder="Ví dụ: 35000000" />
-                        </div>
-
-                        <div class="mb-3">
-                            <label for="hinhAnh" class="form-label">Hình ảnh <span class="text-danger">*</span></label>
-                            <input type="text" class="form-control" id="hinhAnh" name="HinhAnh" required 
-                                   placeholder="Nhập tên file ảnh (vd: xe1.jpg)" />
-                            <small class="text-muted">Ảnh phải được lưu trong thư mục wwwroot/images/</small>
+                            <label for="hinhAnh" class="form-label">Hình ảnh xe</label>
+                            <input type="file" class="form-control" id="hinhAnh" name="HinhAnh" 
+                                   accept="image/*" multiple />
+                            <small class="form-text text-muted">
+                                <i class="fas fa-info-circle"></i> Có thể chọn nhiều hình ảnh. Hình đầu tiên sẽ là hình đại diện.
+                            </small>
+                            <div id="imagePreview" class="mt-2 d-flex flex-wrap gap-2"></div>
                         </div>
 
                         <div class="mb-3">

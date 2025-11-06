@@ -69,6 +69,7 @@ namespace BTL_LTWeb_Quan_Ly_Cua_Hang_Xe_May.Models.EF
             // Store
             modelBuilder.Entity<Store>(entity =>
             {
+                entity.ToTable("Store");
                 entity.HasKey(e => e.StoreId);
                 entity.Property(e => e.StoreName).IsRequired().HasMaxLength(150);
                 entity.Property(e => e.PhoneNumber).IsRequired().HasMaxLength(15);
@@ -88,6 +89,7 @@ namespace BTL_LTWeb_Quan_Ly_Cua_Hang_Xe_May.Models.EF
             // VehicleCategory
             modelBuilder.Entity<VehicleCategory>(entity =>
             {
+                entity.ToTable("VehicleCategory");
                 entity.HasKey(e => e.CategoryId);
                 entity.Property(e => e.CategoryName).IsRequired().HasMaxLength(50);
                 entity.Property(e => e.CategoryCode).IsRequired().HasMaxLength(20);
@@ -98,6 +100,7 @@ namespace BTL_LTWeb_Quan_Ly_Cua_Hang_Xe_May.Models.EF
             // Brand
             modelBuilder.Entity<Brand>(entity =>
             {
+                entity.ToTable("Brand");
                 entity.HasKey(e => e.BrandId);
                 entity.Property(e => e.BrandName).IsRequired().HasMaxLength(50);
                 entity.Property(e => e.BrandCode).IsRequired().HasMaxLength(20);
@@ -108,6 +111,7 @@ namespace BTL_LTWeb_Quan_Ly_Cua_Hang_Xe_May.Models.EF
             // Vehicle
             modelBuilder.Entity<Vehicle>(entity =>
             {
+                entity.ToTable("Vehicle");
                 entity.HasKey(e => e.VehicleId);
                 entity.Property(e => e.Title).HasMaxLength(255);
                 entity.Property(e => e.Model).HasMaxLength(100);
@@ -144,6 +148,7 @@ namespace BTL_LTWeb_Quan_Ly_Cua_Hang_Xe_May.Models.EF
             // VehicleImage
             modelBuilder.Entity<VehicleImage>(entity =>
             {
+                entity.ToTable("VehicleImage");
                 entity.HasKey(e => e.ImageId);
                 entity.Property(e => e.ImagePath).IsRequired().HasMaxLength(255);
                 entity.Property(e => e.IsPrimary).HasDefaultValue(false);
@@ -157,6 +162,7 @@ namespace BTL_LTWeb_Quan_Ly_Cua_Hang_Xe_May.Models.EF
             // Favorite
             modelBuilder.Entity<Favorite>(entity =>
             {
+                entity.ToTable("Favorite");
                 entity.HasKey(e => e.FavoriteId);
                 entity.Property(e => e.CreatedAt).HasColumnType("datetime2").HasDefaultValueSql("GETDATE()");
                 entity.HasIndex(e => new { e.UserId, e.VehicleId }).IsUnique().HasDatabaseName("UQ_Favorite_UserVehicle");
@@ -173,6 +179,7 @@ namespace BTL_LTWeb_Quan_Ly_Cua_Hang_Xe_May.Models.EF
             // OrderInfo
             modelBuilder.Entity<OrderInfo>(entity =>
             {
+                entity.ToTable("OrderInfo");
                 entity.HasKey(e => e.OrderId);
                 entity.Property(e => e.OrderNumber).IsRequired().HasMaxLength(20);
                 entity.HasIndex(e => e.OrderNumber).IsUnique();
@@ -206,6 +213,7 @@ namespace BTL_LTWeb_Quan_Ly_Cua_Hang_Xe_May.Models.EF
             // Installment
             modelBuilder.Entity<Installment>(entity =>
             {
+                entity.ToTable("Installment");
                 entity.HasKey(e => e.InstallmentId);
                 entity.Property(e => e.BankName).HasMaxLength(100);
                 entity.Property(e => e.LoanAmount).HasColumnType("decimal(15,0)");
@@ -223,6 +231,7 @@ namespace BTL_LTWeb_Quan_Ly_Cua_Hang_Xe_May.Models.EF
             // Review
             modelBuilder.Entity<Review>(entity =>
             {
+                entity.ToTable("Review");
                 entity.HasKey(e => e.ReviewId);
                 entity.Property(e => e.Content).HasMaxLength(1000);
                 entity.Property(e => e.ReviewedAt).HasColumnType("datetime2").HasDefaultValueSql("GETDATE()");
@@ -243,6 +252,7 @@ namespace BTL_LTWeb_Quan_Ly_Cua_Hang_Xe_May.Models.EF
             // News
             modelBuilder.Entity<News>(entity =>
             {
+                entity.ToTable("News");
                 entity.HasKey(e => e.NewsId);
                 entity.Property(e => e.Title).IsRequired().HasMaxLength(255);
                 entity.Property(e => e.Summary).HasMaxLength(500);
@@ -262,6 +272,7 @@ namespace BTL_LTWeb_Quan_Ly_Cua_Hang_Xe_May.Models.EF
             // Banner
             modelBuilder.Entity<Banner>(entity =>
             {
+                entity.ToTable("Banner");
                 entity.HasKey(e => e.BannerId);
                 entity.Property(e => e.Title).HasMaxLength(150);
                 entity.Property(e => e.ImagePath).IsRequired().HasMaxLength(255);
@@ -277,6 +288,7 @@ namespace BTL_LTWeb_Quan_Ly_Cua_Hang_Xe_May.Models.EF
             // Notification
             modelBuilder.Entity<Notification>(entity =>
             {
+                entity.ToTable("Notification");
                 entity.HasKey(e => e.NotificationId);
                 entity.Property(e => e.NotificationType).IsRequired().HasMaxLength(20).HasDefaultValue("System");
                 entity.Property(e => e.Title).IsRequired().HasMaxLength(150);

@@ -59,10 +59,29 @@ namespace BTL_LTWeb_Quan_Ly_Cua_Hang_Xe_May.Controllers
 
         public async Task<IActionResult> MotorbikeOnline()
         {
+            _logger.LogInformation("=== VÀO TRANG MOTORBIKE ONLINE ===");
+            
             List<Vehicle> lstVehicle = await _xeMayService.GetAllVehiclesAsync();
             ViewBag.lstVehicle = lstVehicle;
+            _logger.LogInformation($"Số lượng xe: {lstVehicle?.Count ?? 0}");
+            
             var roleId = HttpContext.Session.GetInt32("RoleId");
             ViewBag.IsAdmin = roleId.HasValue && roleId.Value == 1;
+            _logger.LogInformation($"IsAdmin: {ViewBag.IsAdmin}, RoleId: {roleId}");
+            
+            // Load dropdown data
+            var stores = await _xeMayService.GetAllStoresAsync();
+            ViewBag.Stores = stores;
+            _logger.LogInformation($"Số lượng Store: {stores?.Count ?? 0}");
+            
+            var categories = await _xeMayService.GetAllCategoriesAsync();
+            ViewBag.Categories = categories;
+            _logger.LogInformation($"Số lượng Category: {categories?.Count ?? 0}");
+            
+            var brands = await _xeMayService.GetAllBrandsAsync();
+            ViewBag.Brands = brands;
+            _logger.LogInformation($"Số lượng Brand: {brands?.Count ?? 0}");
+            
             return View();
         }
 
@@ -80,42 +99,104 @@ namespace BTL_LTWeb_Quan_Ly_Cua_Hang_Xe_May.Controllers
         }
 
         [HttpPost]
-        public async Task<IActionResult> AddVehicle([FromBody] Vehicle vehicle)
+        public async Task<IActionResult> AddVehicle([FromForm] Vehicle vehicle, [FromForm] List<IFormFile> HinhAnh)
         {
             try
             {
+                _logger.LogInformation("=== BẮT ĐẦU THÊM XE ===");
+                _logger.LogInformation($"Dữ liệu nhận được: Title={vehicle?.Title}, SalePrice={vehicle?.SalePrice}");
+                _logger.LogInformation($"Số lượng hình ảnh: {HinhAnh?.Count ?? 0}");
+                
                 if (!IsAdmin())
+                {
+                    _logger.LogWarning("Người dùng không có quyền Admin");
                     return Json(new { success = false, message = "Bạn không có quyền thực hiện chức năng này! Chỉ Quản lý mới có thể thêm xe." });
-
-                if (!ModelState.IsValid)
-                    return Json(new { success = false, message = "Dữ liệu không hợp lệ!" });
+                }
 
                 if (string.IsNullOrWhiteSpace(vehicle.Title))
+                {
+                    _logger.LogWarning("Title rỗng");
                     return Json(new { success = false, message = "Tiêu đề xe không được để trống!" });
+                }
 
                 if (vehicle.SalePrice <= 0)
+                {
+                    _logger.LogWarning($"SalePrice không hợp lệ: {vehicle.SalePrice}");
                     return Json(new { success = false, message = "Giá xe phải lớn hơn 0!" });
+                }
 
+                // Set default values
                 vehicle.Status = "Available";
                 vehicle.ViewCount = 0;
                 vehicle.IsFeatured = false;
                 vehicle.PostedAt = DateTime.Now;
                 vehicle.UpdatedAt = DateTime.Now;
+                
+                _logger.LogInformation($"Chuẩn bị gọi AddVehicleAsync với Title={vehicle.Title}");
 
                 var result = await _xeMayService.AddVehicleAsync(vehicle);
 
                 if (result)
                 {
-                    _logger.LogInformation($"Đã thêm xe mới: {vehicle.Title} - ID: {vehicle.VehicleId}");
+                    _logger.LogInformation($"✅ Đã thêm xe thành công: {vehicle.Title} - ID: {vehicle.VehicleId}");
+                    
+                    // Xử lý upload hình ảnh
+                    if (HinhAnh != null && HinhAnh.Count > 0)
+                    {
+                        var uploadPath = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "images", "vehicles");
+                        
+                        // Tạo thư mục nếu chưa tồn tại
+                        if (!Directory.Exists(uploadPath))
+                        {
+                            Directory.CreateDirectory(uploadPath);
+                            _logger.LogInformation($"Đã tạo thư mục: {uploadPath}");
+                        }
+
+                        for (int i = 0; i < HinhAnh.Count; i++)
+                        {
+                            var file = HinhAnh[i];
+                            if (file.Length > 0)
+                            {
+                                // Tạo tên file unique
+                                var fileName = $"{vehicle.VehicleId}_{Guid.NewGuid()}{Path.GetExtension(file.FileName)}";
+                                var filePath = Path.Combine(uploadPath, fileName);
+                                
+                                // Lưu file
+                                using (var stream = new FileStream(filePath, FileMode.Create))
+                                {
+                                    await file.CopyToAsync(stream);
+                                }
+                                
+                                // Lưu thông tin vào database
+                                var vehicleImage = new VehicleImage
+                                {
+                                    VehicleId = vehicle.VehicleId,
+                                    ImagePath = $"/images/vehicles/{fileName}",
+                                    IsPrimary = (i == 0), // Ảnh đầu tiên là ảnh chính
+                                    DisplayOrder = i
+                                };
+                                
+                                await _xeMayService.AddVehicleImageAsync(vehicleImage);
+                                _logger.LogInformation($"Đã lưu ảnh: {fileName}, IsPrimary: {i == 0}");
+                            }
+                        }
+                    }
+                    
                     return Json(new { success = true, message = "Thêm xe máy thành công!" });
                 }
 
+                _logger.LogWarning("❌ Service trả về false");
                 return Json(new { success = false, message = "Không thể thêm xe máy. Vui lòng thử lại!" });
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Lỗi khi thêm xe máy");
-                return Json(new { success = false, message = "Có lỗi xảy ra: " + ex.Message });
+                _logger.LogError(ex, $"❌ LỖI KHI THÊM XE: {ex.Message}");
+                _logger.LogError($"StackTrace: {ex.StackTrace}");
+                if (ex.InnerException != null)
+                {
+                    _logger.LogError($"InnerException: {ex.InnerException.Message}");
+                }
+                return Json(new { success = false, message = "Có lỗi xảy ra: " + ex.Message + (ex.InnerException != null ? " | " + ex.InnerException.Message : "") });
             }
         }
 
@@ -124,10 +205,13 @@ namespace BTL_LTWeb_Quan_Ly_Cua_Hang_Xe_May.Controllers
         {
             try
             {
+                _logger.LogInformation($"=== BẮT ĐẦU SỬA XE ID={vehicle?.VehicleId} ===");
+                _logger.LogInformation($"Dữ liệu: Title={vehicle?.Title}, SalePrice={vehicle?.SalePrice}");
+                
                 if (!IsAdmin())
                     return Json(new { success = false, message = "Bạn không có quyền thực hiện chức năng này! Chỉ Quản lý mới có thể sửa thông tin xe." });
 
-                if (!ModelState.IsValid)
+                if (vehicle == null || vehicle.VehicleId <= 0)
                     return Json(new { success = false, message = "Dữ liệu không hợp lệ!" });
 
                 var existingVehicle = await _xeMayService.GetVehicleByIdAsync(vehicle.VehicleId);
@@ -140,20 +224,25 @@ namespace BTL_LTWeb_Quan_Ly_Cua_Hang_Xe_May.Controllers
                 if (vehicle.SalePrice <= 0)
                     return Json(new { success = false, message = "Giá xe phải lớn hơn 0!" });
 
-                vehicle.UpdatedAt = DateTime.Now;
+                // Service sẽ tự động lấy và giữ lại PostedAt, ViewCount
                 var result = await _xeMayService.UpdateVehicleAsync(vehicle);
 
                 if (result)
                 {
-                    _logger.LogInformation($"Đã cập nhật xe: {vehicle.Title} - ID: {vehicle.VehicleId}");
+                    _logger.LogInformation($"✅ Đã cập nhật xe: {vehicle.Title} - ID: {vehicle.VehicleId}");
                     return Json(new { success = true, message = "Cập nhật xe máy thành công!" });
                 }
 
+                _logger.LogWarning("❌ Service trả về false");
                 return Json(new { success = false, message = "Không thể cập nhật xe máy. Vui lòng thử lại!" });
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Lỗi khi cập nhật xe máy");
+                _logger.LogError(ex, "❌ Lỗi khi cập nhật xe máy");
+                if (ex.InnerException != null)
+                {
+                    _logger.LogError($"InnerException: {ex.InnerException.Message}");
+                }
                 return Json(new { success = false, message = "Có lỗi xảy ra: " + ex.Message });
             }
         }

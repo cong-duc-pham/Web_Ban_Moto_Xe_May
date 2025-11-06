@@ -1,27 +1,87 @@
 // Biến lưu ID của xe cần xóa
 let deleteXeId = 0;
+let selectedFiles = [];
+
+// Hàm hiển thị preview hình ảnh
+function displayImagePreviews(files) {
+    const previewContainer = document.getElementById('imagePreview');
+    previewContainer.innerHTML = '';
+    
+    selectedFiles = Array.from(files);
+    
+    selectedFiles.forEach((file, index) => {
+        const reader = new FileReader();
+        
+        reader.onload = function(e) {
+            const div = document.createElement('div');
+            div.className = 'preview-image-container';
+            div.innerHTML = `
+                <img src="${e.target.result}" alt="Preview">
+                <button type="button" class="remove-image" onclick="removeImage(${index})">
+                    <i class="fas fa-times"></i>
+                </button>
+                ${index === 0 ? '<div class="primary-badge">Ảnh đại diện</div>' : ''}
+            `;
+            previewContainer.appendChild(div);
+        };
+        
+        reader.readAsDataURL(file);
+    });
+}
+
+// Hàm xóa hình ảnh khỏi preview
+function removeImage(index) {
+    selectedFiles.splice(index, 1);
+    
+    // Tạo DataTransfer object mới để cập nhật input file
+    const dataTransfer = new DataTransfer();
+    selectedFiles.forEach(file => dataTransfer.items.add(file));
+    document.getElementById('hinhAnh').files = dataTransfer.files;
+    
+    // Hiển thị lại preview
+    displayImagePreviews(selectedFiles);
+}
 
 // Hàm hiển thị modal thêm xe mới
 function showAddModal() {
     document.getElementById('modalTitle').textContent = 'Thêm Xe Máy Mới';
     document.getElementById('xeID').value = '0';
     document.getElementById('tenXe').value = '';
+    document.getElementById('cuaHang').value = '';
+    document.getElementById('danhMuc').value = '';
+    document.getElementById('thuongHieu').value = '';
     document.getElementById('gia').value = '';
-    document.getElementById('hinhAnh').value = '';
+    document.getElementById('model').value = '';
+    document.getElementById('namSX').value = '';
+    document.getElementById('dungTich').value = '';
+    document.getElementById('mauSac').value = '';
     document.getElementById('moTa').value = '';
+    document.getElementById('hinhAnh').value = '';
+    document.getElementById('imagePreview').innerHTML = '';
+    selectedFiles = [];
     
     const modal = new bootstrap.Modal(document.getElementById('xeMayModal'));
     modal.show();
 }
 
 // Hàm hiển thị modal sửa xe
-function showEditModal(id, tenXe, gia, hinhAnh, moTa) {
+function showEditModal(id, tenXe, gia, moTa, storeId, categoryId, brandId, model, namSX, dungTich, mauSac) {
     document.getElementById('modalTitle').textContent = 'Sửa Thông Tin Xe Máy';
     document.getElementById('xeID').value = id;
     document.getElementById('tenXe').value = tenXe;
     document.getElementById('gia').value = gia;
-    document.getElementById('hinhAnh').value = hinhAnh;
     document.getElementById('moTa').value = moTa || '';
+    
+    // Set dropdown values
+    if (storeId) document.getElementById('cuaHang').value = storeId;
+    if (categoryId) document.getElementById('danhMuc').value = categoryId;
+    if (brandId) document.getElementById('thuongHieu').value = brandId;
+    
+    // Set additional fields
+    if (model) document.getElementById('model').value = model;
+    if (namSX) document.getElementById('namSX').value = namSX;
+    if (dungTich) document.getElementById('dungTich').value = dungTich;
+    if (mauSac) document.getElementById('mauSac').value = mauSac;
     
     const modal = new bootstrap.Modal(document.getElementById('xeMayModal'));
     modal.show();
@@ -38,6 +98,16 @@ function confirmDelete(id, tenXe) {
 
 // Xử lý sự kiện khi DOM đã load
 document.addEventListener('DOMContentLoaded', function() {
+    // Xử lý thay đổi input file hình ảnh
+    const hinhAnhInput = document.getElementById('hinhAnh');
+    if (hinhAnhInput) {
+        hinhAnhInput.addEventListener('change', function(e) {
+            if (this.files && this.files.length > 0) {
+                displayImagePreviews(this.files);
+            }
+        });
+    }
+    
     // Xử lý submit form thêm/sửa
     const xeMayForm = document.getElementById('xeMayForm');
     
@@ -48,22 +118,81 @@ document.addEventListener('DOMContentLoaded', function() {
             // Lấy dữ liệu từ form
             const formData = new FormData(this);
             const xeID = parseInt(formData.get('ID'));
-            const data = {
-                ID: xeID,
-                TenXe: formData.get('TenXe'),
-                Gia: parseFloat(formData.get('Gia')),
-                HinhAnh: formData.get('HinhAnh'),
-                MoTa: formData.get('MoTa') || ''
-            };
             
             // Validate
-            if (!data.TenXe || !data.Gia || !data.HinhAnh) {
-                showAlert('warning', 'Vui lòng điền đầy đủ thông tin bắt buộc!');
+            const title = formData.get('TenXe');
+            const salePrice = formData.get('Gia');
+            const storeId = formData.get('StoreId');
+            const categoryId = formData.get('CategoryId');
+            const brandId = formData.get('BrandId');
+            
+            if (!title || !salePrice || !storeId || !categoryId || !brandId) {
+                showAlert('warning', 'Vui lòng điền đầy đủ thông tin bắt buộc (Tên xe, Giá, Cửa hàng, Danh mục, Thương hiệu)!');
                 return;
             }
             
             // Xác định action (thêm hay sửa)
-            const action = xeID === 0 ? '/Home/AddXeMay' : '/Home/EditXeMay';
+            const isAdd = xeID === 0;
+            const action = isAdd ? '/Home/AddVehicle' : '/Home/EditVehicle';
+            
+            let submitData;
+            let requestOptions;
+            
+            if (isAdd) {
+                // THÊM MỚI: Gửi FormData với file
+                submitData = new FormData();
+                submitData.append('VehicleId', xeID);
+                submitData.append('Title', title);
+                submitData.append('Model', formData.get('Model') || '');
+                submitData.append('SalePrice', parseFloat(salePrice));
+                submitData.append('ManufactureYear', formData.get('ManufactureYear') || '0');
+                submitData.append('EngineCapacity', formData.get('EngineCapacity') || '0');
+                submitData.append('Color', formData.get('Color') || '');
+                submitData.append('Description', formData.get('MoTa') || '');
+                submitData.append('StoreId', storeId);
+                submitData.append('CategoryId', categoryId);
+                submitData.append('BrandId', brandId);
+                submitData.append('Status', 'Available');
+                submitData.append('Condition', 'New');
+                
+                // Thêm file hình ảnh
+                const fileInput = document.getElementById('hinhAnh');
+                if (fileInput && fileInput.files) {
+                    for (let i = 0; i < fileInput.files.length; i++) {
+                        submitData.append('HinhAnh', fileInput.files[i]);
+                    }
+                }
+                
+                requestOptions = {
+                    method: 'POST',
+                    body: submitData
+                };
+            } else {
+                // SỬA: Gửi JSON (không upload ảnh khi sửa)
+                const data = {
+                    VehicleId: xeID,
+                    Title: title,
+                    Model: formData.get('Model') || null,
+                    SalePrice: parseFloat(salePrice),
+                    ManufactureYear: formData.get('ManufactureYear') ? parseInt(formData.get('ManufactureYear')) : null,
+                    EngineCapacity: formData.get('EngineCapacity') ? parseInt(formData.get('EngineCapacity')) : null,
+                    Color: formData.get('Color') || null,
+                    Description: formData.get('MoTa') || '',
+                    StoreId: parseInt(storeId),
+                    CategoryId: parseInt(categoryId),
+                    BrandId: parseInt(brandId),
+                    Status: 'Available',
+                    Condition: 'New'
+                };
+                
+                requestOptions = {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify(data)
+                };
+            }
             
             // Disable button để tránh click nhiều lần
             const btnSave = document.getElementById('btnSave');
@@ -71,15 +200,21 @@ document.addEventListener('DOMContentLoaded', function() {
             btnSave.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Đang xử lý...';
             
             try {
-                const response = await fetch(action, {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                    },
-                    body: JSON.stringify(data)
-                });
+                console.log('Đang gửi request đến:', action);
+                console.log('Loại request:', isAdd ? 'THÊM MỚI (FormData)' : 'SỬA (JSON)');
+                
+                const response = await fetch(action, requestOptions);
+                
+                console.log('Response status:', response.status);
+                
+                if (!response.ok) {
+                    const errorText = await response.text();
+                    console.error('Response error:', errorText);
+                    throw new Error(`HTTP error! status: ${response.status}, message: ${errorText}`);
+                }
                 
                 const result = await response.json();
+                console.log('Result:', result);
                 
                 if (result.success) {
                     // Đóng modal
@@ -99,8 +234,8 @@ document.addEventListener('DOMContentLoaded', function() {
                     btnSave.innerHTML = '<i class="fas fa-save"></i> Lưu';
                 }
             } catch (error) {
-                console.error('Error:', error);
-                showAlert('danger', 'Có lỗi xảy ra khi kết nối đến server!');
+                console.error('Error details:', error);
+                showAlert('danger', 'Có lỗi xảy ra: ' + error.message);
                 btnSave.disabled = false;
                 btnSave.innerHTML = '<i class="fas fa-save"></i> Lưu';
             }
@@ -116,7 +251,7 @@ document.addEventListener('DOMContentLoaded', function() {
             this.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Đang xóa...';
             
             try {
-                const response = await fetch(`/Home/DeleteXeMay/${deleteXeId}`, {
+                const response = await fetch(`/Home/DeleteVehicle/${deleteXeId}`, {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json',
