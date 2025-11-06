@@ -55,12 +55,25 @@ namespace BTL_LTWeb_Quan_Ly_Cua_Hang_Xe_May.Services
         {
             try
             {
+                Console.WriteLine($"[XeMayService] Thêm vehicle: Title={vehicle.Title}, SalePrice={vehicle.SalePrice}");
+                Console.WriteLine($"[XeMayService] StoreId={vehicle.StoreId}, CategoryId={vehicle.CategoryId}, BrandId={vehicle.BrandId}");
+                
                 _context.Vehicles.Add(vehicle);
-                await _context.SaveChangesAsync();
+                
+                Console.WriteLine("[XeMayService] Đang gọi SaveChangesAsync...");
+                var result = await _context.SaveChangesAsync();
+                
+                Console.WriteLine($"[XeMayService] SaveChanges trả về: {result} dòng");
                 return true;
             }
-            catch
+            catch (Exception ex)
             {
+                Console.WriteLine($"[XeMayService] ❌ LỖI: {ex.Message}");
+                Console.WriteLine($"[XeMayService] StackTrace: {ex.StackTrace}");
+                if (ex.InnerException != null)
+                {
+                    Console.WriteLine($"[XeMayService] InnerException: {ex.InnerException.Message}");
+                }
                 return false;
             }
         }
@@ -70,13 +83,23 @@ namespace BTL_LTWeb_Quan_Ly_Cua_Hang_Xe_May.Services
         {
             try
             {
-                var existingVehicle = await _context.Vehicles.FindAsync(vehicle.VehicleId);
+                Console.WriteLine($"[XeMayService] Bắt đầu cập nhật xe ID={vehicle.VehicleId}");
+                Console.WriteLine($"[XeMayService] Title={vehicle.Title}, SalePrice={vehicle.SalePrice}");
+                Console.WriteLine($"[XeMayService] StoreId={vehicle.StoreId}, CategoryId={vehicle.CategoryId}, BrandId={vehicle.BrandId}");
+                
+                // Lấy xe hiện tại từ database (CÓ tracking để update)
+                var existingVehicle = await _context.Vehicles
+                    .FirstOrDefaultAsync(v => v.VehicleId == vehicle.VehicleId);
+                
                 if (existingVehicle == null)
                 {
+                    Console.WriteLine($"[XeMayService] ❌ Không tìm thấy xe ID={vehicle.VehicleId}");
                     return false;
                 }
 
-                // Cập nhật các thuộc tính
+                Console.WriteLine($"[XeMayService] Tìm thấy xe: {existingVehicle.Title}");
+
+                // Cập nhật từng thuộc tính trên entity đã được track
                 existingVehicle.StoreId = vehicle.StoreId;
                 existingVehicle.CategoryId = vehicle.CategoryId;
                 existingVehicle.BrandId = vehicle.BrandId;
@@ -88,24 +111,27 @@ namespace BTL_LTWeb_Quan_Ly_Cua_Hang_Xe_May.Services
                 existingVehicle.OriginalPrice = vehicle.OriginalPrice;
                 existingVehicle.EngineCapacity = vehicle.EngineCapacity;
                 existingVehicle.Color = vehicle.Color;
-                existingVehicle.Odometer = vehicle.Odometer;
-                existingVehicle.BodyType = vehicle.BodyType;
-                existingVehicle.Transmission = vehicle.Transmission;
-                existingVehicle.FuelType = vehicle.FuelType;
-                existingVehicle.Seats = vehicle.Seats;
-                existingVehicle.Origin = vehicle.Origin;
                 existingVehicle.Description = vehicle.Description;
-                existingVehicle.LicensePlate = vehicle.LicensePlate;
-                existingVehicle.FirstOwner = vehicle.FirstOwner;
                 existingVehicle.Status = vehicle.Status;
-                existingVehicle.IsFeatured = vehicle.IsFeatured;
                 existingVehicle.UpdatedAt = DateTime.Now;
+                // PostedAt, ViewCount giữ nguyên
 
-                await _context.SaveChangesAsync();
+                Console.WriteLine($"[XeMayService] Đang lưu vào database...");
+                var changes = await _context.SaveChangesAsync();
+                Console.WriteLine($"[XeMayService] ✅ Cập nhật thành công! Số thay đổi: {changes}");
                 return true;
             }
-            catch
+            catch (Exception ex)
             {
+                Console.WriteLine($"[XeMayService] ❌ LỖI khi cập nhật xe: {ex.Message}");
+                Console.WriteLine($"[XeMayService] Type: {ex.GetType().Name}");
+                
+                if (ex.InnerException != null)
+                {
+                    Console.WriteLine($"[XeMayService] InnerException: {ex.InnerException.Message}");
+                    Console.WriteLine($"[XeMayService] InnerException Type: {ex.InnerException.GetType().Name}");
+                }
+                
                 return false;
             }
         }
@@ -338,5 +364,97 @@ namespace BTL_LTWeb_Quan_Ly_Cua_Hang_Xe_May.Services
                 return new List<Vehicle>();
             }
         }
+
+        // Lấy danh sách Store
+        public async Task<List<Store>> GetAllStoresAsync()
+        {
+            try
+            {
+                Console.WriteLine("[XeMayService] Đang lấy danh sách Store...");
+                // Tạm thời lấy tất cả Store để debug
+                var stores = await _context.Stores
+                    .OrderBy(s => s.StoreName)
+                    .ToListAsync();
+                Console.WriteLine($"[XeMayService] Đã lấy được {stores.Count} Store");
+                
+                // Log chi tiết từng store
+                foreach (var store in stores)
+                {
+                    Console.WriteLine($"  - Store: Id={store.StoreId}, Name={store.StoreName}, Status={store.Status}");
+                }
+                
+                return stores;
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"[XeMayService] LỖI khi lấy Store: {ex.Message}");
+                if (ex.InnerException != null)
+                    Console.WriteLine($"[XeMayService] Chi tiết: {ex.InnerException.Message}");
+                return new List<Store>();
+            }
+        }
+
+        // Lấy danh sách Category
+        public async Task<List<VehicleCategory>> GetAllCategoriesAsync()
+        {
+            try
+            {
+                Console.WriteLine("[XeMayService] Đang lấy danh sách VehicleCategory...");
+                var categories = await _context.VehicleCategories
+                    .OrderBy(c => c.CategoryName)
+                    .ToListAsync();
+                Console.WriteLine($"[XeMayService] Đã lấy được {categories.Count} Category");
+                return categories;
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"[XeMayService] LỖI khi lấy Category: {ex.Message}");
+                if (ex.InnerException != null)
+                    Console.WriteLine($"[XeMayService] Chi tiết: {ex.InnerException.Message}");
+                return new List<VehicleCategory>();
+            }
+        }
+
+        // Lấy danh sách Brand
+        public async Task<List<Brand>> GetAllBrandsAsync()
+        {
+            try
+            {
+                Console.WriteLine("[XeMayService] Đang lấy danh sách Brand...");
+                var brands = await _context.Brands
+                    .OrderBy(b => b.BrandName)
+                    .ToListAsync();
+                Console.WriteLine($"[XeMayService] Đã lấy được {brands.Count} Brand");
+                return brands;
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"[XeMayService] LỖI khi lấy Brand: {ex.Message}");
+                if (ex.InnerException != null)
+                    Console.WriteLine($"[XeMayService] Chi tiết: {ex.InnerException.Message}");
+                return new List<Brand>();
+            }
+        }
+
+        // Thêm hình ảnh xe máy
+        public async Task<bool> AddVehicleImageAsync(VehicleImage vehicleImage)
+        {
+            try
+            {
+                Console.WriteLine($"[XeMayService] Thêm ảnh cho VehicleId={vehicleImage.VehicleId}, Path={vehicleImage.ImagePath}");
+                await _context.VehicleImages.AddAsync(vehicleImage);
+                await _context.SaveChangesAsync();
+                Console.WriteLine($"[XeMayService] ✅ Đã thêm ảnh thành công");
+                return true;
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"[XeMayService] ❌ LỖI khi thêm ảnh: {ex.Message}");
+                if (ex.InnerException != null)
+                    Console.WriteLine($"[XeMayService] Chi tiết: {ex.InnerException.Message}");
+                return false;
+            }
+        }
     }
 }
+

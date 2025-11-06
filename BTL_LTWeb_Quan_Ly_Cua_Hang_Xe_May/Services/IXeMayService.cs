@@ -48,5 +48,18 @@ namespace BTL_LTWeb_Quan_Ly_Cua_Hang_Xe_May.Services
 
         // Lấy xe máy được xem nhiều nhất
         Task<List<Vehicle>> GetMostViewedVehiclesAsync(int count);
+
+        // Lấy danh sách Store
+        Task<List<Store>> GetAllStoresAsync();
+
+        // Lấy danh sách Category
+        Task<List<VehicleCategory>> GetAllCategoriesAsync();
+
+        // Lấy danh sách Brand
+        Task<List<Brand>> GetAllBrandsAsync();
+
+        // Thêm hình ảnh xe máy
+        Task<bool> AddVehicleImageAsync(VehicleImage vehicleImage);
     }
 }
+
