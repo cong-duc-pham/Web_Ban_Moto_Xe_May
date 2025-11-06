@@ -455,6 +455,225 @@ namespace BTL_LTWeb_Quan_Ly_Cua_Hang_Xe_May.Services
                 return false;
             }
         }
+
+        // ===== QUẢN LÝ ĐỚN HÀNG =====
+        
+        // Tạo đơn hàng mới
+        public async Task<OrderInfo?> CreateOrderAsync(OrderInfo order)
+        {
+            try
+            {
+                Console.WriteLine($"[XeMayService] Tạo đơn hàng cho xe ID={order.VehicleId}, Khách hàng ID={order.CustomerId}");
+                Console.WriteLine($"[XeMayService] OrderNumber: {order.OrderNumber}");
+                Console.WriteLine($"[XeMayService] CustomerName: '{order.CustomerName}'");
+                Console.WriteLine($"[XeMayService] CustomerPhone: '{order.CustomerPhone}'");
+                Console.WriteLine($"[XeMayService] CustomerAddress: '{order.CustomerAddress}'");
+                Console.WriteLine($"[XeMayService] VehiclePrice: {order.VehiclePrice}");
+                Console.WriteLine($"[XeMayService] DepositAmount: {order.DepositAmount}");
+                Console.WriteLine($"[XeMayService] TotalPrice: {order.TotalPrice}");
+                Console.WriteLine($"[XeMayService] PaymentMethod: '{order.PaymentMethod}'");
+                Console.WriteLine($"[XeMayService] StoreId: {order.StoreId}");
+                
+                // Kiểm tra StoreId, CustomerId, VehicleId tồn tại trong database
+                var storeExists = await _context.Stores.AnyAsync(s => s.StoreId == order.StoreId);
+                if (!storeExists)
+                {
+                    Console.WriteLine($"[XeMayService] ❌ Store ID {order.StoreId} không tồn tại!");
+                    return null;
+                }
+                
+                var customerExists = await _context.Users.AnyAsync(u => u.UserId == order.CustomerId);
+                if (!customerExists)
+                {
+                    Console.WriteLine($"[XeMayService] ❌ Customer ID {order.CustomerId} không tồn tại!");
+                    return null;
+                }
+                
+                var vehicleExists = await _context.Vehicles.AnyAsync(v => v.VehicleId == order.VehicleId);
+                if (!vehicleExists)
+                {
+                    Console.WriteLine($"[XeMayService] ❌ Vehicle ID {order.VehicleId} không tồn tại!");
+                    return null;
+                }
+                
+                Console.WriteLine($"[XeMayService] ✓ Đã validate: Store, Customer, Vehicle tồn tại");
+                
+                // Thêm đơn hàng
+                Console.WriteLine($"[XeMayService] Đang gọi AddAsync...");
+                await _context.OrderInfos.AddAsync(order);
+                
+                Console.WriteLine($"[XeMayService] Đang gọi SaveChangesAsync...");
+                await _context.SaveChangesAsync();
+                
+                Console.WriteLine($"[XeMayService] ✓ Đơn hàng đã tạo: OrderId={order.OrderId}");
+                return order;
+            }
+            catch (DbUpdateException dbEx)
+            {
+                Console.WriteLine($"[XeMayService] ❌ DATABASE UPDATE ERROR: {dbEx.Message}");
+                Console.WriteLine($"[XeMayService] Exception Type: {dbEx.GetType().Name}");
+                
+                if (dbEx.InnerException != null)
+                {
+                    Console.WriteLine($"[XeMayService] 🔴 InnerException: {dbEx.InnerException.Message}");
+                    
+                    // Chi tiết lỗi SQL Server
+                    if (dbEx.InnerException.InnerException != null)
+                    {
+                        Console.WriteLine($"[XeMayService] 🔴🔴 SQL Error: {dbEx.InnerException.InnerException.Message}");
+                    }
+                }
+                
+                // Log thông tin đơn hàng để debug
+                Console.WriteLine($"[XeMayService] 📋 Order Data:");
+                Console.WriteLine($"  - OrderNumber: {order.OrderNumber}");
+                Console.WriteLine($"  - CustomerId: {order.CustomerId}");
+                Console.WriteLine($"  - VehicleId: {order.VehicleId}");
+                Console.WriteLine($"  - StoreId: {order.StoreId}");
+                Console.WriteLine($"  - CustomerName: '{order.CustomerName}'");
+                Console.WriteLine($"  - CustomerPhone: '{order.CustomerPhone}'");
+                Console.WriteLine($"  - CustomerAddress: '{order.CustomerAddress}'");
+                Console.WriteLine($"  - VehiclePrice: {order.VehiclePrice}");
+                Console.WriteLine($"  - DepositAmount: {order.DepositAmount}");
+                Console.WriteLine($"  - TotalPrice: {order.TotalPrice}");
+                Console.WriteLine($"  - PaymentMethod: '{order.PaymentMethod}'");
+                Console.WriteLine($"  - PaymentStatus: '{order.PaymentStatus}'");
+                Console.WriteLine($"  - OrderStatus: '{order.OrderStatus}'");
+                Console.WriteLine($"  - Note: '{order.Note}'");
+                
+                return null;
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"[XeMayService] ❌ GENERAL ERROR: {ex.Message}");
+                Console.WriteLine($"[XeMayService] StackTrace: {ex.StackTrace}");
+                if (ex.InnerException != null)
+                {
+                    Console.WriteLine($"[XeMayService] InnerException: {ex.InnerException.Message}");
+                }
+                return null;
+            }
+        }
+
+        // Lấy đơn hàng theo khách hàng
+        public async Task<List<OrderInfo>> GetOrdersByCustomerIdAsync(int customerId)
+        {
+            try
+            {
+                return await _context.OrderInfos
+                    .Include(o => o.Vehicle)
+                        .ThenInclude(v => v.VehicleImages)
+                    .Include(o => o.Vehicle.Brand)
+                    .Include(o => o.Store)
+                    .Where(o => o.CustomerId == customerId)
+                    .OrderByDescending(o => o.OrderedAt)
+                    .ToListAsync();
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"[XeMayService] ❌ LỖI khi lấy đơn hàng: {ex.Message}");
+                return new List<OrderInfo>();
+            }
+        }
+
+        // Lấy tất cả đơn hàng (cho admin)
+        public async Task<List<OrderInfo>> GetAllOrdersAsync()
+        {
+            try
+            {
+                return await _context.OrderInfos
+                    .Include(o => o.Vehicle)
+                        .ThenInclude(v => v.VehicleImages)
+                    .Include(o => o.Vehicle.Brand)
+                    .Include(o => o.Store)
+                    .Include(o => o.Customer)
+                    .OrderByDescending(o => o.OrderedAt)
+                    .ToListAsync();
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"[XeMayService] ❌ LỖI khi lấy tất cả đơn hàng: {ex.Message}");
+                return new List<OrderInfo>();
+            }
+        }
+
+        // Cập nhật trạng thái đơn hàng
+        public async Task<bool> UpdateOrderStatusAsync(int orderId, string status, string? cancelReason = null)
+        {
+            try
+            {
+                Console.WriteLine($"[XeMayService] Cập nhật trạng thái đơn hàng ID={orderId} sang '{status}'");
+                
+                var order = await _context.OrderInfos
+                    .Include(o => o.Vehicle)
+                    .FirstOrDefaultAsync(o => o.OrderId == orderId);
+                
+                if (order == null)
+                {
+                    Console.WriteLine($"[XeMayService] ❌ Không tìm thấy đơn hàng ID={orderId}");
+                    return false;
+                }
+
+                order.OrderStatus = status;
+                
+                if (status == "Approved" || status == "Đã xác nhận")
+                {
+                    order.CompletedAt = DateTime.Now;
+                    // Xe vẫn ở trạng thái "Pending" để ẩn khỏi trang web
+                    // Không thay đổi trạng thái xe
+                }
+                else if (status == "Rejected" || status == "Từ chối")
+                {
+                    order.CancelReason = cancelReason;
+                    // Đưa xe trở lại trạng thái "Available" (đang bán)
+                    if (order.Vehicle != null)
+                    {
+                        order.Vehicle.Status = "Available";
+                    }
+                }
+
+                await _context.SaveChangesAsync();
+                Console.WriteLine($"[XeMayService] ✓ Đã cập nhật trạng thái đơn hàng");
+                return true;
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"[XeMayService] ❌ LỖI khi cập nhật trạng thái đơn hàng: {ex.Message}");
+                if (ex.InnerException != null)
+                    Console.WriteLine($"[XeMayService] Chi tiết: {ex.InnerException.Message}");
+                return false;
+            }
+        }
+
+        // Cập nhật trạng thái xe
+        public async Task<bool> UpdateVehicleStatusAsync(int vehicleId, string status)
+        {
+            try
+            {
+                Console.WriteLine($"[XeMayService] Cập nhật trạng thái xe ID={vehicleId} sang '{status}'");
+                
+                var vehicle = await _context.Vehicles.FindAsync(vehicleId);
+                if (vehicle == null)
+                {
+                    Console.WriteLine($"[XeMayService] ❌ Không tìm thấy xe ID={vehicleId}");
+                    return false;
+                }
+
+                vehicle.Status = status;
+                vehicle.UpdatedAt = DateTime.Now;
+                
+                await _context.SaveChangesAsync();
+                Console.WriteLine($"[XeMayService] ✓ Đã cập nhật trạng thái xe");
+                return true;
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"[XeMayService] ❌ LỖI khi cập nhật trạng thái xe: {ex.Message}");
+                if (ex.InnerException != null)
+                    Console.WriteLine($"[XeMayService] Chi tiết: {ex.InnerException.Message}");
+                return false;
+            }
+        }
     }
 }
 

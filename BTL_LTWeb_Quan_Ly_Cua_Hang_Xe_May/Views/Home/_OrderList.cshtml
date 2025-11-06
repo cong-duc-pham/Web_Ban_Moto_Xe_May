@@ -1,0 +1,133 @@
+@model List<BTL_LTWeb_Quan_Ly_Cua_Hang_Xe_May.Models.Entities.OrderInfo>
+@{
+    // Helper function
+    string GetStatusText(string status) {
+        return status switch {
+            "Pending" => "Đang chờ xác nhận",
+            "Approved" => "Đã xác nhận",
+            "Rejected" => "Từ chối",
+            _ => status
+        };
+    }
+}
+
+@if (Model == null || Model.Count == 0)
+{
+    <div class="text-center py-5">
+        <i class="fas fa-inbox fa-3x text-muted mb-3"></i>
+        <p class="text-muted">Không có đơn hàng nào</p>
+    </div>
+}
+else
+{
+    @foreach (var order in Model)
+    {
+        var statusClass = order.OrderStatus switch
+        {
+            "Pending" => "status-pending",
+            "Approved" => "status-approved",
+            "Rejected" => "status-rejected",
+            _ => "status-pending"
+        };
+
+        var imageUrl = order.Vehicle?.VehicleImages?.FirstOrDefault()?.ImagePath ?? "/images/placeholder.png";
+
+        <div class="order-card">
+            <div class="order-header">
+                <div class="row align-items-center">
+                    <div class="col-md-6">
+                        <h6 class="mb-1">
+                            <i class="fas fa-file-invoice"></i> 
+                            Mã đơn: <strong>@order.OrderNumber</strong>
+                        </h6>
+                        <small class="text-muted">
+                            <i class="far fa-calendar"></i> 
+                            @order.OrderedAt?.ToString("dd/MM/yyyy HH:mm")
+                        </small>
+                    </div>
+                    <div class="col-md-3">
+                        <small class="text-muted d-block"><i class="fas fa-user"></i> Khách hàng:</small>
+                        <strong>@order.Customer?.FullName</strong><br>
+                        <small><i class="fas fa-phone"></i> @order.CustomerPhone</small>
+                    </div>
+                    <div class="col-md-3 text-end">
+                        <span class="status-badge @statusClass">
+                            @if (order.OrderStatus == "Pending")
+                            {
+                                <i class="fas fa-clock"></i>
+                            }
+                            else if (order.OrderStatus == "Approved")
+                            {
+                                <i class="fas fa-check-circle"></i>
+                            }
+                            else if (order.OrderStatus == "Rejected")
+                            {
+                                <i class="fas fa-times-circle"></i>
+                            }
+                            @GetStatusText(order.OrderStatus)
+                        </span>
+                    </div>
+                </div>
+            </div>
+            <div class="order-body">
+                <div class="row">
+                    <div class="col-md-2">
+                        <img src="@imageUrl" alt="@order.Vehicle?.Title" class="vehicle-image"
+                             onerror="this.src='/images/placeholder.png'" />
+                    </div>
+                    <div class="col-md-5">
+                        <h5 class="mb-2">@order.Vehicle?.Title</h5>
+                        <p class="mb-1"><strong>Giá xe:</strong> @string.Format("{0:N0} đ", order.VehiclePrice)</p>
+                        @if (order.DepositAmount.HasValue && order.DepositAmount > 0)
+                        {
+                            <p class="mb-1"><strong>Tiền cọc:</strong> @string.Format("{0:N0} đ", order.DepositAmount.Value)</p>
+                        }
+                        <p class="mb-1"><strong>Thanh toán:</strong> @order.PaymentMethod</p>
+                        <p class="mb-1"><strong>Địa chỉ:</strong> @order.CustomerAddress</p>
+                        @if (!string.IsNullOrEmpty(order.Note))
+                        {
+                            <p class="mb-1"><strong>Ghi chú:</strong> @order.Note</p>
+                        }
+                        @if (order.OrderStatus == "Từ chối" && !string.IsNullOrEmpty(order.CancelReason))
+                        {
+                            <div class="alert alert-danger small mt-2 mb-0">
+                                <strong><i class="fas fa-info-circle"></i> Lý do từ chối:</strong><br>
+                                @order.CancelReason
+                            </div>
+                        }
+                    </div>
+                    <div class="col-md-2 text-center">
+                        <h5 class="text-primary">@string.Format("{0:N0} đ", order.TotalPrice)</h5>
+                        <small class="text-muted">Tổng giá trị</small>
+                    </div>
+                    <div class="col-md-3 text-end">
+                        @if (order.OrderStatus == "Pending")
+                        {
+                            <button class="btn btn-success btn-sm mb-2 w-100" onclick="approveOrder(@order.OrderId)">
+                                <i class="fas fa-check"></i> Xác nhận đơn
+                            </button>
+                            <button class="btn btn-danger btn-sm w-100" onclick="showRejectModal(@order.OrderId)">
+                                <i class="fas fa-times"></i> Từ chối
+                            </button>
+                        }
+                        else if (order.OrderStatus == "Approved")
+                        {
+                            <div class="alert alert-success small mb-0">
+                                <i class="fas fa-check-circle"></i>
+                                <strong>Đã xác nhận</strong><br>
+                                <small>@order.CompletedAt?.ToString("dd/MM/yyyy HH:mm")</small>
+                            </div>
+                        }
+                        else if (order.OrderStatus == "Rejected")
+                        {
+                            <div class="alert alert-secondary small mb-0">
+                                <i class="fas fa-ban"></i>
+                                Đơn hàng đã bị từ chối
+                            </div>
+                        }
+                    </div>
+                </div>
+            </div>
+        </div>
+    }
+}
