@@ -28,6 +28,8 @@ namespace BTL_LTWeb_Quan_Ly_Cua_Hang_Xe_May.Models.EF
         public virtual DbSet<News> News { get; set; }
         public virtual DbSet<Banner> Banners { get; set; }
         public virtual DbSet<Notification> Notifications { get; set; }
+        public virtual DbSet<Question> Questions { get; set; }
+        public virtual DbSet<Answer> Answers { get; set; }
 
         protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
         {
@@ -300,6 +302,49 @@ namespace BTL_LTWeb_Quan_Ly_Cua_Hang_Xe_May.Models.EF
                       .WithMany(p => p.Notifications)
                       .HasForeignKey(d => d.UserId)
                       .OnDelete(DeleteBehavior.Cascade);
+            });
+
+            // Question
+            modelBuilder.Entity<Question>(entity =>
+            {
+                entity.ToTable("Question");
+                entity.HasKey(e => e.QuestionId);
+                entity.Property(e => e.Title).IsRequired().HasMaxLength(500);
+                entity.Property(e => e.Content).IsRequired().HasMaxLength(2000);
+                entity.Property(e => e.Category).HasMaxLength(50).HasDefaultValue("General");
+                entity.Property(e => e.Status).HasMaxLength(20).HasDefaultValue("Open");
+                entity.Property(e => e.CreatedAt).HasColumnType("datetime2").HasDefaultValueSql("GETDATE()");
+                entity.Property(e => e.UpdatedAt).HasColumnType("datetime2");
+                entity.Property(e => e.ViewCount).HasDefaultValue(0);
+                entity.Property(e => e.AnswerCount).HasDefaultValue(0);
+                entity.HasOne(d => d.User)
+                      .WithMany()
+                      .HasForeignKey(d => d.UserId)
+                      .OnDelete(DeleteBehavior.Cascade);
+                entity.HasOne(d => d.Vehicle)
+                      .WithMany()
+                      .HasForeignKey(d => d.VehicleId)
+                      .OnDelete(DeleteBehavior.SetNull);
+            });
+
+            // Answer
+            modelBuilder.Entity<Answer>(entity =>
+            {
+                entity.ToTable("Answer");
+                entity.HasKey(e => e.AnswerId);
+                entity.Property(e => e.Content).IsRequired().HasMaxLength(2000);
+                entity.Property(e => e.CreatedAt).HasColumnType("datetime2").HasDefaultValueSql("GETDATE()");
+                entity.Property(e => e.UpdatedAt).HasColumnType("datetime2");
+                entity.Property(e => e.IsAccepted).HasDefaultValue(false);
+                entity.Property(e => e.LikeCount).HasDefaultValue(0);
+                entity.HasOne(d => d.Question)
+                      .WithMany(p => p.Answers)
+                      .HasForeignKey(d => d.QuestionId)
+                      .OnDelete(DeleteBehavior.Cascade);
+                entity.HasOne(d => d.User)
+                      .WithMany()
+                      .HasForeignKey(d => d.UserId)
+                      .OnDelete(DeleteBehavior.ClientCascade);
             });
 
             OnModelCreatingPartial(modelBuilder);

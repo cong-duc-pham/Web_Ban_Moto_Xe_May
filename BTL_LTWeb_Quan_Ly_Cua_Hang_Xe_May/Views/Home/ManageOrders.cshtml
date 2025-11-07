@@ -258,6 +258,32 @@
             }
         }
 
+        // Admin xác nhận đã giao hàng
+        function markAsDelivered(orderId) {
+            if (confirm('Xác nhận đã giao xe cho khách hàng?')) {
+                fetch('/Home/MarkAsDelivered', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/x-www-form-urlencoded',
+                    },
+                    body: `orderId=${orderId}`
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        alert(data.message);
+                        location.reload();
+                    } else {
+                        alert('Lỗi: ' + data.message);
+                    }
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                    alert('Có lỗi xảy ra!');
+                });
+            }
+        }
+
         // Hiển thị modal từ chối
         function showRejectModal(orderId) {
             document.getElementById('rejectOrderId').value = orderId;

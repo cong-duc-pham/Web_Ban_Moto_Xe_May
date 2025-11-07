@@ -403,6 +403,28 @@ namespace BTL_LTWeb_Quan_Ly_Cua_Hang_Xe_May.Controllers
                     return Json(new { success = false, message = "Xe này hiện không còn bán!" });
                 }
 
+                // Validate số tiền đặt cọc phải nhỏ hơn giá xe
+                var vehiclePrice = vehicle.SalePrice ?? 0;
+                var depositAmount = request.DepositAmount ?? 0;
+                
+                if (depositAmount >= vehiclePrice)
+                {
+                    return Json(new { 
+                        success = false, 
+                        message = $"Số tiền đặt cọc phải nhỏ hơn giá xe! Giá xe: {vehiclePrice:N0} đ" 
+                    });
+                }
+                
+                if (depositAmount <= 0)
+                {
+                    return Json(new { 
+                        success = false, 
+                        message = "Số tiền đặt cọc phải lớn hơn 0!" 
+                    });
+                }
+
+                _logger.LogInformation($"Validation passed - VehiclePrice: {vehiclePrice:N0}, DepositAmount: {depositAmount:N0}");
+
                 // Tạo mã đơn hàng
                 // Rút ngắn OrderNumber: chỉ lấy YYMMDDHHmmss (12 ký tự) thay vì yyyyMMddHHmmss (14 ký tự)
                 // Format: ORD + YYMMDDHHmmss = 15 ký tự (dưới 20)
@@ -616,6 +638,85 @@ namespace BTL_LTWeb_Quan_Ly_Cua_Hang_Xe_May.Controllers
             catch (Exception ex)
             {
                 _logger.LogError(ex, $"Lỗi khi từ chối đơn hàng ID: {request.OrderId}");
+                return Json(new { success = false, message = $"Lỗi: {ex.Message}" });
+            }
+        }
+
+        // Admin xác nhận đã giao hàng (chuyển trạng thái Approved -> Delivered)
+        [HttpPost]
+        public async Task<IActionResult> MarkAsDelivered(int orderId)
+        {
+            try
+            {
+                // Kiểm tra quyền admin
+                var roleName = HttpContext.Session.GetString("RoleName");
+                var roleId = HttpContext.Session.GetInt32("RoleId");
+                bool isAdmin = (roleName != null && roleName.Equals("Admin", StringComparison.OrdinalIgnoreCase)) 
+                            || (roleId.HasValue && roleId.Value == 1);
+                
+                if (!isAdmin)
+                {
+                    return Json(new { success = false, message = "Bạn không có quyền thực hiện thao tác này!" });
+                }
+
+                var result = await _xeMayService.UpdateOrderStatusAsync(orderId, "Delivered");
+                
+                if (result)
+                {
+                    return Json(new { success = true, message = "Đã xác nhận giao hàng! Chờ khách hàng xác nhận nhận xe." });
+                }
+
+                return Json(new { success = false, message = "Không tìm thấy đơn hàng!" });
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, $"Lỗi khi xác nhận giao hàng ID: {orderId}");
+                return Json(new { success = false, message = $"Lỗi: {ex.Message}" });
+            }
+        }
+
+        // Khách hàng xác nhận đã nhận xe (chuyển trạng thái Delivered -> Completed)
+        [HttpPost]
+        public async Task<IActionResult> ConfirmReceived(int orderId)
+        {
+            try
+            {
+                // Kiểm tra đăng nhập
+                var userId = HttpContext.Session.GetInt32("UserId");
+                if (!userId.HasValue)
+                {
+                    return Json(new { success = false, message = "Vui lòng đăng nhập!" });
+                }
+
+                // Kiểm tra đơn hàng có thuộc về khách hàng này không
+                var order = await _xeMayService.GetOrderByIdAsync(orderId);
+                if (order == null)
+                {
+                    return Json(new { success = false, message = "Không tìm thấy đơn hàng!" });
+                }
+
+                if (order.CustomerId != userId.Value)
+                {
+                    return Json(new { success = false, message = "Bạn không có quyền xác nhận đơn hàng này!" });
+                }
+
+                if (order.OrderStatus != "Delivered")
+                {
+                    return Json(new { success = false, message = "Đơn hàng chưa được giao, không thể xác nhận!" });
+                }
+
+                var result = await _xeMayService.UpdateOrderStatusAsync(orderId, "Completed");
+                
+                if (result)
+                {
+                    return Json(new { success = true, message = "Cảm ơn bạn đã xác nhận nhận xe!" });
+                }
+
+                return Json(new { success = false, message = "Có lỗi xảy ra!" });
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, $"Lỗi khi khách hàng xác nhận nhận xe ID: {orderId}");
                 return Json(new { success = false, message = $"Lỗi: {ex.Message}" });
             }
         }
