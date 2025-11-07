@@ -1,0 +1,498 @@
+@model BTL_LTWeb_Quan_Ly_Cua_Hang_Xe_May.Models.Entities.Question
+@{
+    ViewData["Title"] = Model.Title;
+    var isLoggedIn = ViewBag.IsLoggedIn ?? false;
+    var isAdmin = ViewBag.IsAdmin ?? false;
+    var currentUserId = ViewBag.CurrentUserId as int?;
+    var isQuestionOwner = currentUserId != null && Model.UserId == currentUserId;
+}
+
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>@ViewData["Title"]</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <style>
+        body {
+            background: #f8f9fa;
+        }
+
+        .detail-header {
+            background: white;
+            padding: 30px 0;
+            border-bottom: 1px solid #dee2e6;
+            margin-bottom: 30px;
+        }
+
+        .question-detail {
+            background: white;
+            border-radius: 12px;
+            padding: 30px;
+            margin-bottom: 30px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+        }
+
+        .question-title {
+            font-size: 1.75rem;
+            font-weight: 700;
+            margin-bottom: 20px;
+            color: #212529;
+        }
+
+        .question-meta {
+            display: flex;
+            gap: 20px;
+            align-items: center;
+            flex-wrap: wrap;
+            padding: 15px 0;
+            border-bottom: 1px solid #dee2e6;
+            margin-bottom: 20px;
+        }
+
+        .user-info {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .user-avatar {
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 700;
+            font-size: 1.2rem;
+        }
+
+        .question-content {
+            font-size: 1.1rem;
+            line-height: 1.8;
+            color: #495057;
+            margin-bottom: 20px;
+        }
+
+        .question-stats {
+            display: flex;
+            gap: 20px;
+            padding: 15px 0;
+            border-top: 1px solid #dee2e6;
+        }
+
+        .stat-item {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            color: #6c757d;
+        }
+
+        .answer-section {
+            background: white;
+            border-radius: 12px;
+            padding: 30px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+        }
+
+        .answer-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 25px;
+            padding-bottom: 15px;
+            border-bottom: 2px solid #dee2e6;
+        }
+
+        .answer-card {
+            padding: 20px;
+            border: 1px solid #dee2e6;
+            border-radius: 10px;
+            margin-bottom: 15px;
+            position: relative;
+        }
+
+        .answer-card.accepted {
+            border-color: #198754;
+            background: #f0f9f4;
+        }
+
+        .accepted-badge {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            background: #198754;
+            color: white;
+            padding: 5px 15px;
+            border-radius: 20px;
+            font-size: 0.875rem;
+            font-weight: 600;
+        }
+
+        .answer-content {
+            font-size: 1rem;
+            line-height: 1.6;
+            margin: 15px 0;
+            color: #495057;
+        }
+
+        .answer-meta {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            color: #6c757d;
+            font-size: 0.875rem;
+            margin-top: 15px;
+            padding-top: 15px;
+            border-top: 1px solid #dee2e6;
+        }
+
+        .answer-form {
+            background: #f8f9fa;
+            padding: 25px;
+            border-radius: 10px;
+            margin-top: 30px;
+        }
+
+        .answer-form textarea {
+            min-height: 120px;
+        }
+
+        .category-badge {
+            padding: 6px 15px;
+            border-radius: 20px;
+            font-size: 0.875rem;
+            font-weight: 600;
+        }
+
+        .category-general {
+            background: #e0e7ff;
+            color: #4f46e5;
+        }
+
+        .category-vehicle {
+            background: #fef3c7;
+            color: #d97706;
+        }
+
+        .category-payment {
+            background: #dbeafe;
+            color: #0284c7;
+        }
+
+        .category-delivery {
+            background: #dcfce7;
+            color: #16a34a;
+        }
+
+        .btn-accept {
+            background: #198754;
+            color: white;
+            border: none;
+            padding: 5px 15px;
+            border-radius: 20px;
+            font-size: 0.875rem;
+        }
+
+        .btn-accept:hover {
+            background: #157347;
+        }
+
+        .empty-answers {
+            text-align: center;
+            padding: 40px;
+            color: #6c757d;
+        }
+
+        .empty-answers i {
+            font-size: 4rem;
+            margin-bottom: 15px;
+            opacity: 0.3;
+        }
+    </style>
+</head>
+<body>
+    <div class="detail-header">
+        <div class="container">
+            <a href="/QA/Index" class="btn btn-outline-secondary mb-3">
+                <i class="fas fa-arrow-left me-2"></i>Quay lại danh sách
+            </a>
+        </div>
+    </div>
+
+    <div class="container pb-5">
+        <div class="row">
+            <div class="col-lg-12">
+                <!-- Question Detail -->
+                <div class="question-detail">
+                    @{
+                        var categoryClass = Model.Category switch
+                        {
+                            "General" => "category-general",
+                            "Vehicle" => "category-vehicle",
+                            "Payment" => "category-payment",
+                            "Delivery" => "category-delivery",
+                            _ => "category-general"
+                        };
+
+                        var categoryIcon = Model.Category switch
+                        {
+                            "General" => "fa-question-circle",
+                            "Vehicle" => "fa-motorcycle",
+                            "Payment" => "fa-credit-card",
+                            "Delivery" => "fa-shipping-fast",
+                            _ => "fa-question-circle"
+                        };
+                    }
+
+                    <span class="category-badge @categoryClass">
+                        <i class="fas @categoryIcon me-1"></i>@Model.Category
+                    </span>
+
+                    <h1 class="question-title mt-3">@Model.Title</h1>
+
+                    <div class="question-meta">
+                        <div class="user-info">
+                            <div class="user-avatar">
+                                @(Model.User?.FullName?.Substring(0, 1).ToUpper() ?? "U")
+                            </div>
+                            <div>
+                                <div><strong>@(Model.User?.FullName ?? "Người dùng")</strong></div>
+                                <small class="text-muted">
+                                    <i class="far fa-clock me-1"></i>
+                                    @Model.CreatedAt.ToString("dd/MM/yyyy HH:mm")
+                                </small>
+                            </div>
+                        </div>
+
+                        @if (Model.Vehicle != null)
+                        {
+                            <div class="text-muted">
+                                <i class="fas fa-motorcycle me-1"></i>
+                                Về xe: <strong>@Model.Vehicle.Title</strong>
+                            </div>
+                        }
+
+                        @if (isAdmin || isQuestionOwner)
+                        {
+                            <button class="btn btn-sm btn-danger" onclick="deleteQuestion(@Model.QuestionId)">
+                                <i class="fas fa-trash me-1"></i>Xóa
+                            </button>
+                        }
+                    </div>
+
+                    <div class="question-content">
+                        @Model.Content
+                    </div>
+
+                    <div class="question-stats">
+                        <div class="stat-item">
+                            <i class="fas fa-comment-dots"></i>
+                            <strong>@Model.AnswerCount</strong> câu trả lời
+                        </div>
+                        <div class="stat-item">
+                            <i class="fas fa-eye"></i>
+                            <strong>@Model.ViewCount</strong> lượt xem
+                        </div>
+                        <div class="stat-item">
+                            @if (Model.Status == "Answered")
+                            {
+                                <i class="fas fa-check-circle text-success"></i>
+                                <span class="text-success">Đã có câu trả lời</span>
+                            }
+                            else
+                            {
+                                <i class="fas fa-hourglass-half text-warning"></i>
+                                <span class="text-warning">Chờ trả lời</span>
+                            }
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Answers Section -->
+                <div class="answer-section">
+                    <div class="answer-header">
+                        <h4><i class="fas fa-comments me-2"></i>@Model.AnswerCount câu trả lời</h4>
+                    </div>
+
+                    @if (Model.Answers == null || !Model.Answers.Any())
+                    {
+                        <div class="empty-answers">
+                            <i class="far fa-comment-dots"></i>
+                            <p>Chưa có câu trả lời nào. Hãy là người đầu tiên trả lời!</p>
+                        </div>
+                    }
+                    else
+                    {
+                        <div id="answersList">
+                            @foreach (var answer in Model.Answers.OrderByDescending(a => a.IsAccepted).ThenByDescending(a => a.CreatedAt))
+                            {
+                                <div class="answer-card @(answer.IsAccepted ? "accepted" : "")" id="answer-@answer.AnswerId">
+                                    @if (answer.IsAccepted)
+                                    {
+                                        <span class="accepted-badge">
+                                            <i class="fas fa-check me-1"></i>Đã chấp nhận
+                                        </span>
+                                    }
+
+                                    <div class="user-info">
+                                        <div class="user-avatar">
+                                            @(answer.User?.FullName?.Substring(0, 1).ToUpper() ?? "U")
+                                        </div>
+                                        <div>
+                                            <div><strong>@(answer.User?.FullName ?? "Người dùng")</strong></div>
+                                            <small class="text-muted">
+                                                <i class="far fa-clock me-1"></i>
+                                                @answer.CreatedAt.ToString("dd/MM/yyyy HH:mm")
+                                            </small>
+                                        </div>
+                                    </div>
+
+                                    <div class="answer-content">
+                                        @answer.Content
+                                    </div>
+
+                                    <div class="answer-meta">
+                                        <div>
+                                            <i class="fas fa-thumbs-up me-1"></i>
+                                            @answer.LikeCount thích
+                                        </div>
+                                        @if (isQuestionOwner && !answer.IsAccepted)
+                                        {
+                                            <button class="btn-accept" onclick="acceptAnswer(@answer.AnswerId)">
+                                                <i class="fas fa-check me-1"></i>Chấp nhận câu trả lời
+                                            </button>
+                                        }
+                                    </div>
+                                </div>
+                            }
+                        </div>
+                    }
+
+                    <!-- Answer Form -->
+                    @if (isLoggedIn)
+                    {
+                        <div class="answer-form">
+                            <h5 class="mb-3"><i class="fas fa-reply me-2"></i>Trả lời câu hỏi</h5>
+                            <form id="answerForm">
+                                <div class="mb-3">
+                                    <textarea class="form-control" id="answerContent" rows="5" 
+                                              placeholder="Nhập câu trả lời của bạn..." required></textarea>
+                                    <small class="text-muted">Tối thiểu 10 ký tự</small>
+                                </div>
+                                <button type="button" class="btn btn-primary" onclick="submitAnswer()">
+                                    <i class="fas fa-paper-plane me-2"></i>Gửi câu trả lời
+                                </button>
+                            </form>
+                        </div>
+                    }
+                    else
+                    {
+                        <div class="alert alert-info">
+                            <i class="fas fa-info-circle me-2"></i>
+                            Vui lòng <a href="/Account/Login">đăng nhập</a> để trả lời câu hỏi!
+                        </div>
+                    }
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        // Submit answer
+        function submitAnswer() {
+            const content = document.getElementById('answerContent').value.trim();
+
+            if (content.length < 10) {
+                alert('Câu trả lời phải có ít nhất 10 ký tự!');
+                return;
+            }
+
+            fetch('/QA/CreateAnswer', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                    questionId: @Model.QuestionId,
+                    content: content
+                })
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    alert(data.message);
+                    location.reload();
+                } else {
+                    alert(data.message);
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                alert('Có lỗi xảy ra!');
+            });
+        }
+
+        // Accept answer
+        function acceptAnswer(answerId) {
+            if (!confirm('Bạn xác nhận chấp nhận câu trả lời này?')) {
+                return;
+            }
+
+            fetch('/QA/AcceptAnswer', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/x-www-form-urlencoded',
+                },
+                body: `answerId=${answerId}`
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    alert(data.message);
+                    location.reload();
+                } else {
+                    alert(data.message);
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                alert('Có lỗi xảy ra!');
+            });
+        }
+
+        // Delete question
+        function deleteQuestion(questionId) {
+            if (!confirm('Bạn có chắc chắn muốn xóa câu hỏi này?')) {
+                return;
+            }
+
+            fetch('/QA/DeleteQuestion', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/x-www-form-urlencoded',
+                },
+                body: `id=${questionId}`
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    alert(data.message);
+                    window.location.href = '/QA/Index';
+                } else {
+                    alert(data.message);
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                alert('Có lỗi xảy ra!');
+            });
+        }
+    </script>
+</body>
+</html>

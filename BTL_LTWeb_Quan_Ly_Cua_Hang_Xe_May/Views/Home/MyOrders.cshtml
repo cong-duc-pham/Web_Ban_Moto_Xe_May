@@ -8,6 +8,8 @@
         return status switch {
             "Pending" => "Đang chờ xác nhận",
             "Approved" => "Đã xác nhận",
+            "Delivered" => "Đang giao hàng",
+            "Completed" => "Hoàn thành",
             "Rejected" => "Từ chối",
             _ => status
         };
@@ -55,6 +57,16 @@
             background: #d4edda;
             color: #155724;
             border: 1px solid #28a745;
+        }
+        .status-delivered {
+            background: #cfe2ff;
+            color: #084298;
+            border: 1px solid #0d6efd;
+        }
+        .status-completed {
+            background: #d1e7dd;
+            color: #0a3622;
+            border: 1px solid #198754;
         }
         .status-rejected {
             background: #f8d7da;
@@ -205,7 +217,26 @@
                                     <div class="alert alert-success small mb-0">
                                         <i class="fas fa-check-circle"></i>
                                         Đơn hàng đã được xác nhận!<br>
-                                        <small>Hoàn tất: @order.CompletedAt?.ToString("dd/MM/yyyy HH:mm")</small>
+                                        <small>Cửa hàng sẽ sớm liên hệ giao xe.</small>
+                                    </div>
+                                }
+                                else if (order.OrderStatus == "Delivered")
+                                {
+                                    <div class="alert alert-primary small mb-2">
+                                        <i class="fas fa-truck"></i>
+                                        <strong>Xe đang được giao đến bạn!</strong><br>
+                                        <small>Vui lòng xác nhận khi nhận được xe.</small>
+                                    </div>
+                                    <button class="btn btn-success btn-sm w-100" onclick="confirmReceived(@order.OrderId)">
+                                        <i class="fas fa-check-double"></i> Xác nhận đã nhận xe
+                                    </button>
+                                }
+                                else if (order.OrderStatus == "Completed")
+                                {
+                                    <div class="alert alert-success small mb-0">
+                                        <i class="fas fa-check-double"></i>
+                                        <strong>Giao dịch hoàn tất!</strong><br>
+                                        <small>@order.CompletedAt?.ToString("dd/MM/yyyy HH:mm")</small>
                                     </div>
                                 }
                                 else if (order.OrderStatus == "Rejected")
@@ -225,5 +256,32 @@
     </div>
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        // Khách hàng xác nhận đã nhận xe
+        function confirmReceived(orderId) {
+            if (!confirm('Bạn xác nhận đã nhận xe? Sau khi xác nhận, đơn hàng sẽ hoàn tất.')) {
+                return;
+            }
+
+            fetch('/Home/ConfirmReceived', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/x-www-form-urlencoded',
+                },
+                body: `orderId=${orderId}`
+            })
+            .then(response => response.json())
+            .then(data => {
+                alert(data.message);
+                if (data.success) {
+                    location.reload();
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                alert('Có lỗi xảy ra!');
+            });
+        }
+    </script>
 </body>
 </html>

@@ -1,0 +1,601 @@
+@model List<BTL_LTWeb_Quan_Ly_Cua_Hang_Xe_May.Models.Entities.Question>
+@{
+    ViewData["Title"] = "Hỏi & Đáp - Cộng đồng mua bán xe";
+    var isLoggedIn = ViewBag.IsLoggedIn ?? false;
+    var isAdmin = ViewBag.IsAdmin ?? false;
+    var currentCategory = ViewBag.CurrentCategory ?? "All";
+    var currentSort = ViewBag.CurrentSort ?? "newest";
+}
+
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>@ViewData["Title"]</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <style>
+        :root {
+            --primary-color: #0d6efd;
+            --success-color: #198754;
+            --warning-color: #ffc107;
+            --danger-color: #dc3545;
+        }
+
+        body {
+            background: #f8f9fa;
+        }
+
+        .qa-header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 60px 0 40px;
+            margin-bottom: 30px;
+        }
+
+        .qa-header h1 {
+            font-size: 2.5rem;
+            font-weight: 700;
+            margin-bottom: 15px;
+        }
+
+        .qa-header p {
+            font-size: 1.1rem;
+            opacity: 0.9;
+        }
+
+        .search-bar {
+            background: white;
+            border-radius: 50px;
+            padding: 8px 20px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+            margin-top: 20px;
+        }
+
+        .search-bar input {
+            border: none;
+            outline: none;
+            width: 100%;
+            padding: 8px;
+        }
+
+        .search-bar button {
+            background: var(--primary-color);
+            border: none;
+            color: white;
+            padding: 8px 20px;
+            border-radius: 25px;
+        }
+
+        .filter-section {
+            background: white;
+            padding: 20px;
+            border-radius: 10px;
+            margin-bottom: 20px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+        }
+
+        .category-tabs {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+            margin-bottom: 15px;
+        }
+
+        .category-tab {
+            padding: 8px 20px;
+            border: 2px solid #dee2e6;
+            border-radius: 25px;
+            background: white;
+            cursor: pointer;
+            transition: all 0.3s;
+            text-decoration: none;
+            color: #495057;
+        }
+
+        .category-tab:hover {
+            border-color: var(--primary-color);
+            color: var(--primary-color);
+        }
+
+        .category-tab.active {
+            background: var(--primary-color);
+            border-color: var(--primary-color);
+            color: white;
+        }
+
+        .sort-dropdown {
+            border: 2px solid #dee2e6;
+            border-radius: 8px;
+            padding: 8px 15px;
+        }
+
+        .question-card {
+            background: white;
+            border-radius: 12px;
+            padding: 20px;
+            margin-bottom: 15px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+            transition: all 0.3s;
+            border-left: 4px solid transparent;
+        }
+
+        .question-card:hover {
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+            border-left-color: var(--primary-color);
+        }
+
+        .question-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: start;
+            margin-bottom: 15px;
+        }
+
+        .question-title {
+            font-size: 1.25rem;
+            font-weight: 600;
+            color: #212529;
+            text-decoration: none;
+            display: block;
+            margin-bottom: 10px;
+        }
+
+        .question-title:hover {
+            color: var(--primary-color);
+        }
+
+        .question-meta {
+            display: flex;
+            gap: 15px;
+            color: #6c757d;
+            font-size: 0.875rem;
+            flex-wrap: wrap;
+        }
+
+        .question-meta span {
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+
+        .question-stats {
+            display: flex;
+            gap: 15px;
+            margin-top: 15px;
+        }
+
+        .stat-badge {
+            padding: 8px 15px;
+            border-radius: 8px;
+            font-size: 0.875rem;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .stat-badge.answers {
+            background: #e7f3ff;
+            color: #0066cc;
+        }
+
+        .stat-badge.views {
+            background: #f0f0f0;
+            color: #666;
+        }
+
+        .stat-badge.answered {
+            background: #d4edda;
+            color: #155724;
+        }
+
+        .category-badge {
+            padding: 5px 12px;
+            border-radius: 15px;
+            font-size: 0.75rem;
+            font-weight: 600;
+            text-transform: uppercase;
+        }
+
+        .category-general {
+            background: #e0e7ff;
+            color: #4f46e5;
+        }
+
+        .category-vehicle {
+            background: #fef3c7;
+            color: #d97706;
+        }
+
+        .category-payment {
+            background: #dbeafe;
+            color: #0284c7;
+        }
+
+        .category-delivery {
+            background: #dcfce7;
+            color: #16a34a;
+        }
+
+        .ask-button {
+            position: fixed;
+            bottom: 30px;
+            right: 30px;
+            width: 60px;
+            height: 60px;
+            background: var(--primary-color);
+            color: white;
+            border-radius: 50%;
+            border: none;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+            font-size: 1.5rem;
+            cursor: pointer;
+            transition: all 0.3s;
+            z-index: 1000;
+        }
+
+        .ask-button:hover {
+            transform: scale(1.1);
+            box-shadow: 0 6px 20px rgba(0,0,0,0.3);
+        }
+
+        .empty-state {
+            text-align: center;
+            padding: 60px 20px;
+        }
+
+        .empty-state i {
+            font-size: 5rem;
+            color: #dee2e6;
+            margin-bottom: 20px;
+        }
+
+        .user-avatar {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            background: var(--primary-color);
+            color: white;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 600;
+        }
+
+        .status-open {
+            color: var(--primary-color);
+        }
+
+        .status-answered {
+            color: var(--success-color);
+        }
+
+        .status-closed {
+            color: #6c757d;
+        }
+    </style>
+</head>
+<body>
+    <!-- Header -->
+    <div class="qa-header">
+        <div class="container">
+            <h1><i class="fas fa-comments me-3"></i>Hỏi & Đáp</h1>
+            <p>Cộng đồng chia sẻ kinh nghiệm mua bán xe máy</p>
+            
+            <div class="row justify-content-center">
+                <div class="col-md-8">
+                    <form method="get" action="/QA/Index">
+                        <div class="search-bar d-flex align-items-center">
+                            <i class="fas fa-search text-muted me-2"></i>
+                            <input type="text" name="search" placeholder="Tìm kiếm câu hỏi..." value="@ViewBag.CurrentSearch">
+                            <button type="submit"><i class="fas fa-search me-2"></i>Tìm</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="container pb-5">
+        <!-- Filters -->
+        <div class="filter-section">
+            <div class="row align-items-center">
+                <div class="col-md-8">
+                    <div class="category-tabs">
+                        <a href="/QA/Index" class="category-tab @(currentCategory == "All" ? "active" : "")">
+                            <i class="fas fa-th me-1"></i> Tất cả
+                        </a>
+                        <a href="/QA/Index?category=General" class="category-tab @(currentCategory == "General" ? "active" : "")">
+                            <i class="fas fa-question-circle me-1"></i> Chung
+                        </a>
+                        <a href="/QA/Index?category=Vehicle" class="category-tab @(currentCategory == "Vehicle" ? "active" : "")">
+                            <i class="fas fa-motorcycle me-1"></i> Về xe
+                        </a>
+                        <a href="/QA/Index?category=Payment" class="category-tab @(currentCategory == "Payment" ? "active" : "")">
+                            <i class="fas fa-credit-card me-1"></i> Thanh toán
+                        </a>
+                        <a href="/QA/Index?category=Delivery" class="category-tab @(currentCategory == "Delivery" ? "active" : "")">
+                            <i class="fas fa-shipping-fast me-1"></i> Giao hàng
+                        </a>
+                    </div>
+                </div>
+                <div class="col-md-4 text-end">
+                    <select class="sort-dropdown" id="sortSelect">
+                        @if(currentSort == "newest")
+                        {
+                            <option value="newest" selected>Mới nhất</option>
+                        }
+                        else
+                        {
+                            <option value="newest">Mới nhất</option>
+                        }
+                        
+                        @if(currentSort == "oldest")
+                        {
+                            <option value="oldest" selected>Cũ nhất</option>
+                        }
+                        else
+                        {
+                            <option value="oldest">Cũ nhất</option>
+                        }
+                        
+                        @if(currentSort == "mostviewed")
+                        {
+                            <option value="mostviewed" selected>Xem nhiều nhất</option>
+                        }
+                        else
+                        {
+                            <option value="mostviewed">Xem nhiều nhất</option>
+                        }
+                        
+                        @if(currentSort == "mostanswered")
+                        {
+                            <option value="mostanswered" selected>Nhiều trả lời nhất</option>
+                        }
+                        else
+                        {
+                            <option value="mostanswered">Nhiều trả lời nhất</option>
+                        }
+                    </select>
+                </div>
+            </div>
+        </div>
+
+        <!-- Questions List -->
+        @if (Model == null || Model.Count == 0)
+        {
+            <div class="empty-state">
+                <i class="fas fa-inbox"></i>
+                <h3>Chưa có câu hỏi nào</h3>
+                <p class="text-muted">Hãy là người đầu tiên đặt câu hỏi!</p>
+            </div>
+        }
+        else
+        {
+            @foreach (var question in Model)
+            {
+                var categoryClass = question.Category switch
+                {
+                    "General" => "category-general",
+                    "Vehicle" => "category-vehicle",
+                    "Payment" => "category-payment",
+                    "Delivery" => "category-delivery",
+                    _ => "category-general"
+                };
+
+                var categoryIcon = question.Category switch
+                {
+                    "General" => "fa-question-circle",
+                    "Vehicle" => "fa-motorcycle",
+                    "Payment" => "fa-credit-card",
+                    "Delivery" => "fa-shipping-fast",
+                    _ => "fa-question-circle"
+                };
+
+                var statusClass = question.Status switch
+                {
+                    "Open" => "status-open",
+                    "Answered" => "status-answered",
+                    "Closed" => "status-closed",
+                    _ => "status-open"
+                };
+
+                <div class="question-card">
+                    <div class="question-header">
+                        <div class="flex-grow-1">
+                            <div class="d-flex align-items-center gap-2 mb-2">
+                                <span class="category-badge @categoryClass">
+                                    <i class="fas @categoryIcon me-1"></i>@question.Category
+                                </span>
+                                @if (question.Status == "Answered")
+                                {
+                                    <span class="stat-badge answered">
+                                        <i class="fas fa-check-circle"></i> Đã trả lời
+                                    </span>
+                                }
+                            </div>
+                            
+                            <a href="/QA/Detail/@question.QuestionId" class="question-title">
+                                @question.Title
+                            </a>
+                            
+                            <div class="question-meta">
+                                <span>
+                                    <div class="user-avatar">
+                                        @(question.User?.FullName?.Substring(0, 1).ToUpper() ?? "U")
+                                    </div>
+                                    <strong>@(question.User?.FullName ?? "Người dùng")</strong>
+                                </span>
+                                <span>
+                                    <i class="far fa-clock"></i>
+                                    @question.CreatedAt.ToString("dd/MM/yyyy HH:mm")
+                                </span>
+                                @if (question.Vehicle != null)
+                                {
+                                    <span>
+                                        <i class="fas fa-motorcycle"></i>
+                                        @question.Vehicle.Title
+                                    </span>
+                                }
+                            </div>
+                        </div>
+                    </div>
+
+                    <p class="text-muted mb-3">
+                        @(question.Content.Length > 150 ? question.Content.Substring(0, 150) + "..." : question.Content)
+                    </p>
+
+                    <div class="question-stats">
+                        <div class="stat-badge answers">
+                            <i class="fas fa-comment-dots"></i>
+                            <strong>@question.AnswerCount</strong> trả lời
+                        </div>
+                        <div class="stat-badge views">
+                            <i class="fas fa-eye"></i>
+                            <strong>@question.ViewCount</strong> lượt xem
+                        </div>
+                    </div>
+                </div>
+            }
+        }
+    </div>
+
+    <!-- Ask Question Button -->
+    @if (isLoggedIn)
+    {
+        <button class="ask-button" onclick="showAskModal()" title="Đặt câu hỏi">
+            <i class="fas fa-plus"></i>
+        </button>
+    }
+
+    <!-- Ask Question Modal -->
+    <div class="modal fade" id="askQuestionModal" tabindex="-1">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title"><i class="fas fa-question-circle me-2"></i>Đặt câu hỏi mới</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <form id="askQuestionForm">
+                        <div class="mb-3">
+                            <label class="form-label">Tiêu đề câu hỏi <span class="text-danger">*</span></label>
+                            <input type="text" class="form-control" id="questionTitle" 
+                                   placeholder="Ví dụ: Honda SH 2024 có tốn xăng không?" required>
+                            <small class="text-muted">Tối thiểu 10 ký tự</small>
+                        </div>
+                        
+                        <div class="mb-3">
+                            <label class="form-label">Nội dung chi tiết <span class="text-danger">*</span></label>
+                            <textarea class="form-control" id="questionContent" rows="5" 
+                                      placeholder="Mô tả chi tiết câu hỏi của bạn..." required></textarea>
+                            <small class="text-muted">Tối thiểu 20 ký tự</small>
+                        </div>
+
+                        <div class="mb-3">
+                            <label class="form-label">Danh mục</label>
+                            <select class="form-select" id="questionCategory">
+                                <option value="General">Chung</option>
+                                <option value="Vehicle">Về xe</option>
+                                <option value="Payment">Thanh toán</option>
+                                <option value="Delivery">Giao hàng</option>
+                            </select>
+                        </div>
+
+                        <div class="mb-3">
+                            <label class="form-label">Liên quan đến xe (không bắt buộc)</label>
+                            <input type="number" class="form-control" id="questionVehicleId" 
+                                   placeholder="ID của xe nếu câu hỏi liên quan đến xe cụ thể">
+                        </div>
+                    </form>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Hủy</button>
+                    <button type="button" class="btn btn-primary" onclick="submitQuestion()">
+                        <i class="fas fa-paper-plane me-2"></i>Đăng câu hỏi
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        // Sort change
+        document.getElementById('sortSelect').addEventListener('change', function() {
+            const sort = this.value;
+            const urlParams = new URLSearchParams(window.location.search);
+            urlParams.set('sort', sort);
+            window.location.href = '/QA/Index?' + urlParams.toString();
+        });
+
+        // Show ask modal
+        function showAskModal() {
+            new bootstrap.Modal(document.getElementById('askQuestionModal')).show();
+        }
+
+        // Submit question
+        function submitQuestion() {
+            const title = document.getElementById('questionTitle').value.trim();
+            const content = document.getElementById('questionContent').value.trim();
+            const category = document.getElementById('questionCategory').value;
+            const vehicleId = document.getElementById('questionVehicleId').value;
+
+            if (title.length < 10) {
+                alert('Tiêu đề phải có ít nhất 10 ký tự!');
+                return;
+            }
+
+            if (content.length < 20) {
+                alert('Nội dung phải có ít nhất 20 ký tự!');
+                return;
+            }
+
+            fetch('/QA/CreateQuestion', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                    title: title,
+                    content: content,
+                    category: category,
+                    vehicleId: vehicleId ? parseInt(vehicleId) : null
+                })
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    alert(data.message);
+                    window.location.href = '/QA/Detail/' + data.questionId;
+                } else {
+                    alert(data.message);
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                alert('Có lỗi xảy ra!');
+            });
+        }
+
+        // Login prompt for non-logged users
+        @if (!isLoggedIn)
+        {
+            <text>
+            document.addEventListener('DOMContentLoaded', function() {
+                const loginPrompt = document.createElement('div');
+                loginPrompt.className = 'alert alert-info alert-dismissible fade show';
+                loginPrompt.style.cssText = 'position: fixed; top: 20px; right: 20px; z-index: 9999; max-width: 400px;';
+                loginPrompt.innerHTML = `
+                    <i class="fas fa-info-circle me-2"></i>
+                    <strong>Đăng nhập</strong> để đặt câu hỏi và trả lời!
+                    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                `;
+                document.body.appendChild(loginPrompt);
+            });
+            </text>
+        }
+    </script>
+</body>
+</html>

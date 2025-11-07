@@ -576,6 +576,26 @@ namespace BTL_LTWeb_Quan_Ly_Cua_Hang_Xe_May.Services
             }
         }
 
+        // Lấy đơn hàng theo ID
+        public async Task<OrderInfo?> GetOrderByIdAsync(int orderId)
+        {
+            try
+            {
+                return await _context.OrderInfos
+                    .Include(o => o.Vehicle)
+                        .ThenInclude(v => v.VehicleImages)
+                    .Include(o => o.Vehicle.Brand)
+                    .Include(o => o.Store)
+                    .Include(o => o.Customer)
+                    .FirstOrDefaultAsync(o => o.OrderId == orderId);
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"[XeMayService] ❌ LỖI khi lấy đơn hàng ID {orderId}: {ex.Message}");
+                return null;
+            }
+        }
+
         // Lấy tất cả đơn hàng (cho admin)
         public async Task<List<OrderInfo>> GetAllOrdersAsync()
         {
