@@ -30,7 +30,7 @@ namespace BTL_LTWeb_Quan_Ly_Cua_Hang_Xe_May.Models.Entities
         public DateTime? UpdatedAt { get; set; }
 
         [StringLength(20)]
-        public string Status { get; set; } = "Open"; // Open, Answered, Closed
+        public string Status { get; set; } = "Open"; 
 
         public int ViewCount { get; set; } = 0;
 

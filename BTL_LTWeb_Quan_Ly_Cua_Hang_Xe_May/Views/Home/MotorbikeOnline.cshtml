@@ -164,7 +164,7 @@
                                 </a>
                                 <ul class="dropdown-menu dropdown-menu-end">
                                     <li><a class="dropdown-item" href="/Account/Profile"><i class="fas fa-user me-2"></i>Tài khoản của tôi</a></li>
-                                    @if (ViewBag.IsAdmin == true)
+                                    @if (ViewBag.IsAdmin == true || ViewBag.IsSaler == true)
                                     {
                                         <li><a class="dropdown-item" href="/Home/ManageOrders"><i class="fas fa-tasks me-2"></i>Quản lý đơn hàng</a></li>
                                     }
@@ -172,6 +172,7 @@
                                     {
                                         <li><a class="dropdown-item" href="/Home/MyOrders"><i class="fas fa-shopping-bag me-2"></i>Đơn hàng của tôi</a></li>
                                     }
+                                    <li><a class="dropdown-item" href="/QA"><i class="fas fa-question-circle me-2"></i>Hỏi đáp</a></li>
                                     <li><a class="dropdown-item" href="#"><i class="fas fa-bookmark me-2"></i>Tin đã lưu</a></li>
                                     <li><hr class="dropdown-divider"></li>
                                     <li><a class="dropdown-item text-danger" href="/Account/Logout"><i class="fas fa-sign-out-alt me-2"></i>Đăng xuất</a></li>
@@ -298,7 +299,16 @@
                 <div class="alert alert-success d-flex align-items-center mb-3" role="alert">
                     <i class="fas fa-user-shield me-2"></i>
                     <div>
-                        <strong>Chế độ Quản lý:</strong> Bạn có thể thêm, sửa, xóa sản phẩm.
+                        <strong>Chế độ Quản lý (Admin):</strong> Bạn có thể thêm, sửa, xóa sản phẩm.
+                    </div>
+                </div>
+            }
+            else if (ViewBag.IsSaler == true)
+            {
+                <div class="alert alert-warning d-flex align-items-center mb-3" role="alert">
+                    <i class="fas fa-user-tie me-2"></i>
+                    <div>
+                        <strong>Chế độ Nhân viên (Saler):</strong> Bạn có thể xem tất cả xe, quản lý đơn hàng, trả lời câu hỏi. Không có quyền thêm/sửa/xóa xe.
                     </div>
                 </div>
             }
@@ -307,7 +317,7 @@
                 <div class="alert alert-info d-flex align-items-center mb-3" role="alert">
                     <i class="fas fa-info-circle me-2"></i>
                     <div>
-                        <strong>Chế độ Xem:</strong> Bạn chỉ có thể xem danh sách sản phẩm. Đăng nhập với tài khoản Quản lý để thêm/sửa/xóa.
+                        <strong>Chế độ Khách hàng:</strong> Bạn chỉ có thể xem xe còn hàng và mua xe.
                     </div>
                 </div>
             }
@@ -330,6 +340,26 @@
                                         <span class="product-badge">
                                             <i class="fas fa-check-circle"></i> CHÍNH HÃNG
                                         </span>
+                                        @* Hiển thị badge tồn kho *@
+                                        @if (xe.StockQuantity > 0)
+                                        {
+                                            <span class="stock-badge bg-success">
+                                                <i class="fas fa-box"></i> Còn @xe.StockQuantity
+                                            </span>
+                                        }
+                                        else
+                                        {
+                                            <span class="stock-badge bg-danger">
+                                                <i class="fas fa-times-circle"></i> Hết hàng
+                                            </span>
+                                        }
+                                        @* Hiển thị số lượng đã bán nếu có *@
+                                        @if (xe.SoldCount > 0)
+                                        {
+                                            <span class="sold-badge">
+                                                <i class="fas fa-fire"></i> Đã bán @xe.SoldCount
+                                            </span>
+                                        }
                                     </div>
                                     <div class="product-info">
                                         <h3 class="product-name">@xe.Title</h3>
@@ -349,6 +379,7 @@
                                     </div>
                                     @if (ViewBag.IsAdmin == true)
                                     {
+                                        <!-- Nút Sửa/Xóa cho Admin -->
                                         <div class="product-actions">
                                             <button class="btn btn-sm btn-warning"
                                                     onclick='showEditModal(
@@ -362,7 +393,8 @@
                                                         @Html.Raw(System.Text.Json.JsonSerializer.Serialize(xe.Model ?? "")),
                                                         @(xe.ManufactureYear ?? 0),
                                                         @(xe.EngineCapacity ?? 0),
-                                                        @Html.Raw(System.Text.Json.JsonSerializer.Serialize(xe.Color ?? ""))
+                                                        @Html.Raw(System.Text.Json.JsonSerializer.Serialize(xe.Color ?? "")),
+                                                        @(xe.StockQuantity)
                                                     )'>
                                                 <i class="fas fa-edit"></i> Sửa
                                             </button>
@@ -370,6 +402,15 @@
                                                     onclick='confirmDelete(@xe.VehicleId, @Html.Raw(System.Text.Json.JsonSerializer.Serialize(xe.Title)))'>
                                                 <i class="fas fa-trash"></i> Xóa
                                             </button>
+                                        </div>
+                                    }
+                                    else if (ViewBag.IsSaler == true)
+                                    {
+                                        <!-- Saler không có nút gì cả, chỉ xem -->
+                                        <div class="product-actions">
+                                            <span class="badge bg-secondary w-100 py-2">
+                                                <i class="fas fa-eye"></i> Chế độ xem (Nhân viên)
+                                            </span>
                                         </div>
                                     }
                                     else if (isLoggedIn)
@@ -500,26 +541,37 @@
                             </div>
 
                             <div class="col-md-6 mb-3">
-                                <label for="model" class="form-label">Model</label>
-                                <input type="text" class="form-control" id="model" name="Model" 
-                                       placeholder="Ví dụ: Klara S 2024" />
+                                <label for="soLuong" class="form-label">Số lượng xe <span class="text-danger">*</span></label>
+                                <input type="number" class="form-control" id="soLuong" name="StockQuantity" required 
+                                       min="1" step="1" value="1" placeholder="Nhập số lượng xe trong kho" />
+                                <small class="form-text text-muted">
+                                    <i class="fas fa-info-circle"></i> Số lượng xe hiện có trong kho
+                                </small>
                             </div>
                         </div>
 
                         <div class="row">
-                            <div class="col-md-4 mb-3">
+                            <div class="col-md-6 mb-3">
+                                <label for="model" class="form-label">Model</label>
+                                <input type="text" class="form-control" id="model" name="Model" 
+                                       placeholder="Ví dụ: Klara S 2024" />
+                            </div>
+
+                            <div class="col-md-6 mb-3">
                                 <label for="namSX" class="form-label">Năm sản xuất</label>
                                 <input type="number" class="form-control" id="namSX" name="ManufactureYear" 
                                        min="2000" max="2025" placeholder="2024" />
                             </div>
+                        </div>
 
-                            <div class="col-md-4 mb-3">
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
                                 <label for="dungTich" class="form-label">Dung tích (cc)</label>
                                 <input type="number" class="form-control" id="dungTich" name="EngineCapacity" 
                                        min="0" placeholder="150" />
                             </div>
 
-                            <div class="col-md-4 mb-3">
+                            <div class="col-md-6 mb-3">
                                 <label for="mauSac" class="form-label">Màu sắc</label>
                                 <input type="text" class="form-control" id="mauSac" name="Color" 
                                        placeholder="Đỏ, Đen, Xanh..." />

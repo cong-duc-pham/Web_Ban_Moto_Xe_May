@@ -65,7 +65,7 @@ function showAddModal() {
 }
 
 // Hàm hiển thị modal sửa xe
-function showEditModal(id, tenXe, gia, moTa, storeId, categoryId, brandId, model, namSX, dungTich, mauSac) {
+function showEditModal(id, tenXe, gia, moTa, storeId, categoryId, brandId, model, namSX, dungTich, mauSac, soLuong) {
     document.getElementById('modalTitle').textContent = 'Sửa Thông Tin Xe Máy';
     document.getElementById('xeID').value = id;
     document.getElementById('tenXe').value = tenXe;
@@ -82,6 +82,13 @@ function showEditModal(id, tenXe, gia, moTa, storeId, categoryId, brandId, model
     if (namSX) document.getElementById('namSX').value = namSX;
     if (dungTich) document.getElementById('dungTich').value = dungTich;
     if (mauSac) document.getElementById('mauSac').value = mauSac;
+    
+    // Set stock quantity
+    if (soLuong !== undefined && soLuong !== null) {
+        document.getElementById('soLuong').value = soLuong;
+    } else {
+        document.getElementById('soLuong').value = 1; // Default
+    }
     
     const modal = new bootstrap.Modal(document.getElementById('xeMayModal'));
     modal.show();
