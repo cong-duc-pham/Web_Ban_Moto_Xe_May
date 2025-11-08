@@ -113,6 +113,8 @@ namespace BTL_LTWeb_Quan_Ly_Cua_Hang_Xe_May.Services
                 existingVehicle.Color = vehicle.Color;
                 existingVehicle.Description = vehicle.Description;
                 existingVehicle.Status = vehicle.Status;
+                existingVehicle.StockQuantity = vehicle.StockQuantity;
+                existingVehicle.SoldCount = vehicle.SoldCount;
                 existingVehicle.UpdatedAt = DateTime.Now;
                 // PostedAt, ViewCount giữ nguyên
 
@@ -356,6 +358,27 @@ namespace BTL_LTWeb_Quan_Ly_Cua_Hang_Xe_May.Services
                     .Include(v => v.VehicleImages)
                     .Where(v => v.Status == "Available")
                     .OrderByDescending(v => v.ViewCount)
+                    .Take(count)
+                    .ToListAsync();
+            }
+            catch
+            {
+                return new List<Vehicle>();
+            }
+        }
+
+        // Lấy xe máy bán chạy nhất
+        public async Task<List<Vehicle>> GetBestSellingVehiclesAsync(int count)
+        {
+            try
+            {
+                return await _context.Vehicles
+                    .Include(v => v.Brand)
+                    .Include(v => v.Category)
+                    .Include(v => v.Store)
+                    .Include(v => v.VehicleImages)
+                    .Where(v => v.SoldCount > 0) // Chỉ lấy xe đã có lượt bán
+                    .OrderByDescending(v => v.SoldCount) // Sắp xếp theo số lượng đã bán (cao -> thấp)
                     .Take(count)
                     .ToListAsync();
             }

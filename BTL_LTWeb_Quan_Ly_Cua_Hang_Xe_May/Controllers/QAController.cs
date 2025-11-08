@@ -23,6 +23,7 @@ namespace BTL_LTWeb_Quan_Ly_Cua_Hang_Xe_May.Controllers
             var roleName = HttpContext.Session.GetString("RoleName");
             ViewBag.IsLoggedIn = userId.HasValue;
             ViewBag.IsAdmin = roleName != null && roleName.Equals("Admin", StringComparison.OrdinalIgnoreCase);
+            ViewBag.IsSaler = roleName != null && roleName.Equals("Saler", StringComparison.OrdinalIgnoreCase);
 
             var query = _context.Questions
                 .Include(q => q.User)
@@ -72,10 +73,12 @@ namespace BTL_LTWeb_Quan_Ly_Cua_Hang_Xe_May.Controllers
             
             ViewBag.IsLoggedIn = userId.HasValue;
             ViewBag.IsAdmin = roleName != null && roleName.Equals("Admin", StringComparison.OrdinalIgnoreCase);
+            ViewBag.IsSaler = roleName != null && roleName.Equals("Saler", StringComparison.OrdinalIgnoreCase);
             ViewBag.CurrentUserId = userId;
             
             _logger.LogInformation($"ViewBag.IsLoggedIn: {ViewBag.IsLoggedIn}");
             _logger.LogInformation($"ViewBag.IsAdmin: {ViewBag.IsAdmin}");
+            _logger.LogInformation($"ViewBag.IsSaler: {ViewBag.IsSaler}");
 
             var question = await _context.Questions
                 .Include(q => q.User)

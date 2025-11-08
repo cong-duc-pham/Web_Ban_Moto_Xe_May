@@ -76,29 +76,30 @@ namespace BTL_LTWeb_Quan_Ly_Cua_Hang_Xe_May.Controllers
             List<Vehicle> lstVehicle = await _xeMayService.GetAllVehiclesAsync();
             _logger.LogInformation($"Tổng số xe trong database: {lstVehicle?.Count ?? 0}");
             
-            var roleId = HttpContext.Session.GetInt32("RoleId");
-            ViewBag.IsAdmin = roleId.HasValue && roleId.Value == 1;
-            _logger.LogInformation($"IsAdmin: {ViewBag.IsAdmin}, RoleId: {roleId}");
+            // Kiểm tra quyền: Admin hoặc Saler thấy tất cả, khách hàng chỉ thấy xe còn hàng
+            var isAdminOrSaler = IsAdminOrSaler();
+            ViewBag.IsAdmin = IsAdmin(); // Chỉ Admin mới có nút thêm/sửa/xóa
+            ViewBag.IsSaler = IsSaler(); // Saler không có nút thêm/sửa/xóa
+            
+            _logger.LogInformation($"IsAdmin: {ViewBag.IsAdmin}, IsSaler: {ViewBag.IsSaler}");
             
             // Log trạng thái của các xe để debug
             if (lstVehicle != null && lstVehicle.Any())
             {
                 foreach (var v in lstVehicle.Take(5))
                 {
-                    _logger.LogInformation($"Xe ID={v.VehicleId}: Status='{v.Status}'");
+                    _logger.LogInformation($"Xe ID={v.VehicleId}: Stock={v.StockQuantity}, Sold={v.SoldCount}, Status='{v.Status}'");
                 }
             }
             
-            // Nếu là Admin, hiển thị tất cả xe
-            // Nếu là khách hàng, chỉ hiển thị xe "Available" (đang bán)
-            if (!ViewBag.IsAdmin)
+            // Lọc xe theo quyền:
+            // - Admin/Saler: Thấy tất cả
+            // - Khách hàng: Chỉ thấy xe còn hàng (StockQuantity > 0)
+            if (!isAdminOrSaler)
             {
                 var beforeFilter = lstVehicle.Count;
-                lstVehicle = lstVehicle.Where(v => 
-                    !string.IsNullOrEmpty(v.Status) && 
-                    v.Status.Trim().Equals("Available", StringComparison.OrdinalIgnoreCase)
-                ).ToList();
-                _logger.LogInformation($"Lọc xe: {beforeFilter} -> {lstVehicle.Count} (chỉ 'Available')");
+                lstVehicle = lstVehicle.Where(v => v.StockQuantity > 0).ToList();
+                _logger.LogInformation($"Lọc xe cho khách: {beforeFilter} -> {lstVehicle.Count} (StockQuantity > 0)");
             }
             
             ViewBag.lstVehicle = lstVehicle;
@@ -126,14 +127,26 @@ namespace BTL_LTWeb_Quan_Ly_Cua_Hang_Xe_May.Controllers
         public IActionResult LiquidationCar() => View();
         public IActionResult News() => View();
 
-        // ======= API, chức năng CRUD xe giữ nguyên như trước =======
+        // ======= Helper Methods - Kiểm tra quyền =======
         private bool IsAdmin()
         {
             var roleId = HttpContext.Session.GetInt32("RoleId");
             return roleId.HasValue && roleId.Value == 1;
         }
 
-        [HttpPost]
+        private bool IsSaler()
+        {
+            var roleName = HttpContext.Session.GetString("RoleName");
+            return !string.IsNullOrEmpty(roleName) && 
+                   roleName.Trim().Equals("Saler", StringComparison.OrdinalIgnoreCase);
+        }
+
+        private bool IsAdminOrSaler()
+        {
+            return IsAdmin() || IsSaler();
+        }
+
+        // ======= API, chức năng CRUD xe =======
         public async Task<IActionResult> AddVehicle([FromForm] Vehicle vehicle, [FromForm] List<IFormFile> HinhAnh)
         {
             try
@@ -160,14 +173,28 @@ namespace BTL_LTWeb_Quan_Ly_Cua_Hang_Xe_May.Controllers
                     return Json(new { success = false, message = "Giá xe phải lớn hơn 0!" });
                 }
 
+                // Validate stock quantity
+                if (vehicle.StockQuantity < 0)
+                {
+                    _logger.LogWarning($"StockQuantity không hợp lệ: {vehicle.StockQuantity}");
+                    return Json(new { success = false, message = "Số lượng xe không được âm!" });
+                }
+
                 // Set default values
                 vehicle.Status = "Available";
                 vehicle.ViewCount = 0;
                 vehicle.IsFeatured = false;
                 vehicle.PostedAt = DateTime.Now;
                 vehicle.UpdatedAt = DateTime.Now;
+                vehicle.SoldCount = 0; // Xe mới chưa bán chiếc nào
                 
-                _logger.LogInformation($"Chuẩn bị gọi AddVehicleAsync với Title={vehicle.Title}");
+                // Nếu không nhập stock, mặc định là 1
+                if (vehicle.StockQuantity == 0)
+                {
+                    vehicle.StockQuantity = 1;
+                }
+                
+                _logger.LogInformation($"Chuẩn bị gọi AddVehicleAsync với Title={vehicle.Title}, StockQuantity={vehicle.StockQuantity}");
 
                 var result = await _xeMayService.AddVehicleAsync(vehicle);
 
@@ -355,7 +382,7 @@ namespace BTL_LTWeb_Quan_Ly_Cua_Hang_Xe_May.Controllers
             {
                 _logger.LogInformation("=== BẮT ĐẦU MUA XE ===");
                 
-                // Validate request
+                // request
                 if (request == null)
                 {
                     _logger.LogWarning("Request null");
@@ -367,14 +394,14 @@ namespace BTL_LTWeb_Quan_Ly_Cua_Hang_Xe_May.Controllers
                 _logger.LogInformation($"DepositAmount: {request.DepositAmount}");
                 _logger.LogInformation($"PaymentMethod: {request.PaymentMethod}");
                 
-                // Validate địa chỉ
+                //  địa chỉ
                 if (string.IsNullOrWhiteSpace(request.CustomerAddress))
                 {
                     _logger.LogWarning("CustomerAddress rỗng");
                     return Json(new { success = false, message = "Vui lòng nhập địa chỉ nhận xe!" });
                 }
 
-                // Kiểm tra đăng nhập - Đọc UserId từ Session (đã lưu bằng SetInt32)
+                // Kiểm tra đăng nhập   
                 var userId = HttpContext.Session.GetInt32("UserId");
                 _logger.LogInformation($"UserId from session: {userId}");
                 
@@ -403,7 +430,16 @@ namespace BTL_LTWeb_Quan_Ly_Cua_Hang_Xe_May.Controllers
                     return Json(new { success = false, message = "Xe này hiện không còn bán!" });
                 }
 
-                // Validate số tiền đặt cọc phải nhỏ hơn giá xe
+                // Kiểm tra tồn kho
+                if (vehicle.StockQuantity <= 0)
+                {
+                    return Json(new { 
+                        success = false, 
+                        message = "Xe này đã hết hàng! Vui lòng liên hệ cửa hàng để biết thêm chi tiết." 
+                    });
+                }
+
+                // Số tiền đặt cọc phải nhỏ hơn giá xe
                 var vehiclePrice = vehicle.SalePrice ?? 0;
                 var depositAmount = request.DepositAmount ?? 0;
                 
@@ -426,8 +462,7 @@ namespace BTL_LTWeb_Quan_Ly_Cua_Hang_Xe_May.Controllers
                 _logger.LogInformation($"Validation passed - VehiclePrice: {vehiclePrice:N0}, DepositAmount: {depositAmount:N0}");
 
                 // Tạo mã đơn hàng
-                // Rút ngắn OrderNumber: chỉ lấy YYMMDDHHmmss (12 ký tự) thay vì yyyyMMddHHmmss (14 ký tự)
-                // Format: ORD + YYMMDDHHmmss = 15 ký tự (dưới 20)
+                
                 var orderNumber = $"ORD{DateTime.Now:yyMMddHHmmss}";
                 _logger.LogInformation($"OrderNumber: {orderNumber} (Length: {orderNumber.Length})");
 
@@ -495,7 +530,7 @@ namespace BTL_LTWeb_Quan_Ly_Cua_Hang_Xe_May.Controllers
             }
         }
 
-        // DEBUG: Xem trạng thái tất cả xe (JSON)
+        //Xem trạng thái tất cả xe
         public async Task<IActionResult> DebugVehicles()
         {
             var vehicles = await _xeMayService.GetAllVehiclesAsync();
@@ -517,7 +552,7 @@ namespace BTL_LTWeb_Quan_Ly_Cua_Hang_Xe_May.Controllers
             });
         }
 
-        // DEBUG: Xem trạng thái xe (HTML dễ đọc)
+        //  Xem trạng thái xe 
         public async Task<IActionResult> DebugVehiclesPage()
         {
             var vehicles = await _xeMayService.GetAllVehiclesAsync();
@@ -538,6 +573,38 @@ namespace BTL_LTWeb_Quan_Ly_Cua_Hang_Xe_May.Controllers
             return View();
         }
 
+        // API: Lấy xe bán chạy nhất (JSON)
+        [HttpGet]
+        public async Task<IActionResult> GetBestSellingVehicles(int count = 5)
+        {
+            try
+            {
+                var bestSellers = await _xeMayService.GetBestSellingVehiclesAsync(count);
+                
+                var result = bestSellers.Select(v => new
+                {
+                    vehicleId = v.VehicleId,
+                    title = v.Title,
+                    model = v.Model,
+                    brand = v.Brand?.BrandName ?? "",
+                    salePrice = v.SalePrice,
+                    soldCount = v.SoldCount,
+                    stockQuantity = v.StockQuantity,
+                    status = v.Status,
+                    imagePath = v.VehicleImages?.FirstOrDefault(img => img.IsPrimary == true)?.ImagePath 
+                                ?? v.VehicleImages?.FirstOrDefault()?.ImagePath 
+                                ?? "/images/default-vehicle.jpg"
+                }).ToList();
+
+                return Json(new { success = true, data = result });
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Lỗi khi lấy xe bán chạy");
+                return Json(new { success = false, message = ex.Message });
+            }
+        }
+
         // Xem đơn hàng của khách hàng
         public async Task<IActionResult> MyOrders()
         {
@@ -555,40 +622,31 @@ namespace BTL_LTWeb_Quan_Ly_Cua_Hang_Xe_May.Controllers
         // Quản lý đơn hàng (Admin)
         public async Task<IActionResult> ManageOrders()
         {
-            // Kiểm tra quyền admin
-            var roleName = HttpContext.Session.GetString("RoleName");
-            var roleId = HttpContext.Session.GetInt32("RoleId");
-            
-            _logger.LogInformation($"ManageOrders - RoleName: {roleName}, RoleId: {roleId}");
-            
-            // Kiểm tra quyền: RoleName = "Admin" (không phân biệt hoa thường) HOẶC RoleId = 1
-            bool isAdmin = (roleName != null && roleName.Equals("Admin", StringComparison.OrdinalIgnoreCase)) 
-                        || (roleId.HasValue && roleId.Value == 1);
-            
-            if (!isAdmin)
+            // Kiểm tra quyền: Admin hoặc Saler
+            if (!IsAdminOrSaler())
             {
                 TempData["ErrorMessage"] = "Bạn không có quyền truy cập chức năng này!";
-                _logger.LogWarning($"Access denied - RoleName: {roleName}, RoleId: {roleId}");
+                _logger.LogWarning($"Access denied to ManageOrders - RoleName: {HttpContext.Session.GetString("RoleName")}");
                 return RedirectToAction("Index");
             }
 
             var orders = await _xeMayService.GetAllOrdersAsync();
+            
+            // Truyền thông tin role để view biết
+            ViewBag.IsAdmin = IsAdmin();
+            ViewBag.IsSaler = IsSaler();
+            
             return View(orders);
         }
 
-        // Xác nhận đơn hàng (Admin)
+        // Xác nhận đơn hàng (Admin hoặc Saler)
         [HttpPost]
         public async Task<IActionResult> ApproveOrder(int orderId)
         {
             try
             {
-                // Kiểm tra quyền admin
-                var roleName = HttpContext.Session.GetString("RoleName");
-                var roleId = HttpContext.Session.GetInt32("RoleId");
-                bool isAdmin = (roleName != null && roleName.Equals("Admin", StringComparison.OrdinalIgnoreCase)) 
-                            || (roleId.HasValue && roleId.Value == 1);
-                
-                if (!isAdmin)
+                // Kiểm tra quyền: Admin hoặc Saler
+                if (!IsAdminOrSaler())
                 {
                     return Json(new { success = false, message = "Bạn không có quyền thực hiện thao tác này!" });
                 }
@@ -609,19 +667,14 @@ namespace BTL_LTWeb_Quan_Ly_Cua_Hang_Xe_May.Controllers
             }
         }
 
-        // Từ chối đơn hàng (Admin)
+        // Từ chối đơn hàng (Admin hoặc Saler)
         [HttpPost]
         public async Task<IActionResult> RejectOrder([FromBody] RejectOrderRequest request)
         {
             try
             {
-                // Kiểm tra quyền admin
-                var roleName = HttpContext.Session.GetString("RoleName");
-                var roleId = HttpContext.Session.GetInt32("RoleId");
-                bool isAdmin = (roleName != null && roleName.Equals("Admin", StringComparison.OrdinalIgnoreCase)) 
-                            || (roleId.HasValue && roleId.Value == 1);
-                
-                if (!isAdmin)
+                // Kiểm tra quyền: Admin hoặc Saler
+                if (!IsAdminOrSaler())
                 {
                     return Json(new { success = false, message = "Bạn không có quyền thực hiện thao tác này!" });
                 }
@@ -642,19 +695,14 @@ namespace BTL_LTWeb_Quan_Ly_Cua_Hang_Xe_May.Controllers
             }
         }
 
-        // Admin xác nhận đã giao hàng (chuyển trạng thái Approved -> Delivered)
+        // Admin/Saler xác nhận đã giao hàng (chuyển trạng thái Approved -> Delivered)
         [HttpPost]
         public async Task<IActionResult> MarkAsDelivered(int orderId)
         {
             try
             {
-                // Kiểm tra quyền admin
-                var roleName = HttpContext.Session.GetString("RoleName");
-                var roleId = HttpContext.Session.GetInt32("RoleId");
-                bool isAdmin = (roleName != null && roleName.Equals("Admin", StringComparison.OrdinalIgnoreCase)) 
-                            || (roleId.HasValue && roleId.Value == 1);
-                
-                if (!isAdmin)
+                // Kiểm tra quyền: Admin hoặc Saler
+                if (!IsAdminOrSaler())
                 {
                     return Json(new { success = false, message = "Bạn không có quyền thực hiện thao tác này!" });
                 }
@@ -703,6 +751,33 @@ namespace BTL_LTWeb_Quan_Ly_Cua_Hang_Xe_May.Controllers
                 if (order.OrderStatus != "Delivered")
                 {
                     return Json(new { success = false, message = "Đơn hàng chưa được giao, không thể xác nhận!" });
+                }
+
+                // ===== NGHIỆP VỤ TỒN KHO =====
+                // Khi khách hàng xác nhận nhận xe -> hoàn tất giao dịch
+                // 1. Trừ số lượng tồn kho (StockQuantity)
+                // 2. Tăng số lượng đã bán (SoldCount)
+                // 3. Cập nhật trạng thái xe nếu hết hàng
+                
+                var vehicle = await _xeMayService.GetVehicleByIdAsync(order.VehicleId);
+                if (vehicle != null)
+                {
+                    // Trừ tồn kho
+                    vehicle.StockQuantity--;
+                    
+                    // Tăng số lượng đã bán
+                    vehicle.SoldCount++;
+                    
+                    // Nếu hết hàng, đổi trạng thái
+                    if (vehicle.StockQuantity <= 0)
+                    {
+                        vehicle.Status = "SoldOut";
+                        _logger.LogInformation($"Xe VehicleId={vehicle.VehicleId} đã hết hàng!");
+                    }
+                    
+                    // Lưu thay đổi
+                    await _xeMayService.UpdateVehicleAsync(vehicle);
+                    _logger.LogInformation($"Cập nhật tồn kho: VehicleId={vehicle.VehicleId}, StockQuantity={vehicle.StockQuantity}, SoldCount={vehicle.SoldCount}");
                 }
 
                 var result = await _xeMayService.UpdateOrderStatusAsync(orderId, "Completed");

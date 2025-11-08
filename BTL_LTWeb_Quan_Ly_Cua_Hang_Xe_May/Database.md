@@ -77,13 +77,15 @@ CREATE TABLE Vehicle (
     ViewCount INT DEFAULT 0,                            -- Lượt xem
     PostedAt DATETIME2 DEFAULT GETDATE(),               -- Ngày đăng
     UpdatedAt DATETIME2 DEFAULT GETDATE(),              -- Ngày cập nhật
+	StockQuantity INT NOT NULL DEFAULT 0,				-- Số lượng xe
+	SoldCount INT,										-- Số lượng xe đã bán 
     FOREIGN KEY (StoreId) REFERENCES Store(StoreId) ON DELETE CASCADE,
     FOREIGN KEY (CategoryId) REFERENCES VehicleCategory(CategoryId),
     FOREIGN KEY (BrandId) REFERENCES Brand(BrandId)
 );
 
 
-
+drop table Vehicle;
 -- Bảng Hình ảnh xe
 CREATE TABLE VehicleImage (
     ImageId INT PRIMARY KEY IDENTITY(1,1),              -- Mã hình ảnh xe
@@ -94,6 +96,7 @@ CREATE TABLE VehicleImage (
     FOREIGN KEY (VehicleId) REFERENCES Vehicle(VehicleId) ON DELETE CASCADE
 );
 
+drop table VehicleImage;
 -- Bảng Yêu thích
 CREATE TABLE Favorite (
     FavoriteId INT PRIMARY KEY IDENTITY(1,1),           -- Mã yêu thích
@@ -105,6 +108,7 @@ CREATE TABLE Favorite (
     CONSTRAINT UQ_Favorite_UserVehicle UNIQUE (UserId, VehicleId)
 );
 
+drop table Favorite;
 -- Bảng Thông tin đơn hàng
 CREATE TABLE OrderInfo (
     OrderId INT PRIMARY KEY IDENTITY(1,1),              -- Mã đơn hàng
@@ -130,6 +134,7 @@ CREATE TABLE OrderInfo (
     FOREIGN KEY (CustomerId) REFERENCES [User](UserId)
 );
 
+drop table OrderInfo;
 -- Bảng Trả góp
 CREATE TABLE Installment (
     InstallmentId INT PRIMARY KEY IDENTITY(1,1),        -- Mã trả góp
@@ -145,6 +150,7 @@ CREATE TABLE Installment (
     FOREIGN KEY (OrderId) REFERENCES OrderInfo(OrderId) ON DELETE CASCADE
 );
 
+drop table Installment;
 -- Bảng Đánh giá
 CREATE TABLE Review (
     ReviewId INT PRIMARY KEY IDENTITY(1,1),             -- Mã đánh giá
@@ -159,6 +165,7 @@ CREATE TABLE Review (
     FOREIGN KEY (OrderId) REFERENCES OrderInfo(OrderId)
 );
 
+drop table Review;
 -- Bảng Tin tức
 CREATE TABLE News (
     NewsId INT PRIMARY KEY IDENTITY(1,1),               -- Mã tin tức
@@ -201,6 +208,48 @@ CREATE TABLE Notification (
     CreatedAt DATETIME2 DEFAULT GETDATE(),              -- Ngày tạo
     FOREIGN KEY (UserId) REFERENCES [User](UserId) ON DELETE CASCADE
 );
+
+-- Tạo bảng Question
+CREATE TABLE Question (
+    QuestionId INT IDENTITY(1,1) PRIMARY KEY,
+    UserId INT NOT NULL,
+    Title NVARCHAR(500) NOT NULL,
+    Content NVARCHAR(2000) NOT NULL,
+    VehicleId INT NULL,
+    Category NVARCHAR(50) NOT NULL DEFAULT 'General',
+    CreatedAt DATETIME2 NOT NULL DEFAULT GETDATE(),
+    UpdatedAt DATETIME2 NULL,
+    Status NVARCHAR(20) NOT NULL DEFAULT 'Open',
+    ViewCount INT NOT NULL DEFAULT 0,
+    AnswerCount INT NOT NULL DEFAULT 0,
+    CONSTRAINT FK_Question_User FOREIGN KEY (UserId) REFERENCES [User](UserId) ON DELETE CASCADE,
+    CONSTRAINT FK_Question_Vehicle FOREIGN KEY (VehicleId) REFERENCES Vehicle(VehicleId) ON DELETE SET NULL
+);
+
+drop table Question;
+-- Tạo bảng Answer
+CREATE TABLE Answer (
+    AnswerId INT IDENTITY(1,1) PRIMARY KEY,
+    QuestionId INT NOT NULL,
+    UserId INT NOT NULL,
+    Content NVARCHAR(2000) NOT NULL,
+    CreatedAt DATETIME2 NOT NULL DEFAULT GETDATE(),
+    UpdatedAt DATETIME2 NULL,
+    IsAccepted BIT NOT NULL DEFAULT 0,
+    LikeCount INT NOT NULL DEFAULT 0,
+    CONSTRAINT FK_Answer_Question FOREIGN KEY (QuestionId) REFERENCES Question(QuestionId) ON DELETE CASCADE,
+    CONSTRAINT FK_Answer_User FOREIGN KEY (UserId) REFERENCES [User](UserId) ON DELETE NO ACTION
+);
+
+drop table Answer;
+-- Tạo index
+CREATE INDEX IX_Question_UserId ON Question(UserId);
+CREATE INDEX IX_Question_VehicleId ON Question(VehicleId);
+CREATE INDEX IX_Question_Category ON Question(Category);
+CREATE INDEX IX_Question_Status ON Question(Status);
+CREATE INDEX IX_Question_CreatedAt ON Question(CreatedAt DESC);
+CREATE INDEX IX_Answer_QuestionId ON Answer(QuestionId);
+CREATE INDEX IX_Answer_UserId ON Answer(UserId);
 
 
 INSERT INTO Brand (BrandName, BrandCode)

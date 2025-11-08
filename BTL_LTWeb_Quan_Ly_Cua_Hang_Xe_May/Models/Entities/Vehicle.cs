@@ -57,6 +57,10 @@ public partial class Vehicle
 
     public DateTime? UpdatedAt { get; set; }
 
+    public int StockQuantity { get; set; } = 0;
+
+    public int SoldCount { get; set; } = 0;
+
     public virtual Brand? Brand { get; set; }
 
     public virtual VehicleCategory? Category { get; set; }
