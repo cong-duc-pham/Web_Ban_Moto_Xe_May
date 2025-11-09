@@ -5,6 +5,7 @@ using Microsoft.AspNetCore.Mvc;
 using System.Diagnostics;
 using System.Threading.Tasks;
 using System.Collections.Generic;
+using Microsoft.AspNetCore.Authorization;
 
 namespace BTL_LTWeb_Quan_Ly_Cua_Hang_Xe_May.Controllers
 {
@@ -36,7 +37,19 @@ namespace BTL_LTWeb_Quan_Ly_Cua_Hang_Xe_May.Controllers
             _loginService = loginService;
             // Gán thêm các service khác nếu cần
         }
+        [Authorize(Roles = "Admin")]
+        [Route("/admin")] // Định nghĩa đường dẫn là /admin
+        public IActionResult AdminDashboard()
+        {
+            return View("AdminDashboard");
+        }
 
+        [Route("/Home/AccessDenied")]
+        public IActionResult AccessDenied()
+        {
+            // Trả về view báo lỗi không có quyền
+            return View();
+        }
         public async Task<IActionResult> Index()
         {
             // Debug session
@@ -126,6 +139,8 @@ namespace BTL_LTWeb_Quan_Ly_Cua_Hang_Xe_May.Controllers
         public IActionResult Privacy() => View();
         public IActionResult LiquidationCar() => View();
         public IActionResult News() => View();
+        public IActionResult AllVehicles() => View();
+
 
         // ======= Helper Methods - Kiểm tra quyền =======
         private bool IsAdmin()
@@ -800,6 +815,184 @@ namespace BTL_LTWeb_Quan_Ly_Cua_Hang_Xe_May.Controllers
         public IActionResult Error()
         {
             return View(new ErrorViewModel { RequestId = Activity.Current?.Id ?? HttpContext.TraceIdentifier });
+        }
+        // API: Lấy tất cả xe (dùng cho AllVehicles page)
+        [HttpGet]
+        public async Task<IActionResult> GetAllVehicles()
+        {
+            try
+            {
+                var vehicles = await _xeMayService.GetAllVehiclesAsync();
+
+                // Kiểm tra quyền: Admin/Saler thấy tất cả, khách hàng chỉ thấy xe còn hàng
+                var isAdminOrSaler = IsAdminOrSaler();
+
+                if (!isAdminOrSaler)
+                {
+                    vehicles = vehicles.Where(v => v.StockQuantity > 0).ToList();
+                }
+
+                var result = vehicles.Select(v => new
+                {
+                    vehicleId = v.VehicleId,
+                    title = v.Title,
+                    model = v.Model,
+                    condition = v.Condition,
+                    manufactureYear = v.ManufactureYear,
+                    salePrice = v.SalePrice,
+                    originalPrice = v.OriginalPrice,
+                    engineCapacity = v.EngineCapacity,
+                    color = v.Color,
+                    description = v.Description,
+                    status = v.Status,
+                    stockQuantity = v.StockQuantity,
+                    soldCount = v.SoldCount,
+                    viewCount = v.ViewCount,
+                    isFeatured = v.IsFeatured,
+                    postedAt = v.PostedAt,
+                    brand = v.Brand != null ? new
+                    {
+                        brandId = v.Brand.BrandId,
+                        brandName = v.Brand.BrandName
+                    } : null,
+                    category = v.Category != null ? new
+                    {
+                        categoryId = v.Category.CategoryId,
+                        categoryName = v.Category.CategoryName
+                    } : null,
+                    store = v.Store != null ? new
+                    {
+                        storeId = v.Store.StoreId,
+                        storeName = v.Store.StoreName,
+                        address = v.Store.Address,
+                        rating = v.Store.Rating
+                    } : null,
+                    vehicleImages = v.VehicleImages.Select(img => new
+                    {
+                        imageId = img.ImageId,
+                        imagePath = img.ImagePath,
+                        isPrimary = img.IsPrimary,
+                        displayOrder = img.DisplayOrder
+                    }).OrderBy(img => img.displayOrder).ToList()
+                }).ToList();
+
+                return Json(new { success = true, data = result });
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Lỗi khi lấy danh sách xe");
+                return Json(new { success = false, message = ex.Message });
+            }
+        }
+
+        // API: Tìm kiếm xe
+        [HttpGet]
+        public async Task<IActionResult> SearchVehicles(
+            string? keyword,
+            int? categoryId,
+            int? brandId,
+            decimal? minPrice,
+            decimal? maxPrice,
+            string? condition)
+        {
+            try
+            {
+                var vehicles = await _xeMayService.GetAllVehiclesAsync();
+
+                // Áp dụng bộ lọc
+                if (!string.IsNullOrEmpty(keyword))
+                {
+                    vehicles = vehicles.Where(v =>
+                        v.Title.Contains(keyword, StringComparison.OrdinalIgnoreCase) ||
+                        (v.Model != null && v.Model.Contains(keyword, StringComparison.OrdinalIgnoreCase))
+                    ).ToList();
+                }
+
+                if (categoryId.HasValue)
+                {
+                    vehicles = vehicles.Where(v => v.CategoryId == categoryId.Value).ToList();
+                }
+
+                if (brandId.HasValue)
+                {
+                    vehicles = vehicles.Where(v => v.BrandId == brandId.Value).ToList();
+                }
+
+                if (minPrice.HasValue)
+                {
+                    vehicles = vehicles.Where(v => v.SalePrice >= minPrice.Value).ToList();
+                }
+
+                if (maxPrice.HasValue)
+                {
+                    vehicles = vehicles.Where(v => v.SalePrice <= maxPrice.Value).ToList();
+                }
+
+                if (!string.IsNullOrEmpty(condition))
+                {
+                    vehicles = vehicles.Where(v =>
+                        v.Condition != null &&
+                        v.Condition.Equals(condition, StringComparison.OrdinalIgnoreCase)
+                    ).ToList();
+                }
+
+                // Kiểm tra quyền
+                if (!IsAdminOrSaler())
+                {
+                    vehicles = vehicles.Where(v => v.StockQuantity > 0).ToList();
+                }
+
+                var result = vehicles.Select(v => new
+                {
+                    vehicleId = v.VehicleId,
+                    title = v.Title,
+                    model = v.Model,
+                    condition = v.Condition,
+                    manufactureYear = v.ManufactureYear,
+                    salePrice = v.SalePrice,
+                    status = v.Status,
+                    stockQuantity = v.StockQuantity,
+                    brand = v.Brand?.BrandName,
+                    category = v.Category?.CategoryName,
+                    storeName = v.Store?.StoreName,
+                    primaryImage = v.VehicleImages?
+                        .FirstOrDefault(img => img.IsPrimary == true)?.ImagePath
+                        ?? v.VehicleImages?.FirstOrDefault()?.ImagePath
+                        ?? "/images/default-vehicle.jpg"
+                }).ToList();
+
+                return Json(new { success = true, data = result, count = result.Count });
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Lỗi khi tìm kiếm xe");
+                return Json(new { success = false, message = ex.Message });
+            }
+        }
+
+        // API: Lấy dropdown data (Categories, Brands, Stores)
+        [HttpGet]
+        public async Task<IActionResult> GetDropdownData()
+        {
+            try
+            {
+                var categories = await _xeMayService.GetAllCategoriesAsync();
+                var brands = await _xeMayService.GetAllBrandsAsync();
+                var stores = await _xeMayService.GetAllStoresAsync();
+
+                return Json(new
+                {
+                    success = true,
+                    categories = categories.Select(c => new { id = c.CategoryId, name = c.CategoryName }),
+                    brands = brands.Select(b => new { id = b.BrandId, name = b.BrandName }),
+                    stores = stores.Select(s => new { id = s.StoreId, name = s.StoreName })
+                });
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Lỗi khi lấy dropdown data");
+                return Json(new { success = false, message = ex.Message });
+            }
         }
     }
 

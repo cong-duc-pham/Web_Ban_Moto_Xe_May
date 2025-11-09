@@ -512,3 +512,181 @@ const swiper1 = new Swiper(".swiper-container1", {
     },
 });
 
+// ==================== LOAD BEST SELLING VEHICLES ====================
+async function loadBestSellingVehicles() {
+    try {
+        const response = await fetch('/Home/GetBestSellingVehicles?count=5');
+        const result = await response.json();
+
+        if (result.success && result.data.length > 0) {
+            renderBestSellingVehicles(result.data);
+        }
+    } catch (error) {
+        console.error('Error loading best selling vehicles:', error);
+    }
+}
+
+function renderBestSellingVehicles(vehicles) {
+    const container = document.getElementById('latestListingsCarousel');
+    if (!container) return;
+
+    container.innerHTML = vehicles.map(vehicle => `
+        <div class="product-card" data-id="${vehicle.vehicleId}">
+            <div class="product-image-container">
+                <img src="${vehicle.imagePath}" 
+                     alt="${vehicle.title}" 
+                     class="product-image" 
+                     loading="lazy">
+                <div class="product-badge">Bán chạy</div>
+                <button class="product-favorite" data-id="${vehicle.vehicleId}" aria-label="Yêu thích">
+                    <i class="far fa-heart"></i>
+                </button>
+            </div>
+            <div class="product-content">
+                <h3 class="product-title">${vehicle.title}</h3>
+                <div class="product-meta">
+                    ${vehicle.model ? vehicle.model + ' • ' : ''}
+                    ${vehicle.brand}
+                </div>
+                <div class="product-price">${formatPrice(vehicle.salePrice)}</div>
+                <div class="product-stats">
+                    <span><i class="fas fa-shopping-cart"></i> Đã bán: ${vehicle.soldCount}</span>
+                    <span><i class="fas fa-box"></i> Còn: ${vehicle.stockQuantity}</span>
+                </div>
+                <div class="product-location">
+                    <i class="fas fa-map-marker-alt"></i> ${vehicle.status}
+                </div>
+            </div>
+        </div>
+    `).join('');
+}
+
+// ==================== LOAD LATEST VEHICLES ====================
+async function loadLatestVehicles() {
+    try {
+        const response = await fetch('/Home/GetAllVehicles');
+        const result = await response.json();
+
+        if (result.success && result.data.length > 0) {
+            // Get latest 10 vehicles
+            const latestVehicles = result.data
+                .sort((a, b) => new Date(b.postedAt) - new Date(a.postedAt))
+                .slice(0, 10);
+
+            renderLatestVehicles(latestVehicles);
+        }
+    } catch (error) {
+        console.error('Error loading latest vehicles:', error);
+    }
+}
+
+function renderLatestVehicles(vehicles) {
+    const container = document.getElementById('latestListingsCarousel');
+    if (!container) return;
+
+    container.innerHTML = vehicles.map(vehicle => {
+        const primaryImage = vehicle.vehicleImages.find(img => img.isPrimary) || vehicle.vehicleImages[0];
+        const imagePath = primaryImage?.imagePath || '/images/default-vehicle.jpg';
+        const timeAgo = getTimeAgo(new Date(vehicle.postedAt));
+
+        return `
+            <div class="product-card" data-id="${vehicle.vehicleId}" onclick="viewVehicleDetail(${vehicle.vehicleId})">
+                <div class="product-image-container">
+                    <img src="${imagePath}" 
+                         alt="${vehicle.title}" 
+                         class="product-image" 
+                         loading="lazy">
+                    <div class="product-badge">${timeAgo}</div>
+                    <button class="product-favorite" 
+                            data-id="${vehicle.vehicleId}" 
+                            onclick="event.stopPropagation(); toggleFavorite(${vehicle.vehicleId})" 
+                            aria-label="Yêu thích">
+                        <i class="far fa-heart"></i>
+                    </button>
+                </div>
+                <div class="product-content">
+                    <h3 class="product-title">${vehicle.title}</h3>
+                    <div class="product-meta">
+                        ${vehicle.manufactureYear || ''} • 
+                        ${vehicle.category?.categoryName || ''} • 
+                        ${vehicle.condition || ''}
+                    </div>
+                    <div class="product-price">${formatPrice(vehicle.salePrice)}</div>
+                    <div class="product-location">
+                        <i class="fas fa-map-marker-alt"></i> 
+                        ${vehicle.store?.address || 'Chưa có địa chỉ'}
+                    </div>
+                </div>
+            </div>
+        `;
+    }).join('');
+}
+
+// ==================== UTILITY FUNCTIONS ====================
+function getTimeAgo(date) {
+    const now = new Date();
+    const diff = now - date;
+    const seconds = Math.floor(diff / 1000);
+    const minutes = Math.floor(seconds / 60);
+    const hours = Math.floor(minutes / 60);
+    const days = Math.floor(hours / 24);
+
+    if (seconds < 60) return `${seconds} giây trước`;
+    if (minutes < 60) return `${minutes} phút trước`;
+    if (hours < 24) return `${hours} giờ trước`;
+    if (days < 7) return `${days} ngày trước`;
+    return date.toLocaleDateString('vi-VN');
+}
+
+function viewVehicleDetail(vehicleId) {
+    window.location.href = `/Home/VehicleDetail/${vehicleId}`;
+}
+
+function formatPrice(price) {
+    if (!price) return 'Liên hệ';
+    return price.toString().replace(/\B(?=(\d{3})+(?!\d))/g, '.') + ' đ';
+}
+
+function toggleFavorite(vehicleId) {
+    const favorites = JSON.parse(localStorage.getItem('favorites') || '[]');
+    const index = favorites.indexOf(vehicleId);
+
+    if (index > -1) {
+        favorites.splice(index, 1);
+    } else {
+        favorites.push(vehicleId);
+    }
+
+    localStorage.setItem('favorites', JSON.stringify(favorites));
+    updateFavoriteUI(vehicleId, index === -1);
+}
+
+function updateFavoriteUI(vehicleId, isFavorite) {
+    const btn = document.querySelector(`.product-favorite[data-id="${vehicleId}"]`);
+    if (!btn) return;
+
+    const icon = btn.querySelector('i');
+    if (isFavorite) {
+        icon.classList.remove('far');
+        icon.classList.add('fas');
+        btn.classList.add('active');
+    } else {
+        icon.classList.remove('fas');
+        icon.classList.add('far');
+        btn.classList.remove('active');
+    }
+}
+
+// ==================== INIT ====================
+document.addEventListener('DOMContentLoaded', function () {
+    // Load vehicles for homepage
+    loadLatestVehicles();
+    // OR load best selling vehicles
+    // loadBestSellingVehicles();
+
+    // Initialize favorites from localStorage
+    const favorites = JSON.parse(localStorage.getItem('favorites') || '[]');
+    favorites.forEach(id => {
+        updateFavoriteUI(id, true);
+    });
+});

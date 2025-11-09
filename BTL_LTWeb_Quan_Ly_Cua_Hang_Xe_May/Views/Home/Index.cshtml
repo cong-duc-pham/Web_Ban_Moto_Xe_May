@@ -196,23 +196,37 @@ else
     <section class="py-0">
         <div class="container">
             <div class="category-strip">
-                <div class="category-item text-center">
+
+                <a href="#" class="category-item">
+                    <img src="/images/2010.svg" class="category-icon"></img>
+                    <div class="category-name">Ô tô</div>
+                </a>
+                <a href="#" class="category-item">
+                    <img src="~/images/2020.svg" class="category-icon"></img>
+                    <div class="category-name">Xe máy</div>
+                </a>
+                </a>
+                <a href="#" class="category-item">
+                    <img src="/images/2090.svg" class="category-icon"></img>
+                    <div class="category-name">Xe điện</div>
+                </a>
+                @* <div class="category-item text-center">
                     <div class="category-icon">🚗</div>
                     <div class="category-label">Ô tô</div>
                 </div>
                 <div class="category-item text-center">
                     <div class="category-icon">🏍️</div>
                     <div class="category-label">Xe máy</div>
-                </div>
-                <div class="category-item text-center">
+                </div> *@
+                @* <div class="category-item text-center">
                     <div class="category-icon">🚚</div>
                     <div class="category-label">Xe tải, xe ben</div>
-                </div>
-                <div class="category-item text-center">
+                </div> *@
+                @* <div class="category-item text-center">
                     <div class="category-icon">🛵</div>
                     <div class="category-label">Xe điện</div>
-                </div>
-                <div class="category-item text-center">
+                </div> *@
+                @* <div class="category-item text-center">
                     <div class="category-icon">🚲</div>
                     <div class="category-label">Xe đạp</div>
                 </div>
@@ -223,7 +237,7 @@ else
                 <div class="category-item text-center">
                     <div class="category-icon">⚙️</div>
                     <div class="category-label">Phụ tùng xe</div>
-                </div>
+                </div> *@
             </div>
         </div>
     </section>
@@ -238,7 +252,7 @@ else
                 </button>
                 <div class="carousel-wrapper" id="latestListingsCarousel">
                     <!-- Xe 1 -->
-                    <div class="product-card" data-id="1">
+                    @* <div class="product-card" data-id="1">
                         <div class="product-image-container">
                             <img src="https://images.unsplash.com/photo-1558981806-ec527fa84c39?w=400&h=300&fit=crop"
                                  alt="WAVE 2013, Nguyên Zin, Bán Rẻ Bảo" class="product-image" loading="lazy">
@@ -255,9 +269,9 @@ else
                                 <i class="fas fa-map-marker-alt"></i> Quận 12
                             </div>
                         </div>
-                    </div>
+                    </div> *@
                     <!-- Xe 2 -->
-                    <div class="product-card" data-id="2">
+                    @* <div class="product-card" data-id="2">
                         <div class="product-image-container">
                             <img src="https://images.unsplash.com/photo-1593941707882-a5bba14938c7?w=400&h=300&fit=crop"
                                  alt="VF8 PLUS HỖ TRỢ VAY LÊN ĐẾN 90%" class="product-image" loading="lazy">
@@ -278,9 +292,9 @@ else
                                 <i class="fas fa-map-marker-alt"></i> Quận 5
                             </div>
                         </div>
-                    </div>
+                    </div> *@
                     <!-- Xe 3 -->
-                    <div class="product-card" data-id="3">
+                    @* <div class="product-card" data-id="3">
                         <div class="product-image-container">
                             <img src="https://images.unsplash.com/photo-1568772684723-dc07fcb3e9c0?w=400&h=300&fit=crop"
                                  alt="SH MODE BẢN CAO CẤP ABS - THU CŨ ĐỔI MỚI" class="product-image" loading="lazy">
@@ -297,7 +311,7 @@ else
                                 <i class="fas fa-map-marker-alt"></i> Quận 7
                             </div>
                         </div>
-                    </div>
+                    </div> *@
                     <!-- ... Thêm các xe khác tương tự ... -->
                 </div>
                 <button class="carousel-nav carousel-nav-next d-none d-lg-flex" data-carousel="latestListings">
@@ -305,7 +319,9 @@ else
                 </button>
             </div>
             <div class="text-center mt-4">
-                <button class="btn btn-outline-secondary">Xem thêm 72.016 tin đăng</button>
+                <a asp-controller="Home" asp-action="AllVehicles" class="btn btn-outline-secondary">
+                    Xem thêm 
+                </a>
             </div>
         </div>
     </section>
@@ -844,7 +860,7 @@ else
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
 
     <!-- Custom JS -->
-    <script src="../js/main.js"></script>
+    <script src="~/js/main.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/swiper@10/swiper-bundle.min.js"></script>
     
     <!-- Initialize dropdown -->
