@@ -1,0 +1,202 @@
+﻿@{
+    // Trỏ đến vị trí mới trong thư mục Shared
+    Layout = "~/Views/Shared/AdminLayout.cshtml";
+    ViewData["Title"] = "Tổng quan";
+}
+
+
+<div class="page-header">
+    <h1>Tổng quan hệ thống</h1>
+    <nav aria-label="breadcrumb">
+        <ol class="breadcrumb">
+            <li class="breadcrumb-item"><a href="#">Trang chủ</a></li>
+            <li class="breadcrumb-item active">Dashboard</li>
+        </ol>
+    </nav>
+</div>
+
+<!-- Stats Cards -->
+<div class="stats-grid">
+    <div class="stat-card">
+        <div class="stat-header">
+            <div class="stat-icon blue">
+                <i class="fas fa-users"></i>
+            </div>
+        </div>
+        <div class="stat-value">1,284</div>
+        <div class="stat-label">Tổng khách hàng</div>
+        <div class="stat-change up">
+            <i class="fas fa-arrow-up"></i> 12.5% tăng
+        </div>
+    </div>
+
+    <div class="stat-card">
+        <div class="stat-header">
+            <div class="stat-icon green">
+                <i class="fas fa-car"></i>
+            </div>
+        </div>
+        <div class="stat-value">456</div>
+        <div class="stat-label">Xe đang bán</div>
+        <div class="stat-change up">
+            <i class="fas fa-arrow-up"></i> 8.3% tăng
+        </div>
+    </div>
+
+    <div class="stat-card">
+        <div class="stat-header">
+            <div class="stat-icon orange">
+                <i class="fas fa-file-alt"></i>
+            </div>
+        </div>
+        <div class="stat-value">89</div>
+        <div class="stat-label">Bài đăng chờ duyệt</div>
+        <div class="stat-change up">
+            <i class="fas fa-arrow-up"></i> 5 mới
+        </div>
+    </div>
+
+    <div class="stat-card">
+        <div class="stat-header">
+            <div class="stat-icon red">
+                <i class="fas fa-dollar-sign"></i>
+            </div>
+        </div>
+        <div class="stat-value">128M</div>
+        <div class="stat-label">Doanh thu tháng</div>
+        <div class="stat-change down">
+            <i class="fas fa-arrow-down"></i> 3.2% giảm
+        </div>
+    </div>
+</div>
+
+<!-- Recent Customers Table -->
+<div class="card">
+    <div class="card-header">
+        <h3><i class="fas fa-users"></i> Khách hàng mới nhất</h3>
+        <div class="btn-group">
+            <button class="btn btn-outline">
+                <i class="fas fa-filter"></i> Lọc
+            </button>
+            <button class="btn btn-primary">
+                <i class="fas fa-plus"></i> Thêm mới
+            </button>
+        </div>
+    </div>
+    <div class="table-container">
+        <table>
+            <thead>
+                <tr>
+                    <th>Khách hàng</th>
+                    <th>Email</th>
+                    <th>Số điện thoại</th>
+                    <th>Ngày đăng ký</th>
+                    <th>Trạng thái</th>
+                    <th>Hành động</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td>
+                        <div class="user-cell">
+                            <div class="user-img">NV</div>
+                            <div>
+                                <div style="font-weight: 600; color: var(--dark);">Nguyễn Văn A</div>
+                                <div style="font-size: 12px;">ID: #KH001</div>
+                            </div>
+                        </div>
+                    </td>
+                    <td>nguyenvana@email.com</td>
+                    <td>0901234567</td>
+                    <td>06/11/2025</td>
+                    <td><span class="status-badge active">Hoạt động</span></td>
+                    <td>
+                        <button class="action-btn view"><i class="fas fa-eye"></i></button>
+                        <button class="action-btn edit"><i class="fas fa-edit"></i></button>
+                        <button class="action-btn delete"><i class="fas fa-trash"></i></button>
+                    </td>
+                </tr>
+                <tr>
+                    <td>
+                        <div class="user-cell">
+                            <div class="user-img">TT</div>
+                            <div>
+                                <div style="font-weight: 600; color: var(--dark);">Trần Thị B</div>
+                                <div style="font-size: 12px;">ID: #KH002</div>
+                            </div>
+                        </div>
+                    </td>
+                    <td>tranthib@email.com</td>
+                    <td>0912345678</td>
+                    <td>05/11/2025</td>
+                    <td><span class="status-badge pending">Chờ xác thực</span></td>
+                    <td>
+                        <button class="action-btn view"><i class="fas fa-eye"></i></button>
+                        <button class="action-btn edit"><i class="fas fa-edit"></i></button>
+                        <button class="action-btn delete"><i class="fas fa-trash"></i></button>
+                    </td>
+                </tr>
+                <tr>
+                    <td>
+                        <div class="user-cell">
+                            <div class="user-img">LV</div>
+                            <div>
+                                <div style="font-weight: 600; color: var(--dark);">Lê Văn C</div>
+                                <div style="font-size: 12px;">ID: #KH003</div>
+                            </div>
+                        </div>
+                    </td>
+                    <td>levanc@email.com</td>
+                    <td>0923456789</td>
+                    <td>04/11/2025</td>
+                    <td><span class="status-badge active">Hoạt động</span></td>
+                    <td>
+                        <button class="action-btn view"><i class="fas fa-eye"></i></button>
+                        <button class="action-btn edit"><i class="fas fa-edit"></i></button>
+                        <button class="action-btn delete"><i class="fas fa-trash"></i></button>
+                    </td>
+                </tr>
+                <tr>
+                    <td>
+                        <div class="user-cell">
+                            <div class="user-img">PH</div>
+                            <div>
+                                <div style="font-weight: 600; color: var(--dark);">Phạm Hoàng D</div>
+                                <div style="font-size: 12px;">ID: #KH004</div>
+                            </div>
+                        </div>
+                    </td>
+                    <td>phamhoangd@email.com</td>
+                    <td>0934567890</td>
+                    <td>03/11/2025</td>
+                    <td><span class="status-badge inactive">Tạm khóa</span></td>
+                    <td>
+                        <button class="action-btn view"><i class="fas fa-eye"></i></button>
+                        <button class="action-btn edit"><i class="fas fa-edit"></i></button>
+                        <button class="action-btn delete"><i class="fas fa-trash"></i></button>
+                    </td>
+                </tr>
+                <tr>
+                    <td>
+                        <div class="user-cell">
+                            <div class="user-img">VT</div>
+                            <div>
+                                <div style="font-weight: 600; color: var(--dark);">Vũ Thị E</div>
+                                <div style="font-size: 12px;">ID: #KH005</div>
+                            </div>
+                        </div>
+                    </td>
+                    <td>vuthie@email.com</td>
+                    <td>0945678901</td>
+                    <td>02/11/2025</td>
+                    <td><span class="status-badge active">Hoạt động</span></td>
+                    <td>
+                        <button class="action-btn view"><i class="fas fa-eye"></i></button>
+                        <button class="action-btn edit"><i class="fas fa-edit"></i></button>
+                        <button class="action-btn delete"><i class="fas fa-trash"></i></button>
+                    </td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
+</div>

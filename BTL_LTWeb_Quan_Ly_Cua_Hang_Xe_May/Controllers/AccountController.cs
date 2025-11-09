@@ -1,7 +1,9 @@
 using BTL_LTWeb_Quan_Ly_Cua_Hang_Xe_May.Services;
 using BTL_LTWeb_Quan_Ly_Cua_Hang_Xe_May.Models.Entities;
 using Microsoft.AspNetCore.Mvc;
-
+using System.Security.Claims;
+using Microsoft.AspNetCore.Authentication;
+using Microsoft.AspNetCore.Authentication.Cookies;
 namespace BTL_LTWeb_Quan_Ly_Cua_Hang_Xe_May.Controllers
 {
     public class AccountController : Controller
@@ -87,6 +89,35 @@ namespace BTL_LTWeb_Quan_Ly_Cua_Hang_Xe_May.Controllers
             var user = await _loginService.ValidateUserAsync(phoneNumber, password);
             if (user != null)
             {
+                // Đây là thông tin sẽ được mã hóa và lưu trong cookie
+                var claims = new List<Claim>
+                {
+                    new Claim(ClaimTypes.Name, user.FullName), // Tên đầy đủ
+                    new Claim(ClaimTypes.MobilePhone, user.PhoneNumber), // Số điện thoại
+                    new Claim(ClaimTypes.NameIdentifier, user.UserId.ToString()), // ID người dùng
+                    new Claim(ClaimTypes.Role, user.Role.RoleName) // QUAN TRỌNG NHẤT: Vai trò
+                };
+
+                // Thêm Email nếu có
+                if (!string.IsNullOrEmpty(user.Email))
+                {
+                    claims.Add(new Claim(ClaimTypes.Email, user.Email));
+                }
+
+                // 2. Tạo một "Danh tính" (Identity)
+                var claimsIdentity = new ClaimsIdentity(
+                    claims, CookieAuthenticationDefaults.AuthenticationScheme);
+
+                // 3. Thực hiện đăng nhập (phát hành cookie)
+                await HttpContext.SignInAsync(
+                    CookieAuthenticationDefaults.AuthenticationScheme,
+                    new ClaimsPrincipal(claimsIdentity),
+                    new AuthenticationProperties
+                    {
+                        IsPersistent = true, // Ghi nhớ đăng nhập
+                        ExpiresUtc = DateTime.UtcNow.AddDays(1)
+                    });
+
                 // Lưu thông tin vào session
                 HttpContext.Session.SetString("PhoneNumber", user.PhoneNumber);
                 HttpContext.Session.SetString("FullName", user.FullName);
@@ -100,6 +131,10 @@ namespace BTL_LTWeb_Quan_Ly_Cua_Hang_Xe_May.Controllers
                 }
 
                 TempData["SuccessMessage"] = $"Chào mừng {user.FullName}!";
+                if (user.Role.RoleName == "Admin")
+                {
+                    return RedirectToAction("AdminDashboard", "Home"); // Hoặc Redirect("/admin")
+                }
                 return RedirectToAction("Index", "Home");
             }
 
@@ -118,6 +153,9 @@ namespace BTL_LTWeb_Quan_Ly_Cua_Hang_Xe_May.Controllers
         // GET: Form chỉnh sửa tài khoản
         public async Task<IActionResult> Edit(int id)
         {
+            
+            // 1. Xóa cookie xác thực
+            await HttpContext.SignOutAsync(CookieAuthenticationDefaults.AuthenticationScheme);
             // Kiểm tra quyền: chỉ cho phép sửa tài khoản của chính mình hoặc admin
             var currentUserId = HttpContext.Session.GetInt32("UserId");
             var currentRoleId = HttpContext.Session.GetInt32("RoleId");
