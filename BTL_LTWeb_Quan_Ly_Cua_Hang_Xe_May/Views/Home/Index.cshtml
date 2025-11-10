@@ -104,12 +104,12 @@ else
                     <button class="btn-icon d-none d-md-inline-flex" aria-label="Thông báo">
                         <i class="far fa-bell"></i>
                     </button>
-                    
+
                     @{
                         var fullName = Context.Session.GetString("FullName");
                         var isLoggedIn = !string.IsNullOrEmpty(fullName);
                     }
-                    
+
                     @if (isLoggedIn)
                     {
                         <!-- Hiển thị khi đã đăng nhập -->
@@ -119,7 +119,7 @@ else
                             </button>
                             <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="userDropdown">
                                 <li><a class="dropdown-item" href="/Account/Profile"><i class="fas fa-user me-2"></i>Tài khoản</a></li>
-                                
+
                                 @* Hiển thị menu quản lý đơn hàng theo vai trò *@
                                 @if (ViewBag.IsAdmin == true || ViewBag.IsSaler == true)
                                 {
@@ -129,7 +129,7 @@ else
                                 {
                                     <li><a class="dropdown-item" href="/Home/MyOrders"><i class="fas fa-shopping-bag me-2"></i>Đơn hàng của tôi</a></li>
                                 }
-                                
+
                                 <li><hr class="dropdown-divider"></li>
                                 <li><a class="dropdown-item text-danger" href="/Account/Logout"><i class="fas fa-sign-out-alt me-2"></i>Đăng xuất</a></li>
                             </ul>
@@ -144,7 +144,7 @@ else
                             </button>
                         </a>
                     }
-                    
+
                     <button class="btn btn-primary">Bán xe</button>
                     <button class="btn-icon d-lg-none" id="mobileMenuToggle">
                         <i class="fas fa-bars"></i>
@@ -330,7 +330,7 @@ else
             </div>
             <div class="text-center mt-4">
                 <a asp-controller="Home" asp-action="AllVehicles" class="btn btn-outline-secondary">
-                    Xem thêm 
+                    Xem thêm
                 </a>
             </div>
         </div>
@@ -473,10 +473,10 @@ else
         </div>
     </section>
 
-    <!-- Featured Stores -->
+    <!-- Top Selling Vehicle Types -->
     <section class="py-5">
         <div class="container">
-            <h2 class="section-title">Cửa hàng xe nổi bật</h2>
+            <h2 class="section-title">Loại xe có lượt bán cao nhất</h2>
             <div class="d-flex flex-wrap gap-2 mb-4">
                 <button class="tab-chip active" data-tab="all">Tất cả</button>
                 <button class="tab-chip" data-tab="car">Ô tô</button>
@@ -491,177 +491,279 @@ else
                     <i class="fas fa-chevron-left"></i>
                 </button>
                 <div class="carousel-wrapper" id="featuredStoresCarousel">
-                    <!-- Store 1 -->
-                    <div class="featured-store-card">
-                        <img src="https://images.unsplash.com/photo-1558981806-ec527fa84c39?w=400&h=200&fit=crop"
-                             alt="TONG MOTOR" class="store-cover" loading="lazy">
-                        <div class="store-avatar-container">
-                            <img src="https://ui-avatars.com/api/?name=TM&background=random&size=80" alt="TONG MOTOR"
-                                 class="store-avatar">
+                    <!-- Vehicle Type 1 -->
+                    <div class="vehicle-type-card">
+                        <div class="vehicle-type-image-container">
+                            <img src="https://images.unsplash.com/photo-1558981806-ec527fa84c39?w=400&h=300&fit=crop"
+                                 alt="Xe tay ga" class="vehicle-type-image" loading="lazy">
+                            <div class="vehicle-type-badge">
+                                <i class="fas fa-fire"></i> Bán chạy nhất
+                            </div>
                         </div>
-                        <div class="store-info">
-                            <div class="store-title">
-                                TONG MOTOR
-                                <i class="fas fa-check-circle verified-badge"></i>
+                        <div class="vehicle-type-content">
+                            <h3 class="vehicle-type-title">Xe tay ga</h3>
+                            <div class="vehicle-type-stats">
+                                <div class="stat-item">
+                                    <span class="stat-value">5,234</span>
+                                    <span class="stat-label">Đã bán</span>
+                                </div>
+                                <div class="stat-item">
+                                    <span class="stat-value">12,456</span>
+                                    <span class="stat-label">Tin đăng</span>
+                                </div>
                             </div>
-                            <div class="store-rating">
-                                <span class="stars">★★★☆☆</span>
-                                <span class="rating-text">3.7 (61 đánh giá)</span>
+                            <div class="vehicle-type-price-range">
+                                <span class="price-min">12.000.000đ</span>
+                                <span>-</span>
+                                <span class="price-max">85.000.000đ</span>
                             </div>
-                            <div class="store-stats">Đang bán: 695 | Đã bán: 1</div>
-                            <div class="store-location">
-                                <i class="fas fa-map-marker-alt"></i>
-                                Quận Cầu Giấy, Hà Nội
-                            </div>
-                            <button class="btn-follow">Theo dõi</button>
-                        </div>
-                    </div>
-                    <!-- Store 2 -->
-                    <div class="featured-store-card">
-                        <img src="https://images.unsplash.com/photo-1568772684723-dc07fcb3e9c0?w=400&h=200&fit=crop"
-                             alt="TÂN TỰ QUÝ" class="store-cover" loading="lazy">
-                        <div class="store-avatar-container">
-                            <img src="https://ui-avatars.com/api/?name=TQ&background=random&size=80" alt="TÂN TỰ QUÝ"
-                                 class="store-avatar">
-                        </div>
-                        <div class="store-info">
-                            <div class="store-title">TÂN TỰ QUÝ</div>
-                            <div class="store-rating">
-                                <span class="stars">★★★★★</span>
-                                <span class="rating-text">5.0 (4 đánh giá)</span>
-                            </div>
-                            <div class="store-stats">Đang bán: 499 | Đã bán: 221</div>
-                            <div class="store-location">
-                                <i class="fas fa-map-marker-alt"></i>
-                                Quận 1, Tp. Hồ Chí Minh
-                            </div>
-                            <button class="btn-follow">Theo dõi</button>
                         </div>
                     </div>
-                    <!-- Store 3 -->
-                    <div class="featured-store-card">
-                        <img src="https://images.unsplash.com/photo-1558980664-769d59546b3d?w=400&h=200&fit=crop"
-                             alt="Cửa hàng Tuanduy" class="store-cover" loading="lazy">
-                        <div class="store-avatar-container">
-                            <img src="https://ui-avatars.com/api/?name=TD&background=random&size=80"
-                                 alt="Cửa hàng Tuanduy" class="store-avatar">
+                    <!-- Vehicle Type 2 -->
+                    <div class="vehicle-type-card">
+                        <div class="vehicle-type-image-container">
+                            <img src="https://images.unsplash.com/photo-1558980664-769d59546b3d?w=400&h=300&fit=crop"
+                                 alt="Xe số" class="vehicle-type-image" loading="lazy">
+                            <div class="vehicle-type-badge">
+                                <i class="fas fa-trophy"></i> Phổ biến nhất
+                            </div>
                         </div>
-                        <div class="store-info">
-                            <div class="store-title">
-                                Cửa hàng Tuanduy
-                                <i class="fas fa-check-circle verified-badge"></i>
+                        <div class="vehicle-type-content">
+                            <h3 class="vehicle-type-title">Xe số</h3>
+                            <div class="vehicle-type-stats">
+                                <div class="stat-item">
+                                    <span class="stat-value">4,892</span>
+                                    <span class="stat-label">Đã bán</span>
+                                </div>
+                                <div class="stat-item">
+                                    <span class="stat-value">9,234</span>
+                                    <span class="stat-label">Tin đăng</span>
+                                </div>
                             </div>
-                            <div class="store-rating">
-                                <span class="stars">★★★★☆</span>
-                                <span class="rating-text">4.6 (284 đánh giá)</span>
+                            <div class="vehicle-type-price-range">
+                                <span class="price-min">8.000.000đ</span>
+                                <span>-</span>
+                                <span class="price-max">25.000.000đ</span>
                             </div>
-                            <div class="store-stats">Đang bán: 358 | Đã bán: 9265</div>
-                            <div class="store-location">
-                                <i class="fas fa-map-marker-alt"></i>
-                                Quận Tân Phú, Tp. Hồ Chí Minh
-                            </div>
-                            <button class="btn-follow">Theo dõi</button>
                         </div>
                     </div>
-                    <!-- ... Lặp tiếp với các cửa hàng còn lại ... -->
+                    <!-- Vehicle Type 3 -->
+                    <div class="vehicle-type-card">
+                        <div class="vehicle-type-image-container">
+                            <img src="https://images.unsplash.com/photo-1593941707882-a5bba14938c7?w=400&h=300&fit=crop"
+                                 alt="Xe côn tay" class="vehicle-type-image" loading="lazy">
+                            <div class="vehicle-type-badge">
+                                <i class="fas fa-chart-line"></i> Tăng trưởng
+                            </div>
+                        </div>
+                        <div class="vehicle-type-content">
+                            <h3 class="vehicle-type-title">Xe côn tay</h3>
+                            <div class="vehicle-type-stats">
+                                <div class="stat-item">
+                                    <span class="stat-value">2,156</span>
+                                    <span class="stat-label">Đã bán</span>
+                                </div>
+                                <div class="stat-item">
+                                    <span class="stat-value">4,789</span>
+                                    <span class="stat-label">Tin đăng</span>
+                                </div>
+                            </div>
+                            <div class="vehicle-type-price-range">
+                                <span class="price-min">18.000.000đ</span>
+                                <span>-</span>
+                                <span class="price-max">120.000.000đ</span>
+                            </div>
+                        </div>
+                    </div>
+                    <!-- Vehicle Type 4 -->
+                    <div class="vehicle-type-card">
+                        <div class="vehicle-type-image-container">
+                            <img src="https://images.unsplash.com/photo-1617814076367-b759c7d7e738?w=400&h=300&fit=crop"
+                                 alt="Xe điện" class="vehicle-type-image" loading="lazy">
+                            <div class="vehicle-type-badge">
+                                <i class="fas fa-bolt"></i> Xu hướng
+                            </div>
+                        </div>
+                        <div class="vehicle-type-content">
+                            <h3 class="vehicle-type-title">Xe điện</h3>
+                            <div class="vehicle-type-stats">
+                                <div class="stat-item">
+                                    <span class="stat-value">3,456</span>
+                                    <span class="stat-label">Đã bán</span>
+                                </div>
+                                <div class="stat-item">
+                                    <span class="stat-value">7,891</span>
+                                    <span class="stat-label">Tin đăng</span>
+                                </div>
+                            </div>
+                            <div class="vehicle-type-price-range">
+                                <span class="price-min">10.000.000đ</span>
+                                <span>-</span>
+                                <span class="price-max">45.000.000đ</span>
+                            </div>
+                        </div>
+                    </div>
                 </div>
-
                 <button class="carousel-nav carousel-nav-next d-none d-lg-flex" data-carousel="featuredStores">
                     <i class="fas fa-chevron-right"></i>
                 </button>
             </div>
-            <div class="text-center mt-4">
-                <a asp-controller="Home" asp-action="MotorbikeStore" class="btn btn-info">
-                    Xem thêm cửa hàng xe
-                </a>
-            </div>
         </div>
     </section>
 
-    <!-- Store Activities -->
+    <!-- Top Selling Brands -->
     <section class="py-5 bg-white">
         <div class="container">
-            <h2 class="section-title">Hoạt động nổi bật của cửa hàng</h2>
+            <h2 class="section-title">Hãng xe có xe bán cao nhất</h2>
             <div class="position-relative">
                 <button class="carousel-nav carousel-nav-prev d-none d-lg-flex" data-carousel="activities">
                     <i class="fas fa-chevron-left"></i>
                 </button>
                 <div class="carousel-wrapper" id="activitiesCarousel">
-                    <!-- Activity 1 -->
-                    <div class="activity-card" data-activity-id="1" role="button" tabindex="0">
-                        <div class="activity-header">
-                            <img src="https://ui-avatars.com/api/?name=CD&background=random&size=48"
-                                 alt="Cầm Q8 - Thanh Lý Trao Đổi Xe Máy Cũ" class="activity-avatar">
-                            <div class="activity-info">
-                                <div class="activity-store-name">
-                                    Cầm Q8 - Thanh Lý Trao Đổi Xe Máy Cũ
-                                    <i class="fas fa-check-circle verified-badge"></i>
-                                </div>
-                                <div class="activity-meta">9 giờ trước • Quận 8, Tp HCM</div>
-                            </div>
+                    <!-- Brand 1 -->
+                    <div class="brand-card">
+                        <div class="brand-logo-container">
+                            <img src="https://ui-avatars.com/api/?name=Honda&background=e74c3c&color=fff&size=80"
+                                 alt="Honda" class="brand-logo">
+                            <div class="brand-rank">#1</div>
                         </div>
-                        <div class="activity-content">
-                            <div class="activity-text">1 nhất 📌 cho e zai nhanh lẹ</div>
-                            <div class="activity-images">
-                                <img src="https://images.unsplash.com/photo-1558981806-ec527fa84c39?w=600&h=600&fit=crop"
-                                     alt="Activity" class="activity-image" loading="lazy">
-                                <img src="https://images.unsplash.com/photo-1568772684723-dc07fcb3e9c0?w=600&h=600&fit=crop"
-                                     alt="Activity" class="activity-image" loading="lazy">
-                            </div>
-                            <div class="activity-actions">
-                                <div class="activity-action">
-                                    <i class="far fa-thumbs-up"></i>
-                                    <span>0</span>
+                        <div class="brand-info">
+                            <h3 class="brand-name">Honda</h3>
+                            <div class="brand-stats">
+                                <div class="brand-stat">
+                                    <span class="stat-label">Đã bán</span>
+                                    <span class="stat-value">12,456</span>
                                 </div>
-                                <div class="activity-action">
-                                    <i class="far fa-comment"></i>
-                                    <span>0</span>
+                                <div class="brand-stat">
+                                    <span class="stat-label">Tin đăng</span>
+                                    <span class="stat-value">23,789</span>
                                 </div>
                             </div>
-                        </div>
-                    </div>
-                    <!-- Activity 2 -->
-                    <div class="activity-card" data-activity-id="2" role="button" tabindex="0">
-                        <div class="activity-header">
-                            <img src="https://ui-avatars.com/api/?name=SC&background=random&size=48"
-                                 alt="Xe Máy Sang Cường" class="activity-avatar">
-                            <div class="activity-info">
-                                <div class="activity-store-name">
-                                    Xe Máy Sang Cường
-                                    <i class="fas fa-check-circle verified-badge"></i>
+                            <div class="brand-models">
+                                <div class="model-item">
+                                    <span class="model-name">Wave Alpha</span>
+                                    <span class="model-sales">3,456</span>
                                 </div>
-                                <div class="activity-meta">6 giờ trước</div>
-                            </div>
-                        </div>
-                        <div class="activity-content">
-                            <div class="activity-text">EXCITER - LÍ LẮN Mẩn mê Exciter 155VVA đời 2021...</div>
-                            <div class="activity-images">
-                                <img src="https://images.unsplash.com/photo-1558980664-769d59546b3d?w=300&h=200&fit=crop"
-                                     alt="Activity" class="activity-image" loading="lazy">
-                                <img src="https://images.unsplash.com/photo-1609630875171-b1321377ee65?w=300&h=200&fit=crop"
-                                     alt="Activity" class="activity-image" loading="lazy">
-                            </div>
-                            <div class="activity-actions">
-                                <div class="activity-action">
-                                    <i class="far fa-thumbs-up"></i>
-                                    <span>5</span>
+                                <div class="model-item">
+                                    <span class="model-name">Vision</span>
+                                    <span class="model-sales">2,890</span>
                                 </div>
-                                <div class="activity-action">
-                                    <i class="far fa-comment"></i>
-                                    <span>2</span>
+                                <div class="model-item">
+                                    <span class="model-name">Air Blade</span>
+                                    <span class="model-sales">2,123</span>
                                 </div>
                             </div>
                         </div>
                     </div>
-                    <!-- ... Tiếp tục với các activity khác ... -->
+                    <!-- Brand 2 -->
+                    <div class="brand-card">
+                        <div class="brand-logo-container">
+                            <img src="https://ui-avatars.com/api/?name=Yamaha&background=3498db&color=fff&size=80"
+                                 alt="Yamaha" class="brand-logo">
+                            <div class="brand-rank">#2</div>
+                        </div>
+                        <div class="brand-info">
+                            <h3 class="brand-name">Yamaha</h3>
+                            <div class="brand-stats">
+                                <div class="brand-stat">
+                                    <span class="stat-label">Đã bán</span>
+                                    <span class="stat-value">9,876</span>
+                                </div>
+                                <div class="brand-stat">
+                                    <span class="stat-label">Tin đăng</span>
+                                    <span class="stat-value">18,234</span>
+                                </div>
+                            </div>
+                            <div class="brand-models">
+                                <div class="model-item">
+                                    <span class="model-name">Exciter</span>
+                                    <span class="model-sales">3,123</span>
+                                </div>
+                                <div class="model-item">
+                                    <span class="model-name">Sirius</span>
+                                    <span class="model-sales">2,456</span>
+                                </div>
+                                <div class="model-item">
+                                    <span class="model-name">Jupiter</span>
+                                    <span class="model-sales">1,987</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <!-- Brand 3 -->
+                    <div class="brand-card">
+                        <div class="brand-logo-container">
+                            <img src="https://ui-avatars.com/api/?name=VinFast&background=2ecc71&color=fff&size=80"
+                                 alt="VinFast" class="brand-logo">
+                            <div class="brand-rank">#3</div>
+                        </div>
+                        <div class="brand-info">
+                            <h3 class="brand-name">VinFast</h3>
+                            <div class="brand-stats">
+                                <div class="brand-stat">
+                                    <span class="stat-label">Đã bán</span>
+                                    <span class="stat-value">7,234</span>
+                                </div>
+                                <div class="brand-stat">
+                                    <span class="stat-label">Tin đăng</span>
+                                    <span class="stat-value">12,567</span>
+                                </div>
+                            </div>
+                            <div class="brand-models">
+                                <div class="model-item">
+                                    <span class="model-name">Vento S</span>
+                                    <span class="model-sales">2,345</span>
+                                </div>
+                                <div class="model-item">
+                                    <span class="model-name">Feliz</span>
+                                    <span class="model-sales">1,876</span>
+                                </div>
+                                <div class="model-item">
+                                    <span class="model-name">Klara</span>
+                                    <span class="model-sales">1,234</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <!-- Brand 4 -->
+                    <div class="brand-card">
+                        <div class="brand-logo-container">
+                            <img src="https://ui-avatars.com/api/?name=Suzuki&background=f39c12&color=fff&size=80"
+                                 alt="Suzuki" class="brand-logo">
+                            <div class="brand-rank">#4</div>
+                        </div>
+                        <div class="brand-info">
+                            <h3 class="brand-name">Suzuki</h3>
+                            <div class="brand-stats">
+                                <div class="brand-stat">
+                                    <span class="stat-label">Đã bán</span>
+                                    <span class="stat-value">5,678</span>
+                                </div>
+                                <div class="brand-stat">
+                                    <span class="stat-label">Tin đăng</span>
+                                    <span class="stat-value">9,876</span>
+                                </div>
+                            </div>
+                            <div class="brand-models">
+                                <div class="model-item">
+                                    <span class="model-name">Viva</span>
+                                    <span class="model-sales">1,987</span>
+                                </div>
+                                <div class="model-item">
+                                    <span class="model-name">Raider</span>
+                                    <span class="model-sales">1,543</span>
+                                </div>
+                                <div class="model-item">
+                                    <span class="model-name">Satria</span>
+                                    <span class="model-sales">987</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
                 </div>
-
                 <button class="carousel-nav carousel-nav-next d-none d-lg-flex" data-carousel="activities">
                     <i class="fas fa-chevron-right"></i>
                 </button>
-            </div>
-            <div class="text-center mt-4">
-                <button class="btn btn-outline-secondary">Xem thêm hoạt động của cửa hàng</button>
             </div>
         </div>
     </section>
@@ -872,7 +974,7 @@ else
     <!-- Custom JS -->
     <script src="~/js/main.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/swiper@10/swiper-bundle.min.js"></script>
-    
+
     <!-- Initialize dropdown -->
     <script>
         document.addEventListener('DOMContentLoaded', function() {
@@ -881,7 +983,7 @@ else
             var dropdownList = dropdownElementList.map(function (dropdownToggleEl) {
                 return new bootstrap.Dropdown(dropdownToggleEl);
             });
-            
+
             console.log('Dropdowns initialized:', dropdownList.length);
         });
     </script>
