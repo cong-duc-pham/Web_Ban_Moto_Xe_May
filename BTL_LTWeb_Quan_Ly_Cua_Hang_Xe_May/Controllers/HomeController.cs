@@ -43,7 +43,12 @@ namespace BTL_LTWeb_Quan_Ly_Cua_Hang_Xe_May.Controllers
         {
             return View("AdminDashboard");
         }
-
+        [Authorize(Roles = "Admin")] // Bảo vệ trang này, chỉ Admin được vào
+        public IActionResult ManagePosts()
+        {
+            // Chúng ta sẽ trả về file View có tên là "ManagePosts.cshtml"
+            return View();
+        }
         [Route("/Home/AccessDenied")]
         public IActionResult AccessDenied()
         {
@@ -162,6 +167,7 @@ namespace BTL_LTWeb_Quan_Ly_Cua_Hang_Xe_May.Controllers
         }
 
         // ======= API, chức năng CRUD xe =======
+        [HttpPost]
         public async Task<IActionResult> AddVehicle([FromForm] Vehicle vehicle, [FromForm] List<IFormFile> HinhAnh)
         {
             try
@@ -282,14 +288,31 @@ namespace BTL_LTWeb_Quan_Ly_Cua_Hang_Xe_May.Controllers
         {
             try
             {
-                _logger.LogInformation($"=== BẮT ĐẦU SỬA XE ID={vehicle?.VehicleId} ===");
-                _logger.LogInformation($"Dữ liệu: Title={vehicle?.Title}, SalePrice={vehicle?.SalePrice}");
-                
+                _logger.LogInformation("=== BẮT ĐẦU SỬA XE ===");
+
+                // Kiểm tra vehicle null
+                if (vehicle == null)
+                {
+                    _logger.LogWarning("Vehicle object is NULL!");
+                    return Json(new { success = false, message = "Dữ liệu không hợp lệ (NULL)!" });
+                }
+
+                // Log chi tiết từng property
+                _logger.LogInformation($"Vehicle Data Received:");
+                _logger.LogInformation($"  VehicleId: {vehicle.VehicleId}");
+                _logger.LogInformation($"  Title: {vehicle.Title}");
+                _logger.LogInformation($"  SalePrice: {vehicle.SalePrice}");
+                _logger.LogInformation($"  OriginalPrice: {vehicle.OriginalPrice}");
+                _logger.LogInformation($"  StockQuantity: {vehicle.StockQuantity}");
+                _logger.LogInformation($"  BrandId: {vehicle.BrandId}");
+                _logger.LogInformation($"  CategoryId: {vehicle.CategoryId}");
+                _logger.LogInformation($"  StoreId: {vehicle.StoreId}");
+
                 if (!IsAdmin())
                     return Json(new { success = false, message = "Bạn không có quyền thực hiện chức năng này! Chỉ Quản lý mới có thể sửa thông tin xe." });
 
-                if (vehicle == null || vehicle.VehicleId <= 0)
-                    return Json(new { success = false, message = "Dữ liệu không hợp lệ!" });
+                if (vehicle.VehicleId <= 0)
+                    return Json(new { success = false, message = "VehicleId không hợp lệ!" });
 
                 var existingVehicle = await _xeMayService.GetVehicleByIdAsync(vehicle.VehicleId);
                 if (existingVehicle == null)
@@ -306,16 +329,16 @@ namespace BTL_LTWeb_Quan_Ly_Cua_Hang_Xe_May.Controllers
 
                 if (result)
                 {
-                    _logger.LogInformation($"✅ Đã cập nhật xe: {vehicle.Title} - ID: {vehicle.VehicleId}");
+                    _logger.LogInformation($" Đã cập nhật xe: {vehicle.Title} - ID: {vehicle.VehicleId}");
                     return Json(new { success = true, message = "Cập nhật xe máy thành công!" });
                 }
 
-                _logger.LogWarning("❌ Service trả về false");
+                _logger.LogWarning(" Service trả về false");
                 return Json(new { success = false, message = "Không thể cập nhật xe máy. Vui lòng thử lại!" });
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "❌ Lỗi khi cập nhật xe máy");
+                _logger.LogError(ex, " Lỗi khi cập nhật xe máy");
                 if (ex.InnerException != null)
                 {
                     _logger.LogError($"InnerException: {ex.InnerException.Message}");
@@ -361,14 +384,38 @@ namespace BTL_LTWeb_Quan_Ly_Cua_Hang_Xe_May.Controllers
                 var vehicle = await _xeMayService.GetVehicleByIdAsync(id);
 
                 if (vehicle != null)
-                    return Json(new { success = true, data = vehicle });
+                {
+                    var result = new
+                    {
+                        success = true,
+                        data = new
+                        {
+                            VehicleId = vehicle.VehicleId,
+                            Title = vehicle.Title,
+                            Model = vehicle.Model,
+                            SalePrice = vehicle.SalePrice,
+                            OriginalPrice = vehicle.OriginalPrice,
+                            StockQuantity = vehicle.StockQuantity,
+                            BrandId = vehicle.BrandId,
+                            CategoryId = vehicle.CategoryId,
+                            StoreId = vehicle.StoreId,
+                            Condition = vehicle.Condition,
+                            ManufactureYear = vehicle.ManufactureYear,
+                            Color = vehicle.Color,
+                            Description = vehicle.Description
+                            // Thêm các trường khác nếu bạn cần
+                        }
+                    };
+                    return Json(result);
+                }
 
                 return Json(new { success = false, message = "Không tìm thấy xe máy!" });
             }
             catch (Exception ex)
             {
                 _logger.LogError(ex, $"Lỗi khi lấy thông tin xe máy ID: {id}");
-                return Json(new { success = false, message = "Có lỗi xảy ra: " + ex.Message });
+                // Trả về lỗi để JavaScript có thể bắt
+                return Json(new { success = false, message = "Có lỗi xảy ra khi lấy dữ liệu: " + ex.Message });
             }
         }
 

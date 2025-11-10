@@ -1,4 +1,5 @@
-﻿function toggleSidebar() {
+﻿
+function toggleSidebar() {
     const sidebar = document.getElementById('sidebar');
     sidebar.classList.toggle('collapsed');
 }
@@ -11,7 +12,7 @@ if (window.innerWidth <= 992) {
     };
 }
 
-// Active menu item animation
+ Active menu item animation
 document.querySelectorAll('.menu-item').forEach(item => {
     item.addEventListener('click', function (e) {
         e.preventDefault();

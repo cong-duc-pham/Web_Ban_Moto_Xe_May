@@ -1,7 +1,6 @@
-﻿@*
-    For more information on enabling MVC for empty projects, visit https://go.microsoft.com/fwlink/?LinkID=397860
-*@
-@{
+﻿@{
+    ViewData["Title"] = "Quản lý bài đăng";
+    Layout = "~/Views/Shared/AdminLayout.cshtml";
 }
 <!DOCTYPE html>
 <html lang="vi">
@@ -12,8 +11,6 @@
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
     <link rel="stylesheet" href="/css/ManagePosts.css">
-    <style>
-    </style>
 </head>
 <body>
     <div class="dashboard-container">
@@ -24,7 +21,7 @@
                     <h1><i class="bi bi-speedometer2 me-3"></i>Quản Lý Bài Đăng Xe</h1>
                     <p class="mb-0 mt-2">Quản lý toàn bộ tin đăng mua bán xe</p>
                 </div>
-                <button class="btn btn-add-new text-white" data-bs-toggle="modal" data-bs-target="#addVehicleModal">
+                <button class="btn btn-add-new text-white" onclick="showAddModal()">
                     <i class="bi bi-plus-circle me-2"></i>Thêm Bài Đăng Mới
                 </button>
             </div>
@@ -98,9 +95,6 @@
                     <div class="col-md-3">
                         <select class="form-select" id="categoryFilter">
                             <option value="">Tất cả danh mục</option>
-                            <option value="oto">Ô tô</option>
-                            <option value="xemay">Xe máy</option>
-                            <option value="xedien">Xe điện</option>
                         </select>
                     </div>
                     <div class="col-md-3">
@@ -139,7 +133,7 @@
                         </tr>
                     </thead>
                     <tbody id="vehicleTableBody">
-                        <!-- Data will be populated by JavaScript -->
+                        <!-- Data populated by JS -->
                     </tbody>
                 </table>
             </div>
@@ -158,92 +152,164 @@
         </div>
     </div>
 
-    <!-- Add/Edit Vehicle Modal -->
+    <!-- Add/Edit Vehicle Modal (form cấu trúc giống MotorbikeOnline - dùng cho Sửa và Thêm) -->
     <div class="modal fade" id="addVehicleModal" tabindex="-1">
         <div class="modal-dialog modal-lg modal-dialog-centered">
             <div class="modal-content">
                 <div class="modal-header">
-                    <h5 class="modal-title" id="modalTitle">
-                        <i class="bi bi-plus-circle me-2"></i>Thêm Bài Đăng Mới
-                    </h5>
-                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+                    <h5 class="modal-title" id="modalTitle">Thêm Bài Đăng Mới</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                 </div>
-                <div class="modal-body p-4">
-                    <form id="vehicleForm">
-                        <input type="hidden" id="vehicleId">
-                        <div class="row g-3">
-                            <div class="col-md-12">
-                                <label class="form-label">Tiêu đề bài đăng</label>
-                                <input type="text" class="form-control" id="vehicleTitle" required placeholder="VD: Kia Carnival 2021 form 2022 bản 2.2D Signature">
+
+                <!-- NOTE: form id = vehicleForm (JS expects this). Fields use Vietnamese names/ids to match MotorbikeOnline; JS will map to English properties when sending. -->
+                <div class="modal-body">
+                    <form id="vehicleForm" novalidate>
+                        <input type="hidden" id="vehicleId" name="VehicleId" value="0" />
+                        <input type="hidden" id="xeID" name="ID" value="0" />
+
+                        <div class="row">
+                            <div class="col-md-12 mb-3">
+                                <label for="tenXe" class="form-label">Tên xe <span class="text-danger">*</span></label>
+                                <input type="text" class="form-control" id="tenXe" name="TenXe" required placeholder="Ví dụ: VinFast Klara S" />
                             </div>
-                            <div class="col-md-6">
-                                <label class="form-label">Danh mục</label>
-                                <select class="form-select" id="vehicleCategory" required>
-                                    <option value="">Chọn danh mục</option>
-                                    <option value="oto">Ô tô</option>
-                                    <option value="xemay">Xe máy</option>
-                                    <option value="xetai">Xe tải, xe ben</option>
-                                    <option value="xedien">Xe điện</option>
-                                    <option value="xedap">Xe đạp</option>
-                                    <option value="phutung">Phụ tùng xe</option>
+                        </div>
+
+                        <div class="row">
+                            <div class="col-md-4 mb-3">
+                                <label for="cuaHang" class="form-label">Cửa hàng <span class="text-danger">*</span></label>
+                                <select class="form-select" id="cuaHang" name="StoreId" required>
+                                    <option value="">-- Chọn --</option>
+                                    @{
+                                        var stores = ViewBag.Stores as List<BTL_LTWeb_Quan_Ly_Cua_Hang_Xe_May.Models.Entities.Store>;
+                                        if (stores != null && stores.Count > 0)
+                                        {
+                                            foreach (var store in stores)
+                                            {
+                                                <option value="@store.StoreId">@store.StoreName</option>
+                                            }
+                                        }
+                                        else
+                                        {
+                                            <option disabled>Không có dữ liệu</option>
+                                        }
+                                    }
                                 </select>
                             </div>
-                            <div class="col-md-6">
-                                <label class="form-label">Giá (VNĐ)</label>
-                                <input type="text" class="form-control" id="vehiclePrice" required placeholder="VD: 1.145.000.000">
-                            </div>
-                            <div class="col-md-4">
-                                <label class="form-label">Năm sản xuất</label>
-                                <input type="number" class="form-control" id="vehicleYear" placeholder="2021">
-                            </div>
-                            <div class="col-md-4">
-                                <label class="form-label">Số km đã đi</label>
-                                <input type="text" class="form-control" id="vehicleKm" placeholder="64000 km">
-                            </div>
-                            <div class="col-md-4">
-                                <label class="form-label">Tình trạng</label>
-                                <select class="form-select" id="vehicleCondition">
-                                    <option value="new">Mới</option>
-                                    <option value="used">Đã sử dụng</option>
+
+                            <div class="col-md-4 mb-3">
+                                <label for="danhMuc" class="form-label">Danh mục <span class="text-danger">*</span></label>
+                                <select class="form-select" id="danhMuc" name="CategoryId" required>
+                                    <option value="">-- Chọn --</option>
+                                    @{
+                                        var categories = ViewBag.Categories as List<BTL_LTWeb_Quan_Ly_Cua_Hang_Xe_May.Models.Entities.VehicleCategory>;
+                                        if (categories != null && categories.Count > 0)
+                                        {
+                                            foreach (var cat in categories)
+                                            {
+                                                <option value="@cat.CategoryId">@cat.CategoryName</option>
+                                            }
+                                        }
+                                        else
+                                        {
+                                            <option disabled>Không có dữ liệu</option>
+                                        }
+                                    }
                                 </select>
                             </div>
-                            <div class="col-md-6">
-                                <label class="form-label">Địa điểm</label>
-                                <input type="text" class="form-control" id="vehicleLocation" required placeholder="VD: Thành Phố Thủ Đức">
-                            </div>
-                            <div class="col-md-6">
-                                <label class="form-label">Trạng thái</label>
-                                <select class="form-select" id="vehicleStatus">
-                                    <option value="pending">Chờ duyệt</option>
-                                    <option value="active">Đang hoạt động</option>
-                                    <option value="hidden">Đã ẩn</option>
-                                    <option value="sold">Đã bán</option>
+
+                            <div class="col-md-4 mb-3">
+                                <label for="thuongHieu" class="form-label">Thương hiệu <span class="text-danger">*</span></label>
+                                <select class="form-select" id="thuongHieu" name="BrandId" required>
+                                    <option value="">-- Chọn --</option>
+                                    @{
+                                        var brands = ViewBag.Brands as List<BTL_LTWeb_Quan_Ly_Cua_Hang_Xe_May.Models.Entities.Brand>;
+                                        if (brands != null && brands.Count > 0)
+                                        {
+                                            foreach (var brand in brands)
+                                            {
+                                                <option value="@brand.BrandId">@brand.BrandName</option>
+                                            }
+                                        }
+                                        else
+                                        {
+                                            <option disabled>Không có dữ liệu</option>
+                                        }
+                                    }
                                 </select>
                             </div>
-                            <div class="col-md-12">
-                                <label class="form-label">Hình ảnh</label>
-                                <input type="file" class="form-control" id="vehicleImages" multiple accept="image/*">
-                                <small class="text-muted">Có thể chọn nhiều hình ảnh</small>
+                        </div>
+
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label for="gia" class="form-label">Giá bán (VNĐ) <span class="text-danger">*</span></label>
+                                <input type="number" class="form-control" id="gia" name="Gia" required min="0" step="1000" placeholder="35000000" />
                             </div>
-                            <div class="col-md-12">
-                                <label class="form-label">Mô tả chi tiết</label>
-                                <textarea class="form-control" id="vehicleDescription" rows="4" placeholder="Mô tả chi tiết về xe..."></textarea>
+
+                            <div class="col-md-6 mb-3">
+                                <label for="soLuong" class="form-label">Số lượng xe <span class="text-danger">*</span></label>
+                                <input type="number" class="form-control" id="soLuong" name="StockQuantity" required min="1" step="1" value="1" placeholder="Nhập số lượng xe trong kho" />
+                                <small class="form-text text-muted">
+                                    <i class="bi bi-info-circle"></i> Số lượng xe hiện có trong kho
+                                </small>
                             </div>
+                        </div>
+
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label for="model" class="form-label">Model</label>
+                                <input type="text" class="form-control" id="model" name="Model" placeholder="Ví dụ: Klara S 2024" />
+                            </div>
+
+                            <div class="col-md-6 mb-3">
+                                <label for="namSX" class="form-label">Năm sản xuất</label>
+                                <input type="number" class="form-control" id="namSX" name="ManufactureYear" min="2000" max="@(DateTime.Now.Year)" placeholder="2024" />
+                            </div>
+                        </div>
+
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label for="dungTich" class="form-label">Dung tích (cc)</label>
+                                <input type="number" class="form-control" id="dungTich" name="EngineCapacity" min="0" placeholder="150" />
+                            </div>
+
+                            <div class="col-md-6 mb-3">
+                                <label for="mauSac" class="form-label">Màu sắc</label>
+                                <input type="text" class="form-control" id="mauSac" name="Color" placeholder="Đỏ, Đen, Xanh..." />
+                            </div>
+                        </div>
+
+                        <div class="mb-3">
+                            <label for="hinhAnh" class="form-label">Hình ảnh xe</label>
+                            <input type="file" class="form-control" id="hinhAnh" name="HinhAnh" accept="image/*" multiple />
+                            <small class="form-text text-muted">
+                                <i class="bi bi-info-circle"></i> Có thể chọn nhiều hình ảnh. Hình đầu tiên sẽ là hình đại diện.
+                            </small>
+                            <div id="imagePreview" class="mt-2 d-flex flex-wrap gap-2"></div>
+                        </div>
+
+                        <div class="mb-3">
+                            <label for="moTa" class="form-label">Mô tả</label>
+                            <textarea class="form-control" id="moTa" name="MoTa" rows="3" placeholder="Nhập mô tả về xe máy..."></textarea>
                         </div>
                     </form>
                 </div>
+
                 <div class="modal-footer">
-                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Hủy</button>
-                    <button type="button" class="btn btn-primary" onclick="saveVehicle()">
-                        <i class="bi bi-save me-2"></i>Lưu Bài Đăng
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
+                        <i class="bi bi-x-circle"></i> Hủy
+                    </button>
+                    <!-- JS expects saveVehicleBtn (type=button so JS handles submit) -->
+                    <button type="button" class="btn btn-primary" id="saveVehicleBtn">
+                        <i class="bi bi-save me-2"></i>Lưu
                     </button>
                 </div>
             </div>
         </div>
     </div>
 
+    <!-- scripts -->
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
-    <script src="/js/ManagePosts.js">
-    </script>
+    <script src="/js/AdminLayout.js"></script>
+    <script src="/js/ManagePosts.js"></script>
 </body>
 </html>
