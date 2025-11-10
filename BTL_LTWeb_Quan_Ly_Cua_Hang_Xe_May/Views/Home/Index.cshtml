@@ -119,7 +119,17 @@ else
                             </button>
                             <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="userDropdown">
                                 <li><a class="dropdown-item" href="/Account/Profile"><i class="fas fa-user me-2"></i>Tài khoản</a></li>
-                                <li><a class="dropdown-item" href="/Account/MyOrders"><i class="fas fa-shopping-bag me-2"></i>Đơn hàng</a></li>
+                                
+                                @* Hiển thị menu quản lý đơn hàng theo vai trò *@
+                                @if (ViewBag.IsAdmin == true || ViewBag.IsSaler == true)
+                                {
+                                    <li><a class="dropdown-item" href="/Home/ManageOrders"><i class="fas fa-tasks me-2"></i>Quản lý đơn hàng</a></li>
+                                }
+                                else
+                                {
+                                    <li><a class="dropdown-item" href="/Home/MyOrders"><i class="fas fa-shopping-bag me-2"></i>Đơn hàng của tôi</a></li>
+                                }
+                                
                                 <li><hr class="dropdown-divider"></li>
                                 <li><a class="dropdown-item text-danger" href="/Account/Logout"><i class="fas fa-sign-out-alt me-2"></i>Đăng xuất</a></li>
                             </ul>

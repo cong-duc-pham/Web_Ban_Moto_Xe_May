@@ -64,6 +64,10 @@ namespace BTL_LTWeb_Quan_Ly_Cua_Hang_Xe_May.Controllers
             _logger.LogInformation($"RoleName: '{roleName}'");
             _logger.LogInformation($"RoleId: {roleId}");
             
+            // Set ViewBag để hiển thị menu đúng với vai trò
+            ViewBag.IsAdmin = IsAdmin();
+            ViewBag.IsSaler = IsSaler();
+            
             // Lấy dữ liệu (ở đây stores/news nếu chưa code thì để danh sách rỗng - có thể sửa sau)
             var vehicles = await _xeMayService.GetAllVehiclesAsync();
             var stores = new List<Store>();
@@ -531,8 +535,9 @@ namespace BTL_LTWeb_Quan_Ly_Cua_Hang_Xe_May.Controllers
                     
                     return Json(new { 
                         success = true, 
-                        message = "Đặt mua xe thành công! Vui lòng chờ xác nhận từ cửa hàng.",
-                        orderId = createdOrder.OrderId 
+                        message = "Đặt mua xe thành công! Vui lòng chuyển khoản để xác nhận.",
+                        orderId = createdOrder.OrderId,
+                        orderNumber = order.OrderNumber
                     });
                 }
 
@@ -706,6 +711,49 @@ namespace BTL_LTWeb_Quan_Ly_Cua_Hang_Xe_May.Controllers
             catch (Exception ex)
             {
                 _logger.LogError(ex, $"Lỗi khi từ chối đơn hàng ID: {request.OrderId}");
+                return Json(new { success = false, message = $"Lỗi: {ex.Message}" });
+            }
+        }
+
+        // Xác nhận đã chuyển khoản (Admin/Saler)
+        [HttpPost]
+        public async Task<IActionResult> ConfirmPayment(int orderId)
+        {
+            try
+            {
+                // Kiểm tra quyền: Admin hoặc Saler
+                if (!IsAdminOrSaler())
+                {
+                    return Json(new { success = false, message = "Bạn không có quyền thực hiện thao tác này!" });
+                }
+
+                var order = await _xeMayService.GetOrderByIdAsync(orderId);
+                if (order == null)
+                {
+                    return Json(new { success = false, message = "Không tìm thấy đơn hàng!" });
+                }
+
+                if (order.PaymentStatus != "Unpaid")
+                {
+                    return Json(new { success = false, message = "Đơn hàng đã được thanh toán rồi!" });
+                }
+
+                // Cập nhật trạng thái thanh toán
+                order.PaymentStatus = "Paid";
+                var result = await _xeMayService.UpdateOrderAsync(order);
+                
+                if (!result)
+                {
+                    return Json(new { success = false, message = "Cập nhật thất bại, vui lòng thử lại!" });
+                }
+
+                _logger.LogInformation($"Đã xác nhận thanh toán cho OrderId={orderId}");
+
+                return Json(new { success = true, message = "Đã xác nhận chuyển khoản thành công!" });
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, $"Lỗi khi xác nhận thanh toán ID: {orderId}");
                 return Json(new { success = false, message = $"Lỗi: {ex.Message}" });
             }
         }

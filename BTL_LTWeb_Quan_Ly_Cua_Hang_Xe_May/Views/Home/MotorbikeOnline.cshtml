@@ -633,18 +633,23 @@
                         </div>
 
                         <div class="mb-3">
-                            <label for="depositAmount" class="form-label">Tiền đặt cọc (nếu có)</label>
-                            <input type="number" class="form-control" id="depositAmount" 
-                                   placeholder="Nhập số tiền đặt cọc (VNĐ)" min="0" />
+                            <label for="depositAmount" class="form-label">
+                                Tiền đặt cọc <span class="text-danger">*</span>
+                                <small class="text-muted">(Bắt buộc để giữ xe)</small>
+                            </label>
+                            <input type="number" class="form-control" id="depositAmount" required
+                                   placeholder="Nhập số tiền đặt cọc (VNĐ)" min="100000" step="10000" />
+                            <small class="text-muted">Tối thiểu 100,000 đ và phải nhỏ hơn giá xe</small>
                         </div>
 
-                        <div class="mb-3">
-                            <label for="paymentMethod" class="form-label">Phương thức thanh toán</label>
-                            <select class="form-select" id="paymentMethod">
-                                <option value="Tiền mặt">Tiền mặt</option>
-                                <option value="Chuyển khoản">Chuyển khoản</option>
-                                <option value="Trả góp">Trả góp</option>
-                            </select>
+                        <div class="alert alert-warning">
+                            <h6 class="alert-heading">
+                                <i class="fas fa-credit-card"></i> Phương thức thanh toán
+                            </h6>
+                            <p class="mb-0">
+                                <strong>Chuyển khoản ngân hàng</strong> (Bắt buộc)<br>
+                                Vui lòng chuyển khoản số tiền đặt cọc để xác nhận đơn hàng.
+                            </p>
                         </div>
 
                         <div class="mb-3">
@@ -653,10 +658,9 @@
                                       placeholder="Ghi chú thêm về đơn hàng (nếu có)..."></textarea>
                         </div>
 
-                        <div class="alert alert-warning mb-0">
+                        <div class="alert alert-info mb-0">
                             <i class="fas fa-info-circle"></i> <strong>Lưu ý:</strong> 
-                            Sau khi xác nhận, đơn hàng sẽ được gửi đến cửa hàng để xác nhận. 
-                            Xe sẽ tạm thời ẩn khỏi trang bán cho đến khi có quyết định từ cửa hàng.
+                            Sau khi nhấn "Xác nhận", bạn sẽ thấy mã QR để chuyển khoản đặt cọc.
                         </div>
                     </div>
                     <div class="modal-footer">
@@ -664,10 +668,81 @@
                             <i class="fas fa-times"></i> Hủy
                         </button>
                         <button type="submit" class="btn btn-success">
-                            <i class="fas fa-check"></i> Xác nhận mua
+                            <i class="fas fa-check"></i> Xác nhận & Xem QR
                         </button>
                     </div>
                 </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal QR Code Thanh Toán -->
+    <div class="modal fade" id="qrCodeModal" tabindex="-1">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content">
+                <div class="modal-header bg-primary text-white">
+                    <h5 class="modal-title">
+                        <i class="fas fa-qrcode"></i> Quét mã QR để chuyển khoản
+                    </h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body text-center">
+                    <div class="alert alert-success">
+                        <h5 class="mb-2">Đơn hàng đã được tạo thành công!</h5>
+                        <p class="mb-0">Mã đơn: <strong id="qrOrderNumber"></strong></p>
+                    </div>
+
+                    <div class="card mb-3">
+                        <div class="card-body">
+                            <h6 class="card-title">Thông tin chuyển khoản</h6>
+                            <table class="table table-sm mb-0">
+                                <tr>
+                                    <td class="text-end"><strong>Ngân hàng:</strong></td>
+                                    <td>Vietcombank</td>
+                                </tr>
+                                <tr>
+                                    <td class="text-end"><strong>Số tài khoản:</strong></td>
+                                    <td>1234567890</td>
+                                </tr>
+                                <tr>
+                                    <td class="text-end"><strong>Chủ tài khoản:</strong></td>
+                                    <td>CỬA HÀNG XE MÁY ABC</td>
+                                </tr>
+                                <tr>
+                                    <td class="text-end"><strong>Số tiền:</strong></td>
+                                    <td class="text-danger"><strong id="qrDepositAmount"></strong></td>
+                                </tr>
+                                <tr>
+                                    <td class="text-end"><strong>Nội dung:</strong></td>
+                                    <td><code id="qrTransferContent"></code></td>
+                                </tr>
+                            </table>
+                        </div>
+                    </div>
+
+                    <!-- QR Code Image Placeholder -->
+                    <div class="border rounded p-3 bg-light mb-3">
+                        <img id="qrCodeImage" src="/images/qr-code-placeholder.png" 
+                             alt="QR Code" class="img-fluid" style="max-width: 300px;"
+                             onerror="this.src='data:image/svg+xml,%3Csvg xmlns=\'http://www.w3.org/2000/svg\' width=\'300\' height=\'300\'%3E%3Crect width=\'300\' height=\'300\' fill=\'%23f8f9fa\'/%3E%3Ctext x=\'50%25\' y=\'50%25\' dominant-baseline=\'middle\' text-anchor=\'middle\' font-family=\'Arial\' font-size=\'16\' fill=\'%236c757d\'%3EQR Code sẽ hiển thị ở đây%3C/text%3E%3C/svg%3E'">
+                        <p class="text-muted small mb-0 mt-2">
+                            <i class="fas fa-mobile-alt"></i> Quét mã QR bằng ứng dụng ngân hàng
+                        </p>
+                    </div>
+
+                    <div class="alert alert-warning mb-0">
+                        <i class="fas fa-exclamation-triangle"></i> <strong>Quan trọng:</strong><br>
+                        Sau khi chuyển khoản, vui lòng chờ cửa hàng xác nhận thanh toán (thường trong vòng 1-2 giờ).
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
+                        <i class="fas fa-times"></i> Đóng
+                    </button>
+                    <a href="/Home/MyOrders" class="btn btn-primary">
+                        <i class="fas fa-list"></i> Xem đơn hàng của tôi
+                    </a>
+                </div>
             </div>
         </div>
     </div>

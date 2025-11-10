@@ -688,6 +688,22 @@ namespace BTL_LTWeb_Quan_Ly_Cua_Hang_Xe_May.Services
             }
         }
 
+        // Cập nhật thông tin đơn hàng (chung chung)
+        public async Task<bool> UpdateOrderAsync(OrderInfo order)
+        {
+            try
+            {
+                _context.OrderInfos.Update(order);
+                await _context.SaveChangesAsync();
+                return true;
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"[XeMayService] ❌ LỖI khi cập nhật đơn hàng: {ex.Message}");
+                return false;
+            }
+        }
+
         // Cập nhật trạng thái xe
         public async Task<bool> UpdateVehicleStatusAsync(int vehicleId, string status)
         {

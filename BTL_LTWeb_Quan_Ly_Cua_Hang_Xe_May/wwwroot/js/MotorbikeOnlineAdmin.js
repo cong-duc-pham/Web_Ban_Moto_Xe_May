@@ -66,6 +66,9 @@ function showAddModal() {
 
 // Hàm hiển thị modal sửa xe
 function showEditModal(id, tenXe, gia, moTa, storeId, categoryId, brandId, model, namSX, dungTich, mauSac, soLuong) {
+    console.log('=== showEditModal called ===');
+    console.log('Parameters:', { id, tenXe, gia, moTa, storeId, categoryId, brandId, model, namSX, dungTich, mauSac, soLuong });
+    
     document.getElementById('modalTitle').textContent = 'Sửa Thông Tin Xe Máy';
     document.getElementById('xeID').value = id;
     document.getElementById('tenXe').value = tenXe;
@@ -90,8 +93,13 @@ function showEditModal(id, tenXe, gia, moTa, storeId, categoryId, brandId, model
         document.getElementById('soLuong').value = 1; // Default
     }
     
-    const modal = new bootstrap.Modal(document.getElementById('xeMayModal'));
+    console.log('Opening modal...');
+    const modalElement = document.getElementById('xeMayModal');
+    console.log('Modal element:', modalElement);
+    
+    const modal = new bootstrap.Modal(modalElement);
     modal.show();
+    console.log('Modal shown');
 }
 
 // Hàm hiển thị modal xác nhận xóa
@@ -159,6 +167,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 submitData.append('StoreId', storeId);
                 submitData.append('CategoryId', categoryId);
                 submitData.append('BrandId', brandId);
+                submitData.append('StockQuantity', formData.get('StockQuantity') || '1');
                 submitData.append('Status', 'Available');
                 submitData.append('Condition', 'New');
                 
@@ -188,6 +197,7 @@ document.addEventListener('DOMContentLoaded', function() {
                     StoreId: parseInt(storeId),
                     CategoryId: parseInt(categoryId),
                     BrandId: parseInt(brandId),
+                    StockQuantity: formData.get('StockQuantity') ? parseInt(formData.get('StockQuantity')) : 1,
                     Status: 'Available',
                     Condition: 'New'
                 };
@@ -374,7 +384,6 @@ document.addEventListener('DOMContentLoaded', function() {
             const vehicleId = parseInt(document.getElementById('buyVehicleId').value);
             const customerAddress = document.getElementById('customerAddress').value.trim();
             const depositAmount = document.getElementById('depositAmount').value;
-            const paymentMethod = document.getElementById('paymentMethod').value;
             const orderNote = document.getElementById('orderNote').value.trim();
             
             // Validate
@@ -384,31 +393,21 @@ document.addEventListener('DOMContentLoaded', function() {
                 return;
             }
             
-            // Kiểm tra ký tự hợp lệ trong địa chỉ
-            if (customerAddress.length < 5) {
-                alert('Địa chỉ phải có ít nhất 5 ký tự!');
-                document.getElementById('customerAddress').focus();
+            if (!depositAmount || parseFloat(depositAmount) < 100000) {
+                alert('Vui lòng nhập tiền đặt cọc tối thiểu 100,000 đ!');
+                document.getElementById('depositAmount').focus();
                 return;
             }
-            
-            // Log để debug
-            console.log('VehicleId:', vehicleId);
-            console.log('CustomerAddress:', customerAddress);
-            console.log('DepositAmount:', depositAmount);
-            console.log('PaymentMethod:', paymentMethod);
-            console.log('Note:', orderNote);
             
             const data = {
                 vehicleId: vehicleId,
                 customerAddress: customerAddress,
-                depositAmount: depositAmount ? parseFloat(depositAmount) : null,
-                paymentMethod: paymentMethod,
+                depositAmount: parseFloat(depositAmount),
+                paymentMethod: 'Chuyển khoản', // Cố định chuyển khoản
                 note: orderNote || null
             };
             
             try {
-                console.log('Đang gửi request:', JSON.stringify(data, null, 2));
-                
                 const response = await fetch('/Home/BuyVehicle', {
                     method: 'POST',
                     headers: {
@@ -417,45 +416,45 @@ document.addEventListener('DOMContentLoaded', function() {
                     body: JSON.stringify(data)
                 });
                 
-                console.log('Response status:', response.status);
-                
                 if (!response.ok) {
-                    const errorText = await response.text();
-                    console.error('Response error:', errorText);
                     alert('Lỗi server: ' + response.status);
                     return;
                 }
                 
                 const result = await response.json();
-                console.log('Result:', result);
                 
                 if (result.success) {
-                    // Đóng modal
-                    const modal = bootstrap.Modal.getInstance(document.getElementById('buyModal'));
-                    if (modal) {
-                        modal.hide();
+                    // Đóng modal mua xe
+                    const buyModalEl = document.getElementById('buyModal');
+                    const buyModalInstance = bootstrap.Modal.getInstance(buyModalEl);
+                    if (buyModalInstance) {
+                        buyModalInstance.hide();
                     }
                     
-                    // Hiển thị thông báo thành công với tùy chọn
-                    const viewOrder = confirm(result.message + '\n\nBạn có muốn xem đơn hàng ngay không?');
-                    
-                    if (viewOrder) {
-                        // Chuyển đến trang đơn hàng
-                        window.location.href = '/Home/MyOrders';
-                    } else {
-                        // Reload trang để cập nhật danh sách xe
-                        location.reload();
-                    }
+                    // Hiển thị modal QR Code
+                    showQRCodeModal(result.orderId, depositAmount, result.orderNumber || `ORD${Date.now()}`);
                 } else {
-                    alert('Lỗi: ' + result.message);
+                    alert(result.message || 'Có lỗi xảy ra!');
                 }
             } catch (error) {
                 console.error('Error:', error);
-                alert('Có lỗi xảy ra khi đặt mua xe: ' + error.message);
+                alert('Lỗi kết nối: ' + error.message);
             }
         });
     }
 });
+
+// Hàm hiển thị modal QR Code
+function showQRCodeModal(orderId, depositAmount, orderNumber) {
+    // Điền thông tin vào modal
+    document.getElementById('qrOrderNumber').textContent = orderNumber;
+    document.getElementById('qrDepositAmount').textContent = parseFloat(depositAmount).toLocaleString('vi-VN') + ' đ';
+    document.getElementById('qrTransferContent').textContent = `${orderNumber} DatCoc`;
+    
+    // Hiển thị modal
+    const qrModal = new bootstrap.Modal(document.getElementById('qrCodeModal'));
+    qrModal.show();
+}
 
 // Animation cho alert
 const style = document.createElement('style');
@@ -472,3 +471,4 @@ style.textContent = `
     }
 `;
 document.head.appendChild(style);
+

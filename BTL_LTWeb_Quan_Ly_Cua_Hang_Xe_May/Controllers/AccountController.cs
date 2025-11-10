@@ -131,7 +131,7 @@ namespace BTL_LTWeb_Quan_Ly_Cua_Hang_Xe_May.Controllers
                 }
 
                 TempData["SuccessMessage"] = $"Chào mừng {user.FullName}!";
-                if (user.Role.RoleName == "Admin")
+                if (user.Role.RoleName == "Admin" || user.Role.RoleId == 1)
                 {
                     return RedirectToAction("AdminDashboard", "Home"); // Hoặc Redirect("/admin")
                 }

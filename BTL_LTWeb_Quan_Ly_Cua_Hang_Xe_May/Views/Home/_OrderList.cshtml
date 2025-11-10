@@ -107,6 +107,20 @@ else
                     <div class="col-md-3 text-end">
                         @if (order.OrderStatus == "Pending")
                         {
+                            @* Nút xác nhận chuyển khoản (Admin/Saler) *@
+                            @if (order.PaymentStatus == "Unpaid")
+                            {
+                                <button class="btn btn-info btn-sm mb-2 w-100" onclick="confirmPayment(@order.OrderId)">
+                                    <i class="fas fa-money-check-alt"></i> Xác nhận CK
+                                </button>
+                            }
+                            else
+                            {
+                                <div class="alert alert-success small mb-2 p-2">
+                                    <i class="fas fa-check-circle"></i> Đã thanh toán
+                                </div>
+                            }
+
                             <button class="btn btn-success btn-sm mb-2 w-100" onclick="approveOrder(@order.OrderId)">
                                 <i class="fas fa-check"></i> Xác nhận đơn
                             </button>

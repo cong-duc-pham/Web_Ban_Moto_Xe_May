@@ -70,6 +70,7 @@ namespace BTL_LTWeb_Quan_Ly_Cua_Hang_Xe_May.Services
         Task<List<OrderInfo>> GetOrdersByCustomerIdAsync(int customerId);
         Task<List<OrderInfo>> GetAllOrdersAsync();
         Task<bool> UpdateOrderStatusAsync(int orderId, string status, string? cancelReason = null);
+        Task<bool> UpdateOrderAsync(OrderInfo order);
         Task<bool> UpdateVehicleStatusAsync(int vehicleId, string status);
     }
 }
