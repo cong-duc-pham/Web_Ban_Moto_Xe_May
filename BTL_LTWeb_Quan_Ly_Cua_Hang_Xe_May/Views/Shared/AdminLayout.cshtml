@@ -26,6 +26,13 @@
                 <span class="menu-text">Tổng quan</span>
             </a>
 
+            <a asp-controller="Home" asp-action="ManageEmployee"
+               class="menu-item @(currentAction == "ManageEmployee" ? "active" : "")">
+                <i class="fas fa-clipboard-user"></i>
+                <span class="menu-text">Quản lý nhân viên</span>
+            </a>
+
+
             <a asp-controller="Home" asp-action="ManageCustomers"
                class="menu-item @(currentAction == "ManageCustomers" ? "active" : "")">
                 <i class="fas fa-users"></i>

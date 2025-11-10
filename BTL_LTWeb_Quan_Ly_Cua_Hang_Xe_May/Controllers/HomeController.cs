@@ -49,6 +49,12 @@ namespace BTL_LTWeb_Quan_Ly_Cua_Hang_Xe_May.Controllers
             // Chúng ta sẽ trả về file View có tên là "ManagePosts.cshtml"
             return View();
         }
+        [Authorize(Roles = "Admin")]
+        public IActionResult ManageEmployee()
+        {
+            return View();
+        }
+
         [Route("/Home/AccessDenied")]
         public IActionResult AccessDenied()
         {
