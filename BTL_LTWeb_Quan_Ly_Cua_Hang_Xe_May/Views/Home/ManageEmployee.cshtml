@@ -1,0 +1,157 @@
+﻿@model List<BTL_LTWeb_Quan_Ly_Cua_Hang_Xe_May.Models.Entities.User>
+@{
+    Layout = "~/Views/Shared/AdminLayout.cshtml";
+    ViewData["Title"] = "Quản lý nhân viên";
+}
+<link rel="stylesheet" href="~/css/AdminEmployee.css" />
+
+<div class="page-title">Quản lý nhân viên</div>
+
+@if (TempData["SuccessMessage"] != null)
+{
+    <div class="alert alert-success alert-dismissible fade show" role="alert">
+        @TempData["SuccessMessage"]
+        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+    </div>
+}
+
+@if (TempData["ErrorMessage"] != null)
+{
+    <div class="alert alert-danger alert-dismissible fade show" role="alert">
+        @TempData["ErrorMessage"]
+        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+    </div>
+}
+
+<div class="employee-actions mb-3">
+    <button class="btn btn-primary" onclick="openEmployeeForm()">Thêm nhân viên</button>
+    <input type="text" class="form-control search-input" id="searchBox" placeholder="Tìm kiếm theo tên, email, số điện thoại...">
+</div>
+
+<div class="table-responsive">
+    <table class="table table-striped employee-table">
+        <thead class="table-dark">
+            <tr>
+                <th>#</th>
+                <th>Họ tên</th>
+                <th>Email</th>
+                <th>Số điện thoại</th>
+                <th>Vai trò</th>
+                <th>Trạng thái</th>
+                <th>Hành động</th>
+            </tr>
+        </thead>
+        <tbody id="employeeTableBody">
+            @if (Model != null && Model.Any())
+            {
+                @for (int i = 0; i < Model.Count; i++)
+                {
+                    <tr>
+                        <td>@(i + 1)</td>
+                        <td>@Model[i].FullName</td>
+                        <td>@Model[i].Email</td>
+                        <td>@(Model[i].PhoneNumber ?? "Chưa có")</td>
+                        <td>
+                            <span class="badge @GetRoleBadgeClass(Model[i].Role?.RoleName)">
+                                @Model[i].Role?.RoleName ?? "Chưa xác định"
+                            </span>
+                        </td>
+                        <td>
+                            <span class="badge bg-success">@Model[i].Status</span>
+                        </td>
+                        <td>
+                            <button class="btn btn-sm btn-warning me-1" onclick="editEmployee(@Model[i].UserId, '@Model[i].FullName', '@Model[i].Email', '@(Model[i].PhoneNumber ?? "")', @Model[i].RoleId)">
+                                Sửa
+                            </button>
+                            <button class="btn btn-sm btn-danger" onclick="deleteEmployee(@Model[i].UserId, '@Model[i].FullName')">
+                                Xóa
+                            </button>
+                        </td>
+                    </tr>
+                }
+            }
+            else
+            {
+                <tr>
+                    <td colspan="8" class="text-center py-4">
+                        <i class="fas fa-users fa-3x text-muted mb-3"></i>
+                        <p class="text-muted">Chưa có nhân viên nào trong hệ thống</p>
+                        <button class="btn btn-primary" onclick="openEmployeeForm()">Thêm nhân viên đầu tiên</button>
+                    </td>
+                </tr>
+            }
+        </tbody>
+    </table>
+</div>
+
+<!-- Modal ADD/EDIT EMPLOYEE -->
+<div class="modal fade" id="employeeModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+        <form class="modal-content" id="employeeForm">
+            <div class="modal-header">
+                <h5 class="modal-title" id="employeeModalTitle">Thêm nhân viên mới</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <input type="hidden" id="employeeId" />
+                <div class="row">
+                    <div class="col-md-6">
+                        <div class="mb-3">
+                            <label for="employeeName" class="form-label">Họ và tên <span class="text-danger">*</span></label>
+                            <input type="text" required class="form-control" id="employeeName" placeholder="Nhập họ và tên">
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="mb-3">
+                            <label for="employeeEmail" class="form-label">Email <span class="text-danger">*</span></label>
+                            <input type="email" required class="form-control" id="employeeEmail" placeholder="Nhập email">
+                        </div>
+                    </div>
+                </div>
+                <div class="row">
+                    <div class="col-md-6">
+                        <div class="mb-3">
+                            <label for="employeePhone" class="form-label">Số điện thoại</label>
+                            <input type="tel" class="form-control" id="employeePhone" placeholder="Nhập số điện thoại">
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="mb-3">
+                            <label for="employeeRole" class="form-label">Vai trò <span class="text-danger">*</span></label>
+                            <select class="form-select" id="employeeRole" required>
+                                <option value="">Chọn vai trò</option>
+                                <option value="1">Admin</option>
+                                <option value="2">Saler</option>
+                                <option value="3">Customer</option>
+                            </select>
+                        </div>
+                    </div>
+                </div>
+                <div class="mb-3" id="passwordGroup" style="display: none;">
+                    <label for="employeePassword" class="form-label">Mật khẩu <span class="text-danger">*</span></label>
+                    <input type="password" required class="form-control" id="employeePassword" placeholder="Nhập mật khẩu">
+                    <div class="form-text">Mật khẩu phải có ít nhất 6 ký tự</div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Đóng</button>
+                <button type="submit" class="btn btn-success">Lưu nhân viên</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+@functions {
+    public string GetRoleBadgeClass(string roleName)
+    {
+        return roleName switch
+        {
+            "Admin" => "bg-danger",
+            "Saler" => "bg-warning",
+            "Customer" => "bg-info",
+            _ => "bg-secondary"
+        };
+    }
+}
+
+<script src="~/js/AdminEmployee.js"></script>
