@@ -37,6 +37,10 @@ public partial class OrderInfo
 
     public string? CancelReason { get; set; }
 
+    public string? RefundStatus { get; set; } // "NotRequired", "Pending", "Completed", "Confirmed"
+
+    public string? CustomerRefundQRImage { get; set; } // URL/path to customer's QR code image for refund
+
     public DateTime? OrderedAt { get; set; }
 
     public DateTime? CompletedAt { get; set; }

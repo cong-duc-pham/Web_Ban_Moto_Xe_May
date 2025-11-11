@@ -157,10 +157,57 @@ else
                         }
                         else if (order.OrderStatus == "Rejected")
                         {
-                            <div class="alert alert-secondary small mb-0">
-                                <i class="fas fa-ban"></i>
-                                Đơn hàng đã bị từ chối
-                            </div>
+                            @* Kiểm tra trạng thái hoàn tiền *@
+                            @if (order.RefundStatus == "Pending")
+                            {
+                                @if (string.IsNullOrEmpty(order.CustomerRefundQRImage))
+                                {
+                                    <div class="alert alert-secondary small mb-0 p-2">
+                                        <i class="fas fa-clock"></i>
+                                        <strong>Chờ khách upload mã QR</strong><br>
+                                        <small>Khách hàng cần upload mã QR ngân hàng</small>
+                                    </div>
+                                }
+                                else
+                                {
+                                    <div class="alert alert-warning small mb-2 p-2">
+                                        <i class="fas fa-exclamation-triangle"></i>
+                                        <strong>Cần hoàn tiền!</strong><br>
+                                        <small>Số tiền: @string.Format("{0:N0} đ", order.DepositAmount)</small>
+                                    </div>
+                                    
+                                    <button class="btn btn-info btn-sm w-100 mb-2" 
+                                            onclick="showAdminRefundQR('@order.OrderNumber', @order.DepositAmount, '@order.CustomerName', '@order.CustomerRefundQRImage')">
+                                        <i class="fas fa-qrcode"></i> Xem QR hoàn tiền
+                                    </button>
+                                    <button class="btn btn-warning btn-sm w-100" onclick="confirmRefund(@order.OrderId)">
+                                        <i class="fas fa-hand-holding-usd"></i> Xác nhận đã hoàn tiền
+                                    </button>
+                                }
+                            }
+                            else if (order.RefundStatus == "Completed")
+                            {
+                                <div class="alert alert-info small mb-0 p-2">
+                                    <i class="fas fa-clock"></i>
+                                    <strong>Đã hoàn tiền</strong><br>
+                                    <small>Chờ khách xác nhận nhận tiền</small>
+                                </div>
+                            }
+                            else if (order.RefundStatus == "Confirmed")
+                            {
+                                <div class="alert alert-success small mb-0 p-2">
+                                    <i class="fas fa-check-double"></i>
+                                    <strong>Hoàn tiền hoàn tất</strong><br>
+                                    <small>Khách đã xác nhận</small>
+                                </div>
+                            }
+                            else
+                            {
+                                <div class="alert alert-secondary small mb-0">
+                                    <i class="fas fa-ban"></i>
+                                    Đơn hàng đã bị từ chối
+                                </div>
+                            }
                         }
                     </div>
                 </div>

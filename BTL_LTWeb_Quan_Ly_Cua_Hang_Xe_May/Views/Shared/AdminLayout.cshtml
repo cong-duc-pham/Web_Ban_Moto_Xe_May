@@ -1,4 +1,8 @@
-﻿<!DOCTYPE html>
+﻿@{
+    var currentAction = ViewContext.RouteData.Values["Action"]?.ToString();
+    var currentController = ViewContext.RouteData.Values["Controller"]?.ToString();
+}
+<!DOCTYPE html>
 <html lang="vi">
 <head>
     <meta charset="UTF-8">
@@ -16,42 +20,66 @@
             <span class="logo-text">CarAdmin</span>
         </div>
         <div class="menu">
-            <a href="#" class="menu-item active">
+            <a asp-controller="Home" asp-action="AdminDashboard"
+               class="menu-item @(currentAction == "AdminDashboard" ? "active" : "")">
                 <i class="fas fa-chart-line"></i>
                 <span class="menu-text">Tổng quan</span>
             </a>
-            <a href="#" class="menu-item">
+
+            <a asp-controller="Home" asp-action="ManageEmployee"
+               class="menu-item @(currentAction == "ManageEmployee" ? "active" : "")">
+                <i class="fas fa-clipboard-user"></i>
+                <span class="menu-text">Quản lý nhân viên</span>
+            </a>
+
+
+            <a asp-controller="Home" asp-action="ManageCustomers"
+               class="menu-item @(currentAction == "ManageCustomers" ? "active" : "")">
                 <i class="fas fa-users"></i>
                 <span class="menu-text">Quản lý khách hàng</span>
                 <span class="badge-notify">12</span>
             </a>
-            <a href="#" class="menu-item">
+
+            <a asp-controller="Home" asp-action="ManageVehicles"
+               class="menu-item @(currentAction == "ManageVehicles" ? "active" : "")">
                 <i class="fas fa-car-side"></i>
                 <span class="menu-text">Quản lý xe</span>
             </a>
-            <a href="#" class="menu-item">
+
+            <a asp-controller="Home" asp-action="ManagePosts"
+               class="menu-item @(currentAction == "ManagePosts" ? "active" : "")">
                 <i class="fas fa-file-alt"></i>
                 <span class="menu-text">Quản lý bài đăng</span>
                 <span class="badge-notify">5</span>
             </a>
-            <a href="#" class="menu-item">
+
+            <a asp-controller="Home" asp-action="ManageNews"
+               class="menu-item @(currentAction == "ManageNews" ? "active" : "")">
                 <i class="fas fa-newspaper"></i>
                 <span class="menu-text">Tin tức</span>
             </a>
-            <a href="#" class="menu-item">
+
+            <a asp-controller="Home" asp-action="ManageStores"
+               class="menu-item @(currentAction == "ManageStores" ? "active" : "")">
                 <i class="fas fa-store"></i>
                 <span class="menu-text">Cửa hàng</span>
             </a>
-            <a href="#" class="menu-item">
+
+            <a asp-controller="Home" asp-action="ManageComments"
+               class="menu-item @(currentAction == "ManageComments" ? "active" : "")">
                 <i class="fas fa-comments"></i>
                 <span class="menu-text">Bình luận</span>
                 <span class="badge-notify">24</span>
             </a>
-            <a href="#" class="menu-item">
+
+            <a asp-controller="Home" asp-action="Statistics"
+               class="menu-item @(currentAction == "Statistics" ? "active" : "")">
                 <i class="fas fa-chart-bar"></i>
                 <span class="menu-text">Thống kê</span>
             </a>
-            <a href="#" class="menu-item">
+
+            <a asp-controller="Home" asp-action="Settings"
+               class="menu-item @(currentAction == "Settings" ? "active" : "")">
                 <i class="fas fa-cog"></i>
                 <span class="menu-text">Cài đặt</span>
             </a>

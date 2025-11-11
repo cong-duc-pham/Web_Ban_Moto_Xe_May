@@ -1,11 +1,13 @@
 using BTL_LTWeb_Quan_Ly_Cua_Hang_Xe_May.Models;
+using BTL_LTWeb_Quan_Ly_Cua_Hang_Xe_May.Models.EF;
 using BTL_LTWeb_Quan_Ly_Cua_Hang_Xe_May.Models.Entities;
 using BTL_LTWeb_Quan_Ly_Cua_Hang_Xe_May.Services;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
+using System.Collections.Generic;
 using System.Diagnostics;
 using System.Threading.Tasks;
-using System.Collections.Generic;
-using Microsoft.AspNetCore.Authorization;
 
 namespace BTL_LTWeb_Quan_Ly_Cua_Hang_Xe_May.Controllers
 {
@@ -25,18 +27,21 @@ namespace BTL_LTWeb_Quan_Ly_Cua_Hang_Xe_May.Controllers
         private readonly ILogger<HomeController> _logger;
         private readonly IXeMayService _xeMayService;
         private readonly ILoginService _loginService;
+        private readonly ApplicationDbContext _context;
         // Nếu có StoreService, NewsService thì thêm vào và inject ở constructor
 
         public HomeController(
             ILogger<HomeController> logger,
             IXeMayService xeMayService,
-            ILoginService loginService
+            ILoginService loginService,
+            ApplicationDbContext context
         // Thêm INewsService newsService, IStoreService storeService nếu có
         )
         {
             _logger = logger;
             _xeMayService = xeMayService;
             _loginService = loginService;
+            _context = context;
             // Gán thêm các service khác nếu cần
         }
         [Authorize(Roles = "Admin")]
@@ -45,6 +50,96 @@ namespace BTL_LTWeb_Quan_Ly_Cua_Hang_Xe_May.Controllers
         {
             return View("AdminDashboard");
         }
+        [Authorize(Roles = "Admin")] // Bảo vệ trang này, chỉ Admin được vào
+        public IActionResult ManagePosts()
+        {
+            // Chúng ta sẽ trả về file View có tên là "ManagePosts.cshtml"
+            return View();
+        }
+        [Authorize(Roles = "Admin")]
+        public IActionResult ManageEmployee()
+        {
+            var users = _context.Users.Include(u => u.Role).ToList();
+            return View(users);
+        }
+
+        [HttpPost]
+        public IActionResult AddEmployee(User user)
+        {
+            try
+            {
+                if (!ModelState.IsValid)
+                {
+                    var errors = ModelState.Values.SelectMany(v => v.Errors).Select(e => e.ErrorMessage + " [" + e.Exception?.Message + "]");
+                    return Json(new { success = false, message = "Lỗi: " + string.Join("; ", errors) });
+                }
+                else
+                {
+                    _context.Users.Add(user);
+                    _context.SaveChanges();
+                    return Json(new { success = true, message = "Thêm nhân viên thành công!" });
+                }
+            }
+            catch (Exception ex)
+            {
+                return Json(new { success = false, message = "Lỗi: " + ex.Message });
+            }
+        }
+
+
+        [HttpPost]
+        public IActionResult EditEmployee(User user)
+        {
+            try
+            {
+                var emp = _context.Users.Find(user.UserId);
+                if (emp != null)
+                {
+                    emp.FullName = user.FullName;
+                    emp.Email = user.Email;
+                    emp.PhoneNumber = user.PhoneNumber;
+                    emp.RoleId = user.RoleId;
+                    emp.Status = user.Status;
+                    _context.SaveChanges();
+                    return Json(new { success = true, message = "Cập nhật thành công!" });  // <-- phải là Json
+                }
+                else
+                {
+                    return Json(new { success = false, message = "Không tìm thấy nhân viên!" });
+                }
+            }
+            catch (Exception ex)
+            {
+                return Json(new { success = false, message = "Lỗi: " + ex.Message });
+            }
+        }
+
+
+
+        [HttpPost]
+        public IActionResult DeleteEmployee(int id)
+        {
+            try
+            {
+                var emp = _context.Users.Find(id);
+                if (emp != null)
+                {
+                    _context.Users.Remove(emp);
+                    _context.SaveChanges();
+                    return Json(new { success = true, message = "Xóa thành công!" });
+                }
+                else
+                {
+                    return Json(new { success = false, message = "Không tìm thấy nhân viên!" });
+                }
+            }
+            catch (Exception ex)
+            {
+                return Json(new { success = false, message = "Lỗi: " + ex.Message });
+            }
+        }
+
+
 
         [Route("/Home/AccessDenied")]
         public IActionResult AccessDenied()
@@ -296,6 +391,7 @@ namespace BTL_LTWeb_Quan_Ly_Cua_Hang_Xe_May.Controllers
         }
 
         // ======= API, chức năng CRUD xe =======
+        [HttpPost]
         public async Task<IActionResult> AddVehicle([FromForm] Vehicle vehicle, [FromForm] List<IFormFile> HinhAnh)
         {
             try
@@ -416,14 +512,31 @@ namespace BTL_LTWeb_Quan_Ly_Cua_Hang_Xe_May.Controllers
         {
             try
             {
-                _logger.LogInformation($"=== BẮT ĐẦU SỬA XE ID={vehicle?.VehicleId} ===");
-                _logger.LogInformation($"Dữ liệu: Title={vehicle?.Title}, SalePrice={vehicle?.SalePrice}");
-                
+                _logger.LogInformation("=== BẮT ĐẦU SỬA XE ===");
+
+                // Kiểm tra vehicle null
+                if (vehicle == null)
+                {
+                    _logger.LogWarning("Vehicle object is NULL!");
+                    return Json(new { success = false, message = "Dữ liệu không hợp lệ (NULL)!" });
+                }
+
+                // Log chi tiết từng property
+                _logger.LogInformation($"Vehicle Data Received:");
+                _logger.LogInformation($"  VehicleId: {vehicle.VehicleId}");
+                _logger.LogInformation($"  Title: {vehicle.Title}");
+                _logger.LogInformation($"  SalePrice: {vehicle.SalePrice}");
+                _logger.LogInformation($"  OriginalPrice: {vehicle.OriginalPrice}");
+                _logger.LogInformation($"  StockQuantity: {vehicle.StockQuantity}");
+                _logger.LogInformation($"  BrandId: {vehicle.BrandId}");
+                _logger.LogInformation($"  CategoryId: {vehicle.CategoryId}");
+                _logger.LogInformation($"  StoreId: {vehicle.StoreId}");
+
                 if (!IsAdmin())
                     return Json(new { success = false, message = "Bạn không có quyền thực hiện chức năng này! Chỉ Quản lý mới có thể sửa thông tin xe." });
 
-                if (vehicle == null || vehicle.VehicleId <= 0)
-                    return Json(new { success = false, message = "Dữ liệu không hợp lệ!" });
+                if (vehicle.VehicleId <= 0)
+                    return Json(new { success = false, message = "VehicleId không hợp lệ!" });
 
                 var existingVehicle = await _xeMayService.GetVehicleByIdAsync(vehicle.VehicleId);
                 if (existingVehicle == null)
@@ -440,16 +553,16 @@ namespace BTL_LTWeb_Quan_Ly_Cua_Hang_Xe_May.Controllers
 
                 if (result)
                 {
-                    _logger.LogInformation($"✅ Đã cập nhật xe: {vehicle.Title} - ID: {vehicle.VehicleId}");
+                    _logger.LogInformation($" Đã cập nhật xe: {vehicle.Title} - ID: {vehicle.VehicleId}");
                     return Json(new { success = true, message = "Cập nhật xe máy thành công!" });
                 }
 
-                _logger.LogWarning("❌ Service trả về false");
+                _logger.LogWarning(" Service trả về false");
                 return Json(new { success = false, message = "Không thể cập nhật xe máy. Vui lòng thử lại!" });
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "❌ Lỗi khi cập nhật xe máy");
+                _logger.LogError(ex, " Lỗi khi cập nhật xe máy");
                 if (ex.InnerException != null)
                 {
                     _logger.LogError($"InnerException: {ex.InnerException.Message}");
@@ -495,14 +608,38 @@ namespace BTL_LTWeb_Quan_Ly_Cua_Hang_Xe_May.Controllers
                 var vehicle = await _xeMayService.GetVehicleByIdAsync(id);
 
                 if (vehicle != null)
-                    return Json(new { success = true, data = vehicle });
+                {
+                    var result = new
+                    {
+                        success = true,
+                        data = new
+                        {
+                            VehicleId = vehicle.VehicleId,
+                            Title = vehicle.Title,
+                            Model = vehicle.Model,
+                            SalePrice = vehicle.SalePrice,
+                            OriginalPrice = vehicle.OriginalPrice,
+                            StockQuantity = vehicle.StockQuantity,
+                            BrandId = vehicle.BrandId,
+                            CategoryId = vehicle.CategoryId,
+                            StoreId = vehicle.StoreId,
+                            Condition = vehicle.Condition,
+                            ManufactureYear = vehicle.ManufactureYear,
+                            Color = vehicle.Color,
+                            Description = vehicle.Description
+                            // Thêm các trường khác nếu bạn cần
+                        }
+                    };
+                    return Json(result);
+                }
 
                 return Json(new { success = false, message = "Không tìm thấy xe máy!" });
             }
             catch (Exception ex)
             {
                 _logger.LogError(ex, $"Lỗi khi lấy thông tin xe máy ID: {id}");
-                return Json(new { success = false, message = "Có lỗi xảy ra: " + ex.Message });
+                // Trả về lỗi để JavaScript có thể bắt
+                return Json(new { success = false, message = "Có lỗi xảy ra khi lấy dữ liệu: " + ex.Message });
             }
         }
 
@@ -567,24 +704,27 @@ namespace BTL_LTWeb_Quan_Ly_Cua_Hang_Xe_May.Controllers
                 
                 _logger.LogInformation($"FullName: '{fullName}', PhoneNumber: '{phoneNumber}'");
 
-                // Kiểm tra xe tồn tại và đang bán
+                // Kiểm tra xe tồn tại
                 var vehicle = await _xeMayService.GetVehicleByIdAsync(request.VehicleId);
                 if (vehicle == null)
                 {
                     return Json(new { success = false, message = "Xe không tồn tại!" });
                 }
 
-                if (vehicle.Status != "Available")
-                {
-                    return Json(new { success = false, message = "Xe này hiện không còn bán!" });
-                }
-
-                // Kiểm tra tồn kho
+                // Kiểm tra tồn kho: Nếu StockQuantity > 0 và SoldCount < StockQuantity → còn hàng
                 if (vehicle.StockQuantity <= 0)
                 {
                     return Json(new { 
                         success = false, 
                         message = "Xe này đã hết hàng! Vui lòng liên hệ cửa hàng để biết thêm chi tiết." 
+                    });
+                }
+
+                if (vehicle.SoldCount >= vehicle.StockQuantity)
+                {
+                    return Json(new { 
+                        success = false, 
+                        message = "Xe này đã bán hết! Vui lòng chọn xe khác hoặc liên hệ cửa hàng." 
                     });
                 }
 
@@ -660,8 +800,7 @@ namespace BTL_LTWeb_Quan_Ly_Cua_Hang_Xe_May.Controllers
                 
                 if (createdOrder != null)
                 {
-                    // Cập nhật trạng thái xe sang "Pending" để ẩn khỏi trang web
-                    await _xeMayService.UpdateVehicleStatusAsync(vehicle.VehicleId, "Pending");
+                    // Không thay đổi status xe - để cho phép mua tiếp nếu còn hàng
                     
                     return Json(new { 
                         success = true, 
@@ -801,6 +940,21 @@ namespace BTL_LTWeb_Quan_Ly_Cua_Hang_Xe_May.Controllers
                     return Json(new { success = false, message = "Bạn không có quyền thực hiện thao tác này!" });
                 }
 
+                // Kiểm tra đã thanh toán chưa
+                var order = await _xeMayService.GetOrderByIdAsync(orderId);
+                if (order == null)
+                {
+                    return Json(new { success = false, message = "Không tìm thấy đơn hàng!" });
+                }
+
+                if (order.PaymentStatus != "Paid")
+                {
+                    return Json(new { 
+                        success = false, 
+                        message = "Chưa xác nhận thanh toán! Vui lòng xác nhận đã nhận tiền trước khi duyệt đơn." 
+                    });
+                }
+
                 var result = await _xeMayService.UpdateOrderStatusAsync(orderId, "Approved");
                 
                 if (result)
@@ -808,7 +962,7 @@ namespace BTL_LTWeb_Quan_Ly_Cua_Hang_Xe_May.Controllers
                     return Json(new { success = true, message = "Đã xác nhận đơn hàng!" });
                 }
 
-                return Json(new { success = false, message = "Không tìm thấy đơn hàng!" });
+                return Json(new { success = false, message = "Không thể xác nhận đơn hàng!" });
             }
             catch (Exception ex)
             {
@@ -829,14 +983,38 @@ namespace BTL_LTWeb_Quan_Ly_Cua_Hang_Xe_May.Controllers
                     return Json(new { success = false, message = "Bạn không có quyền thực hiện thao tác này!" });
                 }
 
+                // Lấy thông tin đơn hàng trước
+                var order = await _xeMayService.GetOrderByIdAsync(request.OrderId);
+                if (order == null)
+                {
+                    return Json(new { success = false, message = "Không tìm thấy đơn hàng!" });
+                }
+
+                // Nếu đã thanh toán → cần hoàn tiền
+                if (order.PaymentStatus == "Paid")
+                {
+                    order.RefundStatus = "Pending"; // Chờ hoàn tiền
+                }
+                else
+                {
+                    order.RefundStatus = "NotRequired"; // Chưa thanh toán → không cần hoàn
+                }
+
+                // Cập nhật trạng thái
+                await _xeMayService.UpdateOrderAsync(order);
+                
                 var result = await _xeMayService.UpdateOrderStatusAsync(request.OrderId, "Rejected", request.CancelReason);
                 
                 if (result)
                 {
-                    return Json(new { success = true, message = "Đã từ chối đơn hàng. Xe đã được đưa trở lại trang bán!" });
+                    string message = order.PaymentStatus == "Paid" 
+                        ? "Đã từ chối đơn hàng. Vui lòng hoàn tiền đặt cọc cho khách!" 
+                        : "Đã từ chối đơn hàng!";
+                    
+                    return Json(new { success = true, message = message });
                 }
 
-                return Json(new { success = false, message = "Không tìm thấy đơn hàng!" });
+                return Json(new { success = false, message = "Không thể từ chối đơn hàng!" });
             }
             catch (Exception ex)
             {
@@ -884,6 +1062,167 @@ namespace BTL_LTWeb_Quan_Ly_Cua_Hang_Xe_May.Controllers
             catch (Exception ex)
             {
                 _logger.LogError(ex, $"Lỗi khi xác nhận thanh toán ID: {orderId}");
+                return Json(new { success = false, message = $"Lỗi: {ex.Message}" });
+            }
+        }
+
+        // Admin/Saler xác nhận đã hoàn tiền đặt cọc
+        [HttpPost]
+        public async Task<IActionResult> ConfirmRefund(int orderId)
+        {
+            try
+            {
+                if (!IsAdminOrSaler())
+                {
+                    return Json(new { success = false, message = "Bạn không có quyền thực hiện thao tác này!" });
+                }
+
+                var order = await _xeMayService.GetOrderByIdAsync(orderId);
+                if (order == null)
+                {
+                    return Json(new { success = false, message = "Không tìm thấy đơn hàng!" });
+                }
+
+                if (order.RefundStatus != "Pending")
+                {
+                    return Json(new { success = false, message = "Đơn hàng này không cần hoàn tiền!" });
+                }
+
+                order.RefundStatus = "Completed"; // Đã hoàn tiền, chờ khách xác nhận
+                var result = await _xeMayService.UpdateOrderAsync(order);
+                
+                if (!result)
+                {
+                    return Json(new { success = false, message = "Cập nhật thất bại!" });
+                }
+
+                return Json(new { success = true, message = "Đã xác nhận hoàn tiền!" });
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, $"Lỗi khi xác nhận hoàn tiền ID: {orderId}");
+                return Json(new { success = false, message = $"Lỗi: {ex.Message}" });
+            }
+        }
+
+        // Khách hàng xác nhận đã nhận tiền hoàn
+        [HttpPost]
+        public async Task<IActionResult> CustomerConfirmRefund(int orderId)
+        {
+            try
+            {
+                var userId = HttpContext.Session.GetInt32("UserId");
+                if (!userId.HasValue)
+                {
+                    return Json(new { success = false, message = "Vui lòng đăng nhập!" });
+                }
+
+                var order = await _xeMayService.GetOrderByIdAsync(orderId);
+                if (order == null)
+                {
+                    return Json(new { success = false, message = "Không tìm thấy đơn hàng!" });
+                }
+
+                if (order.CustomerId != userId.Value)
+                {
+                    return Json(new { success = false, message = "Đây không phải đơn hàng của bạn!" });
+                }
+
+                if (order.RefundStatus != "Completed")
+                {
+                    return Json(new { success = false, message = "Chưa có hoàn tiền nào!" });
+                }
+
+                order.RefundStatus = "Confirmed"; // Khách đã xác nhận nhận tiền
+                var result = await _xeMayService.UpdateOrderAsync(order);
+                
+                if (!result)
+                {
+                    return Json(new { success = false, message = "Cập nhật thất bại!" });
+                }
+
+                return Json(new { success = true, message = "Cảm ơn bạn đã xác nhận!" });
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, $"Lỗi khi khách xác nhận nhận tiền ID: {orderId}");
+                return Json(new { success = false, message = $"Lỗi: {ex.Message}" });
+            }
+        }
+
+        // Khách hàng upload QR code để nhận tiền hoàn
+        [HttpPost]
+        public async Task<IActionResult> UploadRefundQR(int orderId, IFormFile qrImage)
+        {
+            try
+            {
+                var userId = HttpContext.Session.GetInt32("UserId");
+                if (!userId.HasValue)
+                {
+                    return Json(new { success = false, message = "Vui lòng đăng nhập!" });
+                }
+
+                var order = await _xeMayService.GetOrderByIdAsync(orderId);
+                if (order == null)
+                {
+                    return Json(new { success = false, message = "Không tìm thấy đơn hàng!" });
+                }
+
+                if (order.CustomerId != userId.Value)
+                {
+                    return Json(new { success = false, message = "Đây không phải đơn hàng của bạn!" });
+                }
+
+                if (order.RefundStatus != "Pending")
+                {
+                    return Json(new { success = false, message = "Đơn hàng không ở trạng thái chờ hoàn tiền!" });
+                }
+
+                if (qrImage == null || qrImage.Length == 0)
+                {
+                    return Json(new { success = false, message = "Vui lòng chọn ảnh QR code!" });
+                }
+
+                // Kiểm tra file extension
+                var allowedExtensions = new[] { ".jpg", ".jpeg", ".png" };
+                var fileExtension = Path.GetExtension(qrImage.FileName).ToLower();
+                if (!allowedExtensions.Contains(fileExtension))
+                {
+                    return Json(new { success = false, message = "Chỉ chấp nhận file ảnh jpg, jpeg, png!" });
+                }
+
+                // Tạo tên file unique
+                var fileName = $"refund_qr_{orderId}_{DateTime.Now:yyyyMMddHHmmss}{fileExtension}";
+                var uploadsFolder = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "images", "refund_qr");
+                
+                // Tạo thư mục nếu chưa có
+                if (!Directory.Exists(uploadsFolder))
+                {
+                    Directory.CreateDirectory(uploadsFolder);
+                }
+
+                var filePath = Path.Combine(uploadsFolder, fileName);
+
+                // Lưu file
+                using (var fileStream = new FileStream(filePath, FileMode.Create))
+                {
+                    await qrImage.CopyToAsync(fileStream);
+                }
+
+                // Cập nhật đường dẫn vào database
+                order.CustomerRefundQRImage = $"/images/refund_qr/{fileName}";
+                var result = await _xeMayService.UpdateOrderAsync(order);
+
+                if (!result)
+                {
+                    return Json(new { success = false, message = "Cập nhật thất bại!" });
+                }
+
+                return Json(new { success = true, message = "Upload QR code thành công!", qrPath = order.CustomerRefundQRImage });
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, $"Lỗi khi upload QR code cho đơn hàng ID: {orderId}");
                 return Json(new { success = false, message = $"Lỗi: {ex.Message}" });
             }
         }
