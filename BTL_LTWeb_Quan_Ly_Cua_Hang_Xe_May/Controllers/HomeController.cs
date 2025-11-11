@@ -57,9 +57,14 @@ namespace BTL_LTWeb_Quan_Ly_Cua_Hang_Xe_May.Controllers
         [Authorize(Roles = "Admin")]
         public IActionResult ManageEmployee()
         {
-            var users = _context.Users.Include(u => u.Role).ToList();
+            var users = _context.Users
+                .Include(u => u.Role)
+                .Where(u => u.RoleId == 2)
+                .ToList();
+
             return View(users);
         }
+
 
         [HttpPost]
         public IActionResult AddEmployee(User user)

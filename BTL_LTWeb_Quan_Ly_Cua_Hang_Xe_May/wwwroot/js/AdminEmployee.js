@@ -26,7 +26,7 @@ function initializeEmployeeManagement() {
 function openEmployeeForm() {
     document.getElementById('employeeModalTitle').textContent = 'Thêm nhân viên mới';
     document.getElementById('employeeForm').reset();
-    document.getElementById('employeeId').value = '';
+    document.getElementById('employeeRole').value = "2";
     // Đặt lại RoleId về trống
     document.getElementById('employeeRole').value = "";
     document.getElementById('passwordGroup').style.display = 'block';
@@ -42,7 +42,7 @@ function editEmployee(id, fullName, email, phone, roleId) {
     document.getElementById('employeeName').value = fullName;
     document.getElementById('employeeEmail').value = email;
     document.getElementById('employeePhone').value = phone;
-    document.getElementById('employeeRole').value = String(roleId); // roleId là số (1,2,3)
+    document.getElementById('employeeRole').value = "2";
 
     document.getElementById('passwordGroup').style.display = 'none';
     document.getElementById('employeePassword').removeAttribute('required');
@@ -81,17 +81,11 @@ function handleEmployeeFormSubmit(e) {
 
     const formData = new FormData(this);
 
-    // Lấy RoleId và kiểm tra giá trị
-    const roleSelect = document.getElementById('employeeRole');
-    let roleValue = roleSelect.value;
-    if (!roleValue || isNaN(roleValue) || !['1', '2', '3'].includes(roleValue)) {
-        showAlert('danger', 'Bạn phải chọn đúng vai trò!');
-        return;
-    }
-    formData.set('RoleId', roleValue); // đảm bảo luôn truyền số (1/2/3)
+    formData.set('RoleId', "2");
 
     const id = document.getElementById('employeeId').value;
     const url = id ? `/Home/EditEmployee` : '/Home/AddEmployee';
+
 
     fetch(url, {
         method: 'POST',
@@ -115,6 +109,7 @@ function handleEmployeeFormSubmit(e) {
             showAlert('danger', error.message || 'Có lỗi xảy ra khi lưu thông tin');
         });
 }
+
 
 // Tìm kiếm bảng
 function initializeSearch() {
