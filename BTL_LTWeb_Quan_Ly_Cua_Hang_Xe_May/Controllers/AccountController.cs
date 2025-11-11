@@ -4,16 +4,110 @@ using Microsoft.AspNetCore.Mvc;
 using System.Security.Claims;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authentication.Cookies;
+using System.Net;
+using System.Net.Mail;
 namespace BTL_LTWeb_Quan_Ly_Cua_Hang_Xe_May.Controllers
 {
     public class AccountController : Controller
     {
         private readonly ILoginService _loginService;
+        private static Dictionary<string, string> OtpStore = new();
 
         public AccountController(ILoginService loginService)
         {
             _loginService = loginService;
         }
+
+        // ==== QUÊN MẬT KHẨU - EMAIL, OTP, RESET PASSWORD ====
+
+        [HttpGet]
+        public IActionResult ForgetPassword()
+        {
+            ViewBag.Step = "Email";
+            return View();
+        }
+
+        [HttpPost]
+        public async Task<IActionResult> SendOtp(string Email)
+        {
+            var user = await _loginService.GetUserByEmailAsync(Email);
+            if (user == null)
+            {
+                ViewBag.ErrorMessage = "Email không tồn tại trong hệ thống!";
+                ViewBag.Step = "Email";
+                return View("ForgetPassword");
+            }
+
+            // Sinh OTP ngẫu nhiên 6 số
+            var otp = new Random().Next(100000, 999999).ToString();
+            OtpStore[Email] = otp;
+
+            try
+            {
+                var smtp = new SmtpClient("smtp.gmail.com")
+                {
+                    Port = 587,
+                    Credentials = new NetworkCredential("congducpham2010@gmail.com", "cyqw jmqj xuyh eimb"),
+                    EnableSsl = true,
+                };
+                smtp.Send(new MailMessage
+                {
+                    From = new MailAddress("congducpham2010@gmail.com", "Hệ thống cửa hàng xe máy"),
+                    Subject = "Mã OTP lấy lại mật khẩu",
+                    Body = $"Mã OTP để đặt lại mật khẩu là: {otp}",
+                    IsBodyHtml = false,
+                    To = { Email }
+                });
+                ViewBag.Message = "Mã OTP đã gửi tới email của bạn. Vui lòng kiểm tra hộp thư!";
+            }
+            catch
+            {
+                ViewBag.ErrorMessage = "Không thể gửi mã OTP. (Kiểm tra cấu hình email hoặc thử lại)";
+            }
+
+            ViewBag.Email = Email;
+            ViewBag.Step = "OTP";
+            return View("ForgetPassword");
+        }
+
+        [HttpPost]
+        public IActionResult VerifyOtp(string Email, string Otp)
+        {
+            if (OtpStore.TryGetValue(Email, out var realOtp) && realOtp == Otp.Trim())
+            {
+                ViewBag.Step = "NewPassword";
+                ViewBag.Email = Email;
+                return View("ForgetPassword");
+            }
+            ViewBag.OtpError = "Mã OTP không chính xác hoặc đã hết hạn!";
+            ViewBag.Step = "OTP";
+            ViewBag.Email = Email;
+            return View("ForgetPassword");
+        }
+
+        // ĐỔI CHO QUÊN MẬT KHẨU BẰNG EMAIL VÀ OTP:
+        [HttpPost]
+        public async Task<IActionResult> ResetPassword(string Email, string NewPassword)
+        {
+            var user = await _loginService.GetUserByEmailAsync(Email);
+            if (user == null)
+            {
+                ViewBag.PassError = "Email không tồn tại!";
+                ViewBag.Step = "Email";
+                return View("ForgetPassword");
+            }
+
+            user.Password = NewPassword;
+            await _loginService.UpdateUserAsync(user);
+
+            if (OtpStore.ContainsKey(Email))
+                OtpStore.Remove(Email);
+
+            ViewBag.PassChanged = "Đổi mật khẩu thành công! Bạn có thể đăng nhập lại.";
+            ViewBag.Step = "Email";
+            return View("ForgetPassword");
+        }
+
 
         // GET: Danh sách tất cả tài khoản
         public async Task<IActionResult> Index()
