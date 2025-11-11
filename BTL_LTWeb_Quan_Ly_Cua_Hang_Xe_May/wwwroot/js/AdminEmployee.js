@@ -1,16 +1,14 @@
-﻿// Khởi tạo khi DOM load
-document.addEventListener('DOMContentLoaded', function () {
+﻿document.addEventListener('DOMContentLoaded', function () {
     initializeEmployeeManagement();
     initializeSearch();
 });
 
-// Khởi tạo quản lý nhân viên
+// Khởi tạo form thêm/sửa, bật tắt password
 function initializeEmployeeManagement() {
     const form = document.getElementById('employeeForm');
     if (form) {
         form.addEventListener('submit', handleEmployeeFormSubmit);
 
-        // Toggle password field
         document.getElementById('employeeRole').addEventListener('change', function () {
             const passwordGroup = document.getElementById('passwordGroup');
             if (this.value === '') {
@@ -24,31 +22,30 @@ function initializeEmployeeManagement() {
     }
 }
 
-// Mở form thêm/sửa nhân viên
+// Mở modal Thêm nhân viên
 function openEmployeeForm() {
     document.getElementById('employeeModalTitle').textContent = 'Thêm nhân viên mới';
     document.getElementById('employeeForm').reset();
     document.getElementById('employeeId').value = '';
-    document.getElementById('employeePassword').style.display = 'block';
+    // Đặt lại RoleId về trống
+    document.getElementById('employeeRole').value = "";
+    document.getElementById('passwordGroup').style.display = 'block';
     document.getElementById('employeePassword').setAttribute('required', 'required');
-
     const modal = new bootstrap.Modal(document.getElementById('employeeModal'));
     modal.show();
 }
 
-// Sửa nhân viên
+// Sửa nhân viên (roleId PHẢI là số)
 function editEmployee(id, fullName, email, phone, roleId) {
     document.getElementById('employeeModalTitle').textContent = 'Sửa thông tin nhân viên';
     document.getElementById('employeeId').value = id;
     document.getElementById('employeeName').value = fullName;
     document.getElementById('employeeEmail').value = email;
     document.getElementById('employeePhone').value = phone;
-    document.getElementById('employeeRole').value = roleId;
+    document.getElementById('employeeRole').value = String(roleId); // roleId là số (1,2,3)
 
-    // Ẩn password field khi sửa
     document.getElementById('passwordGroup').style.display = 'none';
     document.getElementById('employeePassword').removeAttribute('required');
-
     const modal = new bootstrap.Modal(document.getElementById('employeeModal'));
     modal.show();
 }
@@ -68,23 +65,33 @@ function deleteEmployee(id, fullName) {
                     showAlert('success', data.message);
                     setTimeout(() => location.reload(), 1500);
                 } else {
-                    showAlert('danger', data.message);
+                    showAlert('danger', data.message || 'Có lỗi xóa nhân viên!');
                 }
             })
             .catch(error => {
                 console.error('Error:', error);
-                showAlert('danger', 'Có lỗi xảy ra khi xóa nhân viên');
+                showAlert('danger', error.message || 'Có lỗi xảy ra khi xóa nhân viên');
             });
     }
 }
 
-// Xử lý submit form
+// Xử lý form thêm/sửa
 function handleEmployeeFormSubmit(e) {
     e.preventDefault();
 
     const formData = new FormData(this);
+
+    // Lấy RoleId và kiểm tra giá trị
+    const roleSelect = document.getElementById('employeeRole');
+    let roleValue = roleSelect.value;
+    if (!roleValue || isNaN(roleValue) || !['1', '2', '3'].includes(roleValue)) {
+        showAlert('danger', 'Bạn phải chọn đúng vai trò!');
+        return;
+    }
+    formData.set('RoleId', roleValue); // đảm bảo luôn truyền số (1/2/3)
+
     const id = document.getElementById('employeeId').value;
-    const url = id ? `/Home/UpdateEmployee/${id}` : '/Home/AddEmployee';
+    const url = id ? `/Home/EditEmployee` : '/Home/AddEmployee';
 
     fetch(url, {
         method: 'POST',
@@ -98,63 +105,52 @@ function handleEmployeeFormSubmit(e) {
             if (data.success) {
                 showAlert('success', data.message);
                 bootstrap.Modal.getInstance(document.getElementById('employeeModal')).hide();
-                setTimeout(() => location.reload(), 1500);
+                setTimeout(() => location.reload(), 1200);
             } else {
-                showAlert('danger', data.message);
+                showAlert('danger', data.message || 'Có lỗi xảy ra khi lưu thông tin');
             }
         })
         .catch(error => {
             console.error('Error:', error);
-            showAlert('danger', 'Có lỗi xảy ra khi lưu thông tin');
+            showAlert('danger', error.message || 'Có lỗi xảy ra khi lưu thông tin');
         });
 }
 
-// Tìm kiếm nhân viên
+// Tìm kiếm bảng
 function initializeSearch() {
     const searchBox = document.getElementById('searchBox');
     if (searchBox) {
         searchBox.addEventListener('input', function (e) {
             const searchTerm = e.target.value.toLowerCase();
             const rows = document.querySelectorAll('#employeeTableBody tr');
-
-            let visibleCount = 0;
+            let visible = 0;
             rows.forEach(row => {
-                const cells = row.querySelectorAll('td');
-                const rowText = Array.from(cells).map(cell => cell.textContent).join(' ').toLowerCase();
-
-                if (rowText.includes(searchTerm) || searchTerm.length === 0) {
+                const text = row.textContent.toLowerCase();
+                if (text.includes(searchTerm) || searchTerm.length === 0) {
                     row.style.display = '';
-                    visibleCount++;
+                    visible++;
                 } else {
                     row.style.display = 'none';
                 }
             });
-
-            // Cập nhật thông báo tìm kiếm
-            if (searchTerm.length > 0 && visibleCount === 0) {
-                const firstRow = document.querySelector('#employeeTableBody tr:first-child');
-                if (firstRow && !firstRow.classList.contains('no-results')) {
-                    const noResultsRow = document.createElement('tr');
-                    noResultsRow.className = 'no-results';
-                    noResultsRow.innerHTML = `
-                        <td colspan="8" class="text-center py-4">
-                            <i class="fas fa-search fa-3x text-muted mb-3"></i>
-                            <p class="text-muted mb-0">Không tìm thấy nhân viên nào phù hợp với "${searchTerm}"</p>
-                        </td>
-                    `;
-                    document.getElementById('employeeTableBody').appendChild(noResultsRow);
-                }
+            if (searchTerm.length > 0 && visible === 0) {
+                const noResultsRow = document.createElement('tr');
+                noResultsRow.className = 'no-results';
+                noResultsRow.innerHTML = `
+                    <td colspan="8" class="text-center py-4">
+                        <i class="fas fa-search fa-3x text-muted mb-3"></i>
+                        <p class="text-muted mb-0">Không tìm thấy nhân viên nào phù hợp với "${searchTerm}"</p>
+                    </td>`;
+                document.getElementById('employeeTableBody').appendChild(noResultsRow);
             } else if (searchTerm.length === 0) {
                 const noResultsRow = document.querySelector('.no-results');
-                if (noResultsRow) {
-                    noResultsRow.remove();
-                }
+                if (noResultsRow) noResultsRow.remove();
             }
         });
     }
 }
 
-// Hiển thị alert
+// Hiển thị cảnh báo
 function showAlert(type, message) {
     const alertDiv = document.createElement('div');
     alertDiv.className = `alert alert-${type} alert-dismissible fade show position-fixed`;
@@ -163,13 +159,8 @@ function showAlert(type, message) {
         ${message}
         <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
     `;
-
     document.body.appendChild(alertDiv);
-
-    // Tự động xóa sau 5 giây
     setTimeout(() => {
-        if (alertDiv.parentNode) {
-            alertDiv.remove();
-        }
+        if (alertDiv.parentNode) alertDiv.remove();
     }, 5000);
 }

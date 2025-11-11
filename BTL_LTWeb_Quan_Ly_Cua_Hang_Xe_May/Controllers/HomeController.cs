@@ -1,11 +1,13 @@
 using BTL_LTWeb_Quan_Ly_Cua_Hang_Xe_May.Models;
+using BTL_LTWeb_Quan_Ly_Cua_Hang_Xe_May.Models.EF;
 using BTL_LTWeb_Quan_Ly_Cua_Hang_Xe_May.Models.Entities;
 using BTL_LTWeb_Quan_Ly_Cua_Hang_Xe_May.Services;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
+using System.Collections.Generic;
 using System.Diagnostics;
 using System.Threading.Tasks;
-using System.Collections.Generic;
-using Microsoft.AspNetCore.Authorization;
 
 namespace BTL_LTWeb_Quan_Ly_Cua_Hang_Xe_May.Controllers
 {
@@ -23,18 +25,21 @@ namespace BTL_LTWeb_Quan_Ly_Cua_Hang_Xe_May.Controllers
         private readonly ILogger<HomeController> _logger;
         private readonly IXeMayService _xeMayService;
         private readonly ILoginService _loginService;
+        private readonly ApplicationDbContext _context;
         // Nếu có StoreService, NewsService thì thêm vào và inject ở constructor
 
         public HomeController(
             ILogger<HomeController> logger,
             IXeMayService xeMayService,
-            ILoginService loginService
+            ILoginService loginService,
+            ApplicationDbContext context
         // Thêm INewsService newsService, IStoreService storeService nếu có
         )
         {
             _logger = logger;
             _xeMayService = xeMayService;
             _loginService = loginService;
+            _context = context;
             // Gán thêm các service khác nếu cần
         }
         [Authorize(Roles = "Admin")]
@@ -52,8 +57,87 @@ namespace BTL_LTWeb_Quan_Ly_Cua_Hang_Xe_May.Controllers
         [Authorize(Roles = "Admin")]
         public IActionResult ManageEmployee()
         {
-            return View();
+            var users = _context.Users.Include(u => u.Role).ToList();
+            return View(users);
         }
+
+        [HttpPost]
+        public IActionResult AddEmployee(User user)
+        {
+            try
+            {
+                if (!ModelState.IsValid)
+                {
+                    var errors = ModelState.Values.SelectMany(v => v.Errors).Select(e => e.ErrorMessage + " [" + e.Exception?.Message + "]");
+                    return Json(new { success = false, message = "Lỗi: " + string.Join("; ", errors) });
+                }
+                else
+                {
+                    _context.Users.Add(user);
+                    _context.SaveChanges();
+                    return Json(new { success = true, message = "Thêm nhân viên thành công!" });
+                }
+            }
+            catch (Exception ex)
+            {
+                return Json(new { success = false, message = "Lỗi: " + ex.Message });
+            }
+        }
+
+
+        [HttpPost]
+        public IActionResult EditEmployee(User user)
+        {
+            try
+            {
+                var emp = _context.Users.Find(user.UserId);
+                if (emp != null)
+                {
+                    emp.FullName = user.FullName;
+                    emp.Email = user.Email;
+                    emp.PhoneNumber = user.PhoneNumber;
+                    emp.RoleId = user.RoleId;
+                    emp.Status = user.Status;
+                    _context.SaveChanges();
+                    return Json(new { success = true, message = "Cập nhật thành công!" });  // <-- phải là Json
+                }
+                else
+                {
+                    return Json(new { success = false, message = "Không tìm thấy nhân viên!" });
+                }
+            }
+            catch (Exception ex)
+            {
+                return Json(new { success = false, message = "Lỗi: " + ex.Message });
+            }
+        }
+
+
+
+        [HttpPost]
+        public IActionResult DeleteEmployee(int id)
+        {
+            try
+            {
+                var emp = _context.Users.Find(id);
+                if (emp != null)
+                {
+                    _context.Users.Remove(emp);
+                    _context.SaveChanges();
+                    return Json(new { success = true, message = "Xóa thành công!" });
+                }
+                else
+                {
+                    return Json(new { success = false, message = "Không tìm thấy nhân viên!" });
+                }
+            }
+            catch (Exception ex)
+            {
+                return Json(new { success = false, message = "Lỗi: " + ex.Message });
+            }
+        }
+
+
 
         [Route("/Home/AccessDenied")]
         public IActionResult AccessDenied()

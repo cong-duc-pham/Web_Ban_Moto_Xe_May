@@ -53,7 +53,7 @@
                         <td>@(Model[i].PhoneNumber ?? "Chưa có")</td>
                         <td>
                             <span class="badge @GetRoleBadgeClass(Model[i].Role?.RoleName)">
-                                @Model[i].Role?.RoleName ?? "Chưa xác định"
+                                @Model[i].Role?.RoleName
                             </span>
                         </td>
                         <td>
@@ -88,23 +88,24 @@
 <div class="modal fade" id="employeeModal" tabindex="-1" aria-hidden="true">
     <div class="modal-dialog modal-lg">
         <form class="modal-content" id="employeeForm">
+            <input type="hidden" id="employeeId" name="UserId" />
+            <input type="hidden" name="Status" value="Active" />
             <div class="modal-header">
                 <h5 class="modal-title" id="employeeModalTitle">Thêm nhân viên mới</h5>
                 <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
             </div>
             <div class="modal-body">
-                <input type="hidden" id="employeeId" />
                 <div class="row">
                     <div class="col-md-6">
                         <div class="mb-3">
                             <label for="employeeName" class="form-label">Họ và tên <span class="text-danger">*</span></label>
-                            <input type="text" required class="form-control" id="employeeName" placeholder="Nhập họ và tên">
+                            <input type="text" required class="form-control" id="employeeName" name="FullName" placeholder="Nhập họ và tên">
                         </div>
                     </div>
                     <div class="col-md-6">
                         <div class="mb-3">
                             <label for="employeeEmail" class="form-label">Email <span class="text-danger">*</span></label>
-                            <input type="email" required class="form-control" id="employeeEmail" placeholder="Nhập email">
+                            <input type="email" required class="form-control" id="employeeEmail" name="Email" placeholder="Nhập email">
                         </div>
                     </div>
                 </div>
@@ -112,24 +113,25 @@
                     <div class="col-md-6">
                         <div class="mb-3">
                             <label for="employeePhone" class="form-label">Số điện thoại</label>
-                            <input type="tel" class="form-control" id="employeePhone" placeholder="Nhập số điện thoại">
+                            <input type="tel" class="form-control" id="employeePhone" name="PhoneNumber" placeholder="Nhập số điện thoại">
                         </div>
                     </div>
                     <div class="col-md-6">
                         <div class="mb-3">
                             <label for="employeeRole" class="form-label">Vai trò <span class="text-danger">*</span></label>
-                            <select class="form-select" id="employeeRole" required>
+                            <select class="form-select" id="employeeRole" name="RoleId" required>
                                 <option value="">Chọn vai trò</option>
                                 <option value="1">Admin</option>
                                 <option value="2">Saler</option>
                                 <option value="3">Customer</option>
                             </select>
+
                         </div>
                     </div>
                 </div>
                 <div class="mb-3" id="passwordGroup" style="display: none;">
                     <label for="employeePassword" class="form-label">Mật khẩu <span class="text-danger">*</span></label>
-                    <input type="password" required class="form-control" id="employeePassword" placeholder="Nhập mật khẩu">
+                    <input type="password" required class="form-control" id="employeePassword" name="Password" placeholder="Nhập mật khẩu">
                     <div class="form-text">Mật khẩu phải có ít nhất 6 ký tự</div>
                 </div>
             </div>
