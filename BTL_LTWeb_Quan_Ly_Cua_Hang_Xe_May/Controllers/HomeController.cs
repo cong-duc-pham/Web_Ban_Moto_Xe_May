@@ -18,6 +18,8 @@ namespace BTL_LTWeb_Quan_Ly_Cua_Hang_Xe_May.Controllers
         public List<Store> FeaturedStores { get; set; }
         public List<News> NewsItems { get; set; }
         // Bạn có thể mở rộng thêm các property: Banner, Danh mục, Promotion...
+        public List<CategoryStatViewModel> CategoryStats { get; set; }
+        public List<BrandStatViewModel> BrandStats { get; set; }
     }
 
     public class HomeController : Controller
@@ -152,37 +154,165 @@ namespace BTL_LTWeb_Quan_Ly_Cua_Hang_Xe_May.Controllers
         }
         public async Task<IActionResult> Index()
         {
-            // Debug session
-            var roleName = HttpContext.Session.GetString("RoleName");
-            var roleId = HttpContext.Session.GetInt32("RoleId");
-            var userId = HttpContext.Session.GetInt32("UserId");
-            var fullName = HttpContext.Session.GetString("FullName");
-            
-            _logger.LogInformation($"=== INDEX PAGE - Session Info ===");
-            _logger.LogInformation($"FullName: {fullName}");
-            _logger.LogInformation($"UserId: {userId}");
-            _logger.LogInformation($"RoleName: '{roleName}'");
-            _logger.LogInformation($"RoleId: {roleId}");
-            
-            // Set ViewBag để hiển thị menu đúng với vai trò
-            ViewBag.IsAdmin = IsAdmin();
-            ViewBag.IsSaler = IsSaler();
-            
-            // Lấy dữ liệu (ở đây stores/news nếu chưa code thì để danh sách rỗng - có thể sửa sau)
-            var vehicles = await _xeMayService.GetAllVehiclesAsync();
-            var stores = new List<Store>();
-            var news = new List<News>();
-
-            var model = new HomePageViewModel
+            try
             {
-                Vehicles = vehicles,
-                FeaturedStores = stores,
-                NewsItems = news
-            };
+                // Debug session
+                var roleName = HttpContext.Session.GetString("RoleName");
+                var roleId = HttpContext.Session.GetInt32("RoleId");
+                var userId = HttpContext.Session.GetInt32("UserId");
+                var fullName = HttpContext.Session.GetString("FullName");
 
-            return View(model);
+                _logger.LogInformation($"=== INDEX PAGE - Session Info ===");
+                _logger.LogInformation($"FullName: {fullName}");
+                _logger.LogInformation($"UserId: {userId}");
+                _logger.LogInformation($"RoleName: '{roleName}'");
+                _logger.LogInformation($"RoleId: {roleId}");
+
+                // Set ViewBag để hiển thị menu đúng với vai trò
+                ViewBag.IsAdmin = IsAdmin();
+                ViewBag.IsSaler = IsSaler();
+
+                // Lấy dữ liệu vehicles
+                var vehicles = await _xeMayService.GetAllVehiclesAsync();
+                var stores = new List<Store>();
+                var news = new List<News>();
+
+                // ✅ CHECK NULL VEHICLES
+                if (vehicles == null || !vehicles.Any())
+                {
+                    _logger.LogWarning("⚠️ Không có dữ liệu xe trong database");
+
+                    var emptyModel = new HomePageViewModel
+                    {
+                        Vehicles = new List<Vehicle>(),
+                        FeaturedStores = new List<Store>(),
+                        NewsItems = new List<News>(),
+                        CategoryStats = new List<CategoryStatViewModel>(),
+                        BrandStats = new List<BrandStatViewModel>()
+                    };
+
+                    return View(emptyModel);
+                }
+
+                _logger.LogInformation($"✅ Đã load {vehicles.Count} xe từ database");
+
+                // ✅ TÍNH TOÁN CATEGORY STATS với NULL CHECKS
+                var categoryStatsTemp = vehicles
+                    .Where(v => v.Category != null)  // ⭐ Lọc null
+                    .GroupBy(v => v.Category)
+                    .Select(g => new
+                    {
+                        Category = g.Key,
+                        TotalSold = g.Sum(v => v.SoldCount),
+                        TotalListings = g.Count(),
+                        MinPrice = g.Min(v => v.SalePrice ?? 0),
+                        MaxPrice = g.Max(v => v.SalePrice ?? 0),
+                        SampleImage = g.FirstOrDefault()?.VehicleImages?
+                            .FirstOrDefault(img => img.IsPrimary == true)?.ImagePath
+                            ?? g.FirstOrDefault()?.VehicleImages?.FirstOrDefault()?.ImagePath
+                            ?? "/images/default-vehicle.jpg"
+                    })
+                    .OrderByDescending(c => c.TotalSold)
+                    .Take(4)
+                    .ToList();
+
+                // Thêm badge cho từng category
+                var badges = new[]
+                {
+            new { Icon = "fire", Text = "Bán chạy nhất", Color = "#FF3B3B" },
+            new { Icon = "trophy", Text = "Phổ biến nhất", Color = "#FFD54F" },
+            new { Icon = "chart-line", Text = "Tăng trưởng", Color = "#4CAF50" },
+            new { Icon = "bolt", Text = "Xu hướng", Color = "#2196F3" }
+        };
+
+                var categoryStats = categoryStatsTemp.Select((c, index) => new CategoryStatViewModel
+                {
+                    CategoryId = c.Category.CategoryId,
+                    CategoryName = c.Category.CategoryName ?? "Chưa phân loại",  // ⭐ Null check
+                    TotalSold = c.TotalSold,
+                    TotalListings = c.TotalListings,
+                    MinPrice = c.MinPrice,
+                    MaxPrice = c.MaxPrice,
+                    SampleImage = c.SampleImage,
+                    BadgeIcon = index < badges.Length ? badges[index].Icon : "circle",  // ⭐ Bounds check
+                    BadgeText = index < badges.Length ? badges[index].Text : "Mới",
+                    BadgeColor = index < badges.Length ? badges[index].Color : "#999"
+                }).ToList();
+
+                _logger.LogInformation($"✅ Tính toán xong {categoryStats.Count} categories");
+
+                // ✅ TÍNH TOÁN BRAND STATS với NULL CHECKS
+                var brandStatsTemp = vehicles
+                    .Where(v => v.Brand != null)  // ⭐ Lọc null
+                    .GroupBy(v => v.Brand)
+                    .Select(g => new
+                    {
+                        Brand = g.Key,
+                        TotalSold = g.Sum(v => v.SoldCount),
+                        TotalListings = g.Count(),
+                        TopModels = g
+                            .Where(v => !string.IsNullOrEmpty(v.Model))  // ⭐ Lọc Model null
+                            .GroupBy(v => v.Model)
+                            .Select(m => new TopModelViewModel
+                            {
+                                ModelName = m.Key ?? "Chưa rõ",  // ⭐ Null check
+                                Sales = m.Sum(v => v.SoldCount)
+                            })
+                            .OrderByDescending(m => m.Sales)
+                            .Take(3)
+                            .ToList()
+                    })
+                    .OrderByDescending(b => b.TotalSold)
+                    .Take(4)
+                    .ToList();
+
+                var brandStats = brandStatsTemp.Select((b, index) => new BrandStatViewModel
+                {
+                    BrandId = b.Brand.BrandId,
+                    BrandName = b.Brand.BrandName ?? "Không rõ",  // ⭐ Null check
+                    BrandLogo = string.IsNullOrEmpty(b.Brand.Logo)
+                        ? $"https://ui-avatars.com/api/?name={Uri.EscapeDataString(b.Brand.BrandName ?? "Unknown")}&background=random&size=80"
+                        : b.Brand.Logo,
+                    TotalSold = b.TotalSold,
+                    TotalListings = b.TotalListings,
+                    Rank = index + 1,
+                    TopModels = b.TopModels ?? new List<TopModelViewModel>()  // ⭐ Null check
+                }).ToList();
+
+                _logger.LogInformation($"✅ Tính toán xong {brandStats.Count} brands");
+
+                // ✅ TẠO MODEL với NULL CHECKS
+                var model = new HomePageViewModel
+                {
+                    Vehicles = vehicles ?? new List<Vehicle>(),
+                    FeaturedStores = stores ?? new List<Store>(),
+                    NewsItems = news ?? new List<News>(),
+                    CategoryStats = categoryStats ?? new List<CategoryStatViewModel>(),
+                    BrandStats = brandStats ?? new List<BrandStatViewModel>()
+                };
+
+                _logger.LogInformation($"🎉 HOÀN THÀNH: {categoryStats.Count} categories, {brandStats.Count} brands");
+
+                return View(model);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "❌ LỖI NGHIÊM TRỌNG khi load trang Index");
+
+                // Trả về model rỗng thay vì crash
+                var errorModel = new HomePageViewModel
+                {
+                    Vehicles = new List<Vehicle>(),
+                    FeaturedStores = new List<Store>(),
+                    NewsItems = new List<News>(),
+                    CategoryStats = new List<CategoryStatViewModel>(),
+                    BrandStats = new List<BrandStatViewModel>()
+                };
+
+                TempData["ErrorMessage"] = "Có lỗi xảy ra khi tải dữ liệu. Vui lòng thử lại sau.";
+                return View(errorModel);
+            }
         }
-
         public IActionResult QaA() => View();
         public IActionResult MotorbikeStore() => View();
 
@@ -1386,7 +1516,88 @@ namespace BTL_LTWeb_Quan_Ly_Cua_Hang_Xe_May.Controllers
                 return Json(new { success = false, message = ex.Message });
             }
         }
+
+        // API: Lấy thống kê theo danh mục xe (Loại xe có lượt bán cao nhất)
+        [HttpGet]
+        public async Task<IActionResult> GetCategoryStats()
+        {
+            try
+            {
+                var vehicles = await _xeMayService.GetAllVehiclesAsync();
+
+                var categoryStats = vehicles
+                    .Where(v => v.Category != null)
+                    .GroupBy(v => v.Category)
+                    .Select(g => new
+                    {
+                        categoryId = g.Key.CategoryId,
+                        categoryName = g.Key.CategoryName,
+                        totalSold = g.Sum(v => v.SoldCount),
+                        totalListings = g.Count(),
+                        minPrice = g.Min(v => v.SalePrice ?? 0),
+                        maxPrice = g.Max(v => v.SalePrice ?? 0),
+                        sampleImage = g.FirstOrDefault()?.VehicleImages?
+                            .FirstOrDefault(img => img.IsPrimary == true)?.ImagePath
+                            ?? g.FirstOrDefault()?.VehicleImages?.FirstOrDefault()?.ImagePath
+                            ?? "/images/default-vehicle.jpg"
+                    })
+                    .OrderByDescending(c => c.totalSold)
+                    .Take(4)
+                    .ToList();
+
+                return Json(new { success = true, data = categoryStats });
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Lỗi khi lấy thống kê danh mục");
+                return Json(new { success = false, message = ex.Message });
+            }
+        }
+
+        // API: Lấy thống kê theo hãng xe (Hãng xe có xe bán cao nhất)
+        [HttpGet]
+        public async Task<IActionResult> GetBrandStats()
+        {
+            try
+            {
+                var vehicles = await _xeMayService.GetAllVehiclesAsync();
+
+                var brandStats = vehicles
+                    .Where(v => v.Brand != null)
+                    .GroupBy(v => v.Brand)
+                    .Select(g => new
+                    {
+                        brandId = g.Key.BrandId,
+                        brandName = g.Key.BrandName,
+                        brandLogo = g.Key.Logo ?? $"https://ui-avatars.com/api/?name={g.Key.BrandName}&background=random&size=80",
+                        totalSold = g.Sum(v => v.SoldCount),
+                        totalListings = g.Count(),
+                        topModels = g
+                            .GroupBy(v => v.Model)
+                            .Select(m => new
+                            {
+                                modelName = m.Key ?? "Chưa rõ",
+                                sales = m.Sum(v => v.SoldCount)
+                            })
+                            .OrderByDescending(m => m.sales)
+                            .Take(3)
+                            .ToList()
+                    })
+                    .OrderByDescending(b => b.totalSold)
+                    .Take(4)
+                    .ToList();
+
+                return Json(new { success = true, data = brandStats });
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Lỗi khi lấy thống kê hãng xe");
+                return Json(new { success = false, message = ex.Message });
+            }
+        }
     }
+
+
 
     // Request models
     public class BuyVehicleRequest
@@ -1415,5 +1626,36 @@ namespace BTL_LTWeb_Quan_Ly_Cua_Hang_Xe_May.Controllers
     {
         public int OrderId { get; set; }
         public string? CancelReason { get; set; }
+    }
+
+    public class CategoryStatViewModel
+    {
+        public int CategoryId { get; set; }
+        public string CategoryName { get; set; }
+        public int TotalSold { get; set; }
+        public int TotalListings { get; set; }
+        public decimal MinPrice { get; set; }
+        public decimal MaxPrice { get; set; }
+        public string SampleImage { get; set; }
+        public string BadgeText { get; set; }
+        public string BadgeIcon { get; set; }
+        public string BadgeColor { get; set; }
+    }
+
+    public class BrandStatViewModel
+    {
+        public int BrandId { get; set; }
+        public string BrandName { get; set; }
+        public string BrandLogo { get; set; }
+        public int TotalSold { get; set; }
+        public int TotalListings { get; set; }
+        public int Rank { get; set; }
+        public List<TopModelViewModel> TopModels { get; set; }
+    }
+
+    public class TopModelViewModel
+    {
+        public string ModelName { get; set; }
+        public int Sales { get; set; }
     }
 }
