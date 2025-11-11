@@ -359,6 +359,9 @@ function showAlert(type, message) {
 
 // Hiển thị modal mua xe
 function showBuyModal(vehicleId, vehicleName, vehiclePrice) {
+    console.log('=== showBuyModal called ===');
+    console.log('Parameters:', { vehicleId, vehicleName, vehiclePrice });
+    
     document.getElementById('buyVehicleId').value = vehicleId;
     document.getElementById('buyVehicleName').textContent = vehicleName;
     document.getElementById('buyVehiclePrice').textContent = vehiclePrice.toLocaleString('vi-VN') + ' đ';
@@ -366,12 +369,16 @@ function showBuyModal(vehicleId, vehicleName, vehiclePrice) {
     // Reset form
     document.getElementById('customerAddress').value = '';
     document.getElementById('depositAmount').value = '';
-    document.getElementById('paymentMethod').value = 'Tiền mặt';
     document.getElementById('orderNote').value = '';
     
+    console.log('Opening buy modal...');
+    const modalElement = document.getElementById('buyModal');
+    console.log('Modal element:', modalElement);
+    
     // Hiển thị modal
-    const modal = new bootstrap.Modal(document.getElementById('buyModal'));
+    const modal = new bootstrap.Modal(modalElement);
     modal.show();
+    console.log('Buy modal shown');
 }
 
 // Xử lý form mua xe
