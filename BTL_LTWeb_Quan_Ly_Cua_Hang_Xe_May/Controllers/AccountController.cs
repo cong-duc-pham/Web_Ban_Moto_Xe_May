@@ -1,22 +1,120 @@
-using BTL_LTWeb_Quan_Ly_Cua_Hang_Xe_May.Services;
 using BTL_LTWeb_Quan_Ly_Cua_Hang_Xe_May.Models.Entities;
-using Microsoft.AspNetCore.Mvc;
-using System.Security.Claims;
+using BTL_LTWeb_Quan_Ly_Cua_Hang_Xe_May.Services;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authentication.Cookies;
 using System.Text.RegularExpressions;
 using System.ComponentModel.DataAnnotations;
+using Microsoft.AspNetCore.Mvc;
+using Microsoft.Extensions.Logging;
+using System.Net;
+using System.Net.Mail;
+using System.Security.Claims;
+
 namespace BTL_LTWeb_Quan_Ly_Cua_Hang_Xe_May.Controllers
 
 {
     public class AccountController : Controller
     {
         private readonly ILoginService _loginService;
+        private readonly ILogger<AccountController> _logger;
+        private static Dictionary<string, string> OtpStore = new();
 
-        public AccountController(ILoginService loginService)
+        public AccountController(ILoginService loginService, ILogger<AccountController> logger)
         {
             _loginService = loginService;
+            _logger = logger;
         }
+
+        // ==== QUÊN MẬT KHẨU - EMAIL, OTP, RESET PASSWORD ====
+
+        [HttpGet]
+        public IActionResult ForgetPassword()
+        {
+            ViewBag.Step = "Email";
+            return View();
+        }
+
+        [HttpPost]
+        public async Task<IActionResult> SendOtp(string Email)
+        {
+            var user = await _loginService.GetUserByEmailAsync(Email);
+            if (user == null)
+            {
+                ViewBag.ErrorMessage = "Email không tồn tại trong hệ thống!";
+                ViewBag.Step = "Email";
+                return View("ForgetPassword");
+            }
+
+            // Sinh OTP ngẫu nhiên 6 số
+            var otp = new Random().Next(100000, 999999).ToString();
+            OtpStore[Email] = otp;
+
+            try
+            {
+                var smtp = new SmtpClient("smtp.gmail.com")
+                {
+                    Port = 587,
+                    Credentials = new NetworkCredential("congducpham2010@gmail.com", "cyqw jmqj xuyh eimb"),
+                    EnableSsl = true,
+                };
+                smtp.Send(new MailMessage
+                {
+                    From = new MailAddress("congducpham2010@gmail.com", "Hệ thống cửa hàng xe máy"),
+                    Subject = "Mã OTP lấy lại mật khẩu",
+                    Body = $"Mã OTP để đặt lại mật khẩu là: {otp}",
+                    IsBodyHtml = false,
+                    To = { Email }
+                });
+                ViewBag.Message = "Mã OTP đã gửi tới email của bạn. Vui lòng kiểm tra hộp thư!";
+            }
+            catch
+            {
+                ViewBag.ErrorMessage = "Không thể gửi mã OTP. (Kiểm tra cấu hình email hoặc thử lại)";
+            }
+
+            ViewBag.Email = Email;
+            ViewBag.Step = "OTP";
+            return View("ForgetPassword");
+        }
+
+        [HttpPost]
+        public IActionResult VerifyOtp(string Email, string Otp)
+        {
+            if (OtpStore.TryGetValue(Email, out var realOtp) && realOtp == Otp.Trim())
+            {
+                ViewBag.Step = "NewPassword";
+                ViewBag.Email = Email;
+                return View("ForgetPassword");
+            }
+            ViewBag.OtpError = "Mã OTP không chính xác hoặc đã hết hạn!";
+            ViewBag.Step = "OTP";
+            ViewBag.Email = Email;
+            return View("ForgetPassword");
+        }
+
+        // ĐỔI CHO QUÊN MẬT KHẨU BẰNG EMAIL VÀ OTP:
+        [HttpPost]
+        public async Task<IActionResult> ResetPassword(string Email, string NewPassword)
+        {
+            var user = await _loginService.GetUserByEmailAsync(Email);
+            if (user == null)
+            {
+                ViewBag.PassError = "Email không tồn tại!";
+                ViewBag.Step = "Email";
+                return View("ForgetPassword");
+            }
+
+            user.Password = NewPassword;
+            await _loginService.UpdateUserAsync(user);
+
+            if (OtpStore.ContainsKey(Email))
+                OtpStore.Remove(Email);
+
+            ViewBag.PassChanged = "Đổi mật khẩu thành công! Bạn có thể đăng nhập lại.";
+            ViewBag.Step = "Email";
+            return View("ForgetPassword");
+        }
+
 
         // GET: Danh sách tất cả tài khoản
         public async Task<IActionResult> Index()
@@ -45,31 +143,89 @@ namespace BTL_LTWeb_Quan_Ly_Cua_Hang_Xe_May.Controllers
         // POST: Đăng ký tài khoản
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Register(User user)
+        public async Task<IActionResult> Register(User user, string UserType, string ConfirmPassword)
         {
-            if (ModelState.IsValid)
+            try
             {
-                // Kiểm tra số điện thoại đã tồn tại
-                var existingUser = await _loginService.GetUserByPhoneAsync(user.PhoneNumber);
-                if (existingUser != null)
+                _logger?.LogInformation($"=== ĐĂNG KÝ: UserType={UserType}, Phone={user.PhoneNumber}");
+
+                // VALIDATION
+                if (string.IsNullOrWhiteSpace(UserType))
                 {
-                    ModelState.AddModelError("PhoneNumber", "Số điện thoại đã được đăng ký!");
+                    TempData["ErrorMessage"] = "Vui lòng chọn loại tài khoản!";
                     return View(user);
                 }
 
-                // Set giá trị mặc định cho user mới
-                user.Status = "Active";
-                user.RoleId = 3; // Giả sử RoleId = 3 là Customer/Buyer, điều chỉnh theo database
+                if (string.IsNullOrWhiteSpace(user.FullName))
+                {
+                    TempData["ErrorMessage"] = "Vui lòng nhập họ tên!";
+                    return View(user);
+                }
 
+                if (string.IsNullOrWhiteSpace(user.PhoneNumber) || user.PhoneNumber.Length < 10)
+                {
+                    TempData["ErrorMessage"] = "Số điện thoại phải có 10-11 chữ số!";
+                    return View(user);
+                }
+
+                if (string.IsNullOrWhiteSpace(user.Password) || user.Password.Length < 6)
+                {
+                    TempData["ErrorMessage"] = "Mật khẩu phải có ít nhất 6 ký tự!";
+                    return View(user);
+                }
+
+                if (user.Password != ConfirmPassword)
+                {
+                    TempData["ErrorMessage"] = "Mật khẩu xác nhận không khớp!";
+                    return View(user);
+                }
+
+                // KIỂM TRA SĐT ĐÃ TỒN TẠI
+                var existingUser = await _loginService.GetUserByPhoneAsync(user.PhoneNumber);
+                if (existingUser != null)
+                {
+                    TempData["ErrorMessage"] = "Số điện thoại đã được đăng ký!";
+                    return View(user);
+                }
+
+                // SET GIÁ TRỊ MẶC ĐỊNH
+                user.Status = "Active";
+
+                if (UserType == "Customer")
+                {
+                    user.RoleId = 3;
+                }
+                else if (UserType == "Employee")
+                {
+                    user.RoleId = 2;
+                }
+                else
+                {
+                    TempData["ErrorMessage"] = "Loại tài khoản không hợp lệ!";
+                    return View(user);
+                }
+
+                // LƯU VÀO DATABASE
                 var result = await _loginService.RegisterUserAsync(user);
+
                 if (result)
                 {
-                    TempData["SuccessMessage"] = "Đăng ký tài khoản thành công!";
-                    return RedirectToAction("Login", "Home");
+                    _logger?.LogInformation($"✅ Đăng ký thành công! UserId={user.UserId}");
+                    TempData["SuccessMessage"] = "Đăng ký thành công! Vui lòng đăng nhập.";
+                    return RedirectToAction("Login", "Account");
                 }
-                ModelState.AddModelError("", "Không thể đăng ký tài khoản. Vui lòng thử lại.");
+                else
+                {
+                    TempData["ErrorMessage"] = "Không thể đăng ký. Vui lòng thử lại.";
+                    return View(user);
+                }
             }
-            return View(user);
+            catch (Exception ex)
+            {
+                _logger?.LogError(ex, "Lỗi đăng ký");
+                TempData["ErrorMessage"] = $"Lỗi: {ex.Message}";
+                return View(user);
+            }
         }
 
         // GET: Form đăng nhập
@@ -135,8 +291,13 @@ namespace BTL_LTWeb_Quan_Ly_Cua_Hang_Xe_May.Controllers
                 }
 
                 TempData["SuccessMessage"] = $"Chào mừng {user.FullName}!";
+
                 if (!string.IsNullOrEmpty(returnUrl) && Url.IsLocalUrl(returnUrl))
                     return Redirect(returnUrl);
+                if (user.Role.RoleName == "Admin" || user.Role.RoleId == 1)
+                {
+                    return RedirectToAction("AdminDashboard", "Home");
+                }
                 return RedirectToAction("Index", "Home");
             }
 
@@ -272,9 +433,14 @@ namespace BTL_LTWeb_Quan_Ly_Cua_Hang_Xe_May.Controllers
         }
 
         // GET: Đăng xuất
-        public IActionResult Logout()
+        public async Task<IActionResult> Logout()
         {
+            // Xóa cookie xác thực
+            await HttpContext.SignOutAsync(CookieAuthenticationDefaults.AuthenticationScheme);
+
+            // Xóa session
             HttpContext.Session.Clear();
+
             TempData["SuccessMessage"] = "Đăng xuất thành công!";
             return RedirectToAction("Index", "Home");
         }
@@ -282,9 +448,6 @@ namespace BTL_LTWeb_Quan_Ly_Cua_Hang_Xe_May.Controllers
         // GET: Form chỉnh sửa tài khoản
         public async Task<IActionResult> Edit(int id)
         {
-            
-            // 1. Xóa cookie xác thực
-            await HttpContext.SignOutAsync(CookieAuthenticationDefaults.AuthenticationScheme);
             // Kiểm tra quyền: chỉ cho phép sửa tài khoản của chính mình hoặc admin
             var currentUserId = HttpContext.Session.GetInt32("UserId");
             var currentRoleId = HttpContext.Session.GetInt32("RoleId");
@@ -426,7 +589,7 @@ namespace BTL_LTWeb_Quan_Ly_Cua_Hang_Xe_May.Controllers
             if (!userId.HasValue)
             {
                 TempData["ErrorMessage"] = "Vui lòng đăng nhập để đổi mật khẩu!";
-                return RedirectToAction("Login", "Home");
+                return RedirectToAction("Login", "Account");
             }
 
             if (string.IsNullOrEmpty(oldPassword) || string.IsNullOrEmpty(newPassword))

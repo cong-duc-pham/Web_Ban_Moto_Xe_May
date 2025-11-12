@@ -12,6 +12,11 @@ namespace BTL_LTWeb_Quan_Ly_Cua_Hang_Xe_May.Services
         {
             _context = context;
         }
+        // Lấy tài khoản theo email
+        public async Task<User?> GetUserByEmailAsync(string email)
+        {
+            return await _context.Users.FirstOrDefaultAsync(u => u.Email == email);
+        }
 
         // Kiểm tra đăng nhập
         public async Task<User?> ValidateUserAsync(string phoneNumber, string password)

@@ -4,6 +4,8 @@ namespace BTL_LTWeb_Quan_Ly_Cua_Hang_Xe_May.Services
 {
     public interface ILoginService
     {
+        // Lấy tài khoản theo email
+        Task<User?> GetUserByEmailAsync(string email);
         // Xác thực đăng nhập bằng số điện thoại và mật khẩu
         Task<User?> ValidateUserAsync(string phoneNumber, string password);
 

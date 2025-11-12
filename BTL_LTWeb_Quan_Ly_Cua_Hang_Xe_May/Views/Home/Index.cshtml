@@ -1,7 +1,7 @@
-﻿@{
+﻿@model BTL_LTWeb_Quan_Ly_Cua_Hang_Xe_May.Controllers.HomePageViewModel
+@{
     ViewData["Title"] = "Home Page";
 }
-
 @* DEBUG: Hiển thị thông tin Session
 @if (!string.IsNullOrEmpty(Context.Session.GetString("TenDangNhap")))
 {
@@ -390,9 +390,13 @@ else
     </section>
 
     <!-- Top Selling Vehicle Types -->
-    <section class="py-5">
+    @* <section class="py-5">
         <div class="container">
-            <h2 class="section-title">Loại xe có lượt bán cao nhất</h2>
+
+            <div class="carousel-wrapper" id="featuredStoresCarousel">
+                <!-- Dữ liệu sẽ được load động từ JavaScript -->
+            </div> *@
+            @* <h2 class="section-title">Loại xe có lượt bán cao nhất</h2>
             <div class="d-flex flex-wrap gap-2 mb-4">
                 <button class="tab-chip active" data-tab="all">Tất cả</button>
                 <button class="tab-chip" data-tab="car">Ô tô</button>
@@ -523,11 +527,80 @@ else
                 <button class="carousel-nav carousel-nav-next d-none d-lg-flex" data-carousel="featuredStores">
                     <i class="fas fa-chevron-right"></i>
                 </button>
-            </div>
-        </div>
-    </section>
+            </div> *@
+    @*     </div>
+    </section> *@
 
-    <!-- Top Selling Brands -->
+  <!-- Top Selling Vehicle Types -->
+<section class="py-5">
+    <div class="container">
+        <h2 class="section-title">Loại xe có lượt bán cao nhất</h2>
+        @* <div class="d-flex flex-wrap gap-2 mb-4">
+            <button class="tab-chip active" data-tab="all">Tất cả</button>
+            <button class="tab-chip" data-tab="car">Ô tô</button>
+            <button class="tab-chip" data-tab="motorbike">Xe máy</button>
+            <button class="tab-chip" data-tab="truck">Xe tải, xe ben</button>
+            <button class="tab-chip" data-tab="electric">Xe điện</button>
+            <button class="tab-chip" data-tab="bicycle">Xe đạp</button>
+            <button class="tab-chip" data-tab="parts">Phụ tùng</button>
+        </div> *@
+        <div class="position-relative">
+            <button class="carousel-nav carousel-nav-prev d-none d-lg-flex" data-carousel="featuredStores">
+                <i class="fas fa-chevron-left"></i>
+            </button>
+           <div class="carousel-wrapper" id="vehicleTypesCarousel">
+                @if (Model?.CategoryStats != null && Model.CategoryStats.Any())
+                {
+                    @foreach (var cat in Model.CategoryStats)
+                    {
+                        <div class="vehicle-type-card">
+                            <div class="vehicle-type-image-container">
+                                <img src="@cat.SampleImage" 
+                                     alt="@cat.CategoryName" 
+                                     class="vehicle-type-image" 
+                                     loading="lazy"
+                                     onerror="this.src='/images/default-vehicle.jpg'">
+                                <div class="vehicle-type-badge" style="background: @cat.BadgeColor">
+                                    <i class="fas fa-@cat.BadgeIcon"></i> @cat.BadgeText
+                                </div>
+                            </div>
+                            <div class="vehicle-type-content">
+                                <h3 class="vehicle-type-title">@cat.CategoryName</h3>
+                                <div class="vehicle-type-stats">
+                                    <div class="stat-item">
+                                        <span class="stat-value">@cat.TotalSold.ToString("N0")</span>
+                                        <span class="stat-label">Đã bán</span>
+                                    </div>
+                                    <div class="stat-item">
+                                        <span class="stat-value">@cat.TotalListings.ToString("N0")</span>
+                                        <span class="stat-label">Tin đăng</span>
+                                    </div>
+                                </div>
+                                <div class="vehicle-type-price-range">
+                                    <span class="price-min">@cat.MinPrice.ToString("N0")đ</span>
+                                    <span>-</span>
+                                    <span class="price-max">@cat.MaxPrice.ToString("N0")đ</span>
+                                </div>
+                            </div>
+                        </div>
+                    }
+                }
+                else
+                {
+                    <div class="text-center py-5">
+                        <p class="text-muted">Chưa có dữ liệu thống kê danh mục xe</p>
+                    </div>
+                }
+            </div>
+            <button class="carousel-nav carousel-nav-next d-none d-lg-flex" data-carousel="featuredStores">
+                <i class="fas fa-chevron-right"></i>
+            </button>
+        </div>
+    </div>
+</section>
+
+<!-- Top Selling Brands -->
+    <<!-- Top Selling Brands -->
     <section class="py-5 bg-white">
         <div class="container">
             <h2 class="section-title">Hãng xe có xe bán cao nhất</h2>
@@ -536,146 +609,52 @@ else
                     <i class="fas fa-chevron-left"></i>
                 </button>
                 <div class="carousel-wrapper" id="activitiesCarousel">
-                    <!-- Brand 1 -->
-                    <div class="brand-card">
-                        <div class="brand-logo-container">
-                            <img src="https://ui-avatars.com/api/?name=Honda&background=e74c3c&color=fff&size=80"
-                                 alt="Honda" class="brand-logo">
-                            <div class="brand-rank">#1</div>
-                        </div>
-                        <div class="brand-info">
-                            <h3 class="brand-name">Honda</h3>
-                            <div class="brand-stats">
-                                <div class="brand-stat">
-                                    <span class="stat-label">Đã bán</span>
-                                    <span class="stat-value">12,456</span>
+                    @if (Model?.BrandStats != null && Model.BrandStats.Any())
+                    {
+                        @foreach (var brand in Model.BrandStats)
+                        {
+                            <div class="brand-card">
+                                <div class="brand-logo-container">
+                                    <img src="@brand.BrandLogo"
+                                         alt="@brand.BrandName"
+                                         class="brand-logo"
+                                         onerror="this.src='https://ui-avatars.com/api/?name=@Uri.EscapeDataString(brand.BrandName)&background=random&size=80'">
+                                    <div class="brand-rank">#@brand.Rank</div>
                                 </div>
-                                <div class="brand-stat">
-                                    <span class="stat-label">Tin đăng</span>
-                                    <span class="stat-value">23,789</span>
-                                </div>
-                            </div>
-                            <div class="brand-models">
-                                <div class="model-item">
-                                    <span class="model-name">Wave Alpha</span>
-                                    <span class="model-sales">3,456</span>
-                                </div>
-                                <div class="model-item">
-                                    <span class="model-name">Vision</span>
-                                    <span class="model-sales">2,890</span>
-                                </div>
-                                <div class="model-item">
-                                    <span class="model-name">Air Blade</span>
-                                    <span class="model-sales">2,123</span>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                    <!-- Brand 2 -->
-                    <div class="brand-card">
-                        <div class="brand-logo-container">
-                            <img src="https://ui-avatars.com/api/?name=Yamaha&background=3498db&color=fff&size=80"
-                                 alt="Yamaha" class="brand-logo">
-                            <div class="brand-rank">#2</div>
-                        </div>
-                        <div class="brand-info">
-                            <h3 class="brand-name">Yamaha</h3>
-                            <div class="brand-stats">
-                                <div class="brand-stat">
-                                    <span class="stat-label">Đã bán</span>
-                                    <span class="stat-value">9,876</span>
-                                </div>
-                                <div class="brand-stat">
-                                    <span class="stat-label">Tin đăng</span>
-                                    <span class="stat-value">18,234</span>
+                                <div class="brand-info">
+                                    <h3 class="brand-name">@brand.BrandName</h3>
+                                    <div class="brand-stats">
+                                        <div class="brand-stat">
+                                            <span class="stat-label">Đã bán</span>
+                                            <span class="stat-value">@brand.TotalSold.ToString("N0")</span>
+                                        </div>
+                                        <div class="brand-stat">
+                                            <span class="stat-label">Tin đăng</span>
+                                            <span class="stat-value">@brand.TotalListings.ToString("N0")</span>
+                                        </div>
+                                    </div>
+                                    <div class="brand-models">
+                                        @if (brand.TopModels != null && brand.TopModels.Any())
+                                        {
+                                            @foreach (var vehicleModel in brand.TopModels)
+                                            {
+                                                <div class="model-item">
+                                                    <span class="model-name">@vehicleModel.ModelName</span>
+                                                    <span class="model-sales">@vehicleModel.Sales.ToString("N0")</span>
+                                                </div>
+                                            }
+                                        }
+                                    </div>
                                 </div>
                             </div>
-                            <div class="brand-models">
-                                <div class="model-item">
-                                    <span class="model-name">Exciter</span>
-                                    <span class="model-sales">3,123</span>
-                                </div>
-                                <div class="model-item">
-                                    <span class="model-name">Sirius</span>
-                                    <span class="model-sales">2,456</span>
-                                </div>
-                                <div class="model-item">
-                                    <span class="model-name">Jupiter</span>
-                                    <span class="model-sales">1,987</span>
-                                </div>
-                            </div>
+                        }
+                    }
+                    else
+                    {
+                        <div class="text-center py-5">
+                            <p class="text-muted">Chưa có dữ liệu thống kê hãng xe</p>
                         </div>
-                    </div>
-                    <!-- Brand 3 -->
-                    <div class="brand-card">
-                        <div class="brand-logo-container">
-                            <img src="https://ui-avatars.com/api/?name=VinFast&background=2ecc71&color=fff&size=80"
-                                 alt="VinFast" class="brand-logo">
-                            <div class="brand-rank">#3</div>
-                        </div>
-                        <div class="brand-info">
-                            <h3 class="brand-name">VinFast</h3>
-                            <div class="brand-stats">
-                                <div class="brand-stat">
-                                    <span class="stat-label">Đã bán</span>
-                                    <span class="stat-value">7,234</span>
-                                </div>
-                                <div class="brand-stat">
-                                    <span class="stat-label">Tin đăng</span>
-                                    <span class="stat-value">12,567</span>
-                                </div>
-                            </div>
-                            <div class="brand-models">
-                                <div class="model-item">
-                                    <span class="model-name">Vento S</span>
-                                    <span class="model-sales">2,345</span>
-                                </div>
-                                <div class="model-item">
-                                    <span class="model-name">Feliz</span>
-                                    <span class="model-sales">1,876</span>
-                                </div>
-                                <div class="model-item">
-                                    <span class="model-name">Klara</span>
-                                    <span class="model-sales">1,234</span>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                    <!-- Brand 4 -->
-                    <div class="brand-card">
-                        <div class="brand-logo-container">
-                            <img src="https://ui-avatars.com/api/?name=Suzuki&background=f39c12&color=fff&size=80"
-                                 alt="Suzuki" class="brand-logo">
-                            <div class="brand-rank">#4</div>
-                        </div>
-                        <div class="brand-info">
-                            <h3 class="brand-name">Suzuki</h3>
-                            <div class="brand-stats">
-                                <div class="brand-stat">
-                                    <span class="stat-label">Đã bán</span>
-                                    <span class="stat-value">5,678</span>
-                                </div>
-                                <div class="brand-stat">
-                                    <span class="stat-label">Tin đăng</span>
-                                    <span class="stat-value">9,876</span>
-                                </div>
-                            </div>
-                            <div class="brand-models">
-                                <div class="model-item">
-                                    <span class="model-name">Viva</span>
-                                    <span class="model-sales">1,987</span>
-                                </div>
-                                <div class="model-item">
-                                    <span class="model-name">Raider</span>
-                                    <span class="model-sales">1,543</span>
-                                </div>
-                                <div class="model-item">
-                                    <span class="model-name">Satria</span>
-                                    <span class="model-sales">987</span>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
+                    }
                 </div>
                 <button class="carousel-nav carousel-nav-next d-none d-lg-flex" data-carousel="activities">
                     <i class="fas fa-chevron-right"></i>
@@ -889,10 +868,9 @@ else
 
     <!-- Custom JS -->
     <script src="~/js/main.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/swiper@10/swiper-bundle.min.js"></script>
 
-    <!-- Initialize dropdown -->
-    <script>
+
+   <script>
         document.addEventListener('DOMContentLoaded', function() {
             // Khởi tạo tất cả dropdown
             var dropdownElementList = [].slice.call(document.querySelectorAll('.dropdown-toggle'));
