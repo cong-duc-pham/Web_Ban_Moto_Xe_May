@@ -83,13 +83,15 @@
         </tbody>
     </table>
 </div>
-
 <!-- Modal ADD/EDIT EMPLOYEE -->
 <div class="modal fade" id="employeeModal" tabindex="-1" aria-hidden="true">
     <div class="modal-dialog modal-lg">
         <form class="modal-content" id="employeeForm">
             <input type="hidden" id="employeeId" name="UserId" />
             <input type="hidden" name="Status" value="Active" />
+            <!-- ✅ QUAN TRỌNG: RoleId LUÔN CÓ VALUE = 2 -->
+            <input type="hidden" id="employeeRole" name="RoleId" value="2" />
+
             <div class="modal-header">
                 <h5 class="modal-title" id="employeeModalTitle">Thêm nhân viên mới</h5>
                 <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
@@ -117,15 +119,19 @@
                         </div>
                     </div>
                     <div class="col-md-6">
-                        <div class="mb-3" id="roleGroup" style="display:none;">
-                            <label for="employeeRole" class="form-label">Vai trò <span class="text-danger">*</span></label>
-                            <input type="hidden" id="employeeRole" name="RoleId" value="2" />
+                        <div class="mb-3">
+                            <!-- ✅ HIỂN thị vai trò (chỉ để xem, không cho sửa) -->
+                            <label class="form-label">Vai trò</label>
+                            <input type="text" class="form-control" value="Saler" disabled>
+                            <small class="text-muted">Nhân viên mới sẽ có vai trò Saler</small>
                         </div>
                     </div>
                 </div>
-                <div class="mb-3" id="passwordGroup" style="display: none;">
+
+                <!-- ✅ HIỂN THỊ MẬT KHẨU KHI THÊM MỚI -->
+                <div class="mb-3" id="passwordGroup">
                     <label for="employeePassword" class="form-label">Mật khẩu <span class="text-danger">*</span></label>
-                    <input type="password" required class="form-control" id="employeePassword" name="Password" placeholder="Nhập mật khẩu">
+                    <input type="password" class="form-control" id="employeePassword" name="Password" placeholder="Nhập mật khẩu">
                     <div class="form-text">Mật khẩu phải có ít nhất 6 ký tự</div>
                 </div>
             </div>
