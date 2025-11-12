@@ -49,7 +49,7 @@ else
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Roboto:wght@400;500;700;900&display=swap"
           rel="stylesheet">
-
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/swiper@10/swiper-bundle.min.css" />
     <!-- Custom CSS (Minimal) -->
     <link rel="stylesheet" href="../css/style.css">
 </head>
@@ -206,10 +206,6 @@ else
     <section class="py-0">
         <div class="container">
             <div class="category-strip">
-
-                <a href="#" class="category-item">
-                    <img src="/images/2010.svg" class="category-icon"></img>
-                    <div class="category-name">Ô tô</div>
                 </a>
                 <a href="#" class="category-item">
                     <img src="~/images/2020.svg" class="category-icon"></img>
@@ -220,111 +216,26 @@ else
                     <img src="/images/2090.svg" class="category-icon"></img>
                     <div class="category-name">Xe điện</div>
                 </a>
-                @* <div class="category-item text-center">
-                    <div class="category-icon">🚗</div>
-                    <div class="category-label">Ô tô</div>
-                </div>
-                <div class="category-item text-center">
-                    <div class="category-icon">🏍️</div>
-                    <div class="category-label">Xe máy</div>
-                </div> *@
-                @* <div class="category-item text-center">
-                    <div class="category-icon">🚚</div>
-                    <div class="category-label">Xe tải, xe ben</div>
-                </div> *@
-                @* <div class="category-item text-center">
-                    <div class="category-icon">🛵</div>
-                    <div class="category-label">Xe điện</div>
-                </div> *@
-                @* <div class="category-item text-center">
-                    <div class="category-icon">🚲</div>
-                    <div class="category-label">Xe đạp</div>
-                </div>
-                <div class="category-item text-center">
-                    <div class="category-icon">🚜</div>
-                    <div class="category-label">Phương tiện khác</div>
-                </div>
-                <div class="category-item text-center">
-                    <div class="category-icon">⚙️</div>
-                    <div class="category-label">Phụ tùng xe</div>
-                </div> *@
             </div>
         </div>
     </section>
 
     <!-- Latest Listings -->
+    <!-- Thay thế phần Latest Listings bằng: -->
+    <!-- Latest Listings -->
     <section class="py-5">
         <div class="container">
             <h2 class="section-title">Tin đăng mới nhất</h2>
             <div class="position-relative">
-                <button class="carousel-nav carousel-nav-prev d-none d-lg-flex" data-carousel="latestListings">
+                <button class="carousel-nav carousel-nav-prev d-none d-lg-flex" id="latestListingsPrev" data-carousel="latestListings">
                     <i class="fas fa-chevron-left"></i>
                 </button>
                 <div class="carousel-wrapper" id="latestListingsCarousel">
-                    <!-- Xe 1 -->
-                    @* <div class="product-card" data-id="1">
-                        <div class="product-image-container">
-                            <img src="https://images.unsplash.com/photo-1558981806-ec527fa84c39?w=400&h=300&fit=crop"
-                                 alt="WAVE 2013, Nguyên Zin, Bán Rẻ Bảo" class="product-image" loading="lazy">
-                            <div class="product-badge">29 giây trước</div>
-                            <button class="product-favorite" data-id="1" aria-label="Yêu thích">
-                                <i class="far fa-heart"></i>
-                            </button>
-                        </div>
-                        <div class="product-content">
-                            <h3 class="product-title">WAVE 2013, Nguyên Zin, Bán Rẻ Bảo</h3>
-                            <div class="product-meta">2013 • Xe số • Đã dùng</div>
-                            <div class="product-price">9.800.000</div>
-                            <div class="product-location">
-                                <i class="fas fa-map-marker-alt"></i> Quận 12
-                            </div>
-                        </div>
-                    </div> *@
-                    <!-- Xe 2 -->
-                    @* <div class="product-card" data-id="2">
-                        <div class="product-image-container">
-                            <img src="https://images.unsplash.com/photo-1593941707882-a5bba14938c7?w=400&h=300&fit=crop"
-                                 alt="VF8 PLUS HỖ TRỢ VAY LÊN ĐẾN 90%" class="product-image" loading="lazy">
-                            <div class="product-badge">Tin tiêu biểu</div>
-                            <button class="product-favorite" data-id="2" aria-label="Yêu thích">
-                                <i class="far fa-heart"></i>
-                            </button>
-                            <div class="product-badge" style="right:12px; left: auto; background: #FF3B3B;">
-                                Tin tiêu
-                                biểu
-                            </div>
-                        </div>
-                        <div class="product-content">
-                            <h3 class="product-title">VF8 PLUS HỖ TRỢ VAY LÊN ĐẾN 90% NHẬN XE</h3>
-                            <div class="product-meta">2025 • Ô tô • Tự động</div>
-                            <div class="product-price">978.000.000</div>
-                            <div class="product-location">
-                                <i class="fas fa-map-marker-alt"></i> Quận 5
-                            </div>
-                        </div>
-                    </div> *@
-                    <!-- Xe 3 -->
-                    @* <div class="product-card" data-id="3">
-                        <div class="product-image-container">
-                            <img src="https://images.unsplash.com/photo-1568772684723-dc07fcb3e9c0?w=400&h=300&fit=crop"
-                                 alt="SH MODE BẢN CAO CẤP ABS - THU CŨ ĐỔI MỚI" class="product-image" loading="lazy">
-                            <div class="product-badge">39 giây trước</div>
-                            <button class="product-favorite" data-id="3" aria-label="Yêu thích">
-                                <i class="far fa-heart"></i>
-                            </button>
-                        </div>
-                        <div class="product-content">
-                            <h3 class="product-title">SH MODE BẢN CAO CẤP ABS - THU CŨ ĐỔI MỚI</h3>
-                            <div class="product-meta">2025 • Tay ga • Mới</div>
-                            <div class="product-price">61.720.000</div>
-                            <div class="product-location">
-                                <i class="fas fa-map-marker-alt"></i> Quận 7
-                            </div>
-                        </div>
-                    </div> *@
-                    <!-- ... Thêm các xe khác tương tự ... -->
+                    <div class="carousel-slides-container" id="latestListingsSlidesContainer">
+                        <!-- Slides will be inserted here by JS -->
+                    </div>
                 </div>
-                <button class="carousel-nav carousel-nav-next d-none d-lg-flex" data-carousel="latestListings">
+                <button class="carousel-nav carousel-nav-next d-none d-lg-flex" id="latestListingsNext" data-carousel="latestListings">
                     <i class="fas fa-chevron-right"></i>
                 </button>
             </div>
@@ -335,6 +246,11 @@ else
             </div>
         </div>
     </section>
+
+    <script src="~/js/latestListings.js"></script>
+
+    <!-- Thêm script này trước </body> -->
+    <script src="~/js/latestListings.js"></script>
 
     <!-- Official Stores -->
     <section class="py-5 bg-white">
@@ -987,6 +903,7 @@ else
             console.log('Dropdowns initialized:', dropdownList.length);
         });
     </script>
+    <script src="~/js/latestListings.js"></script>
 </body>
 
 </html>

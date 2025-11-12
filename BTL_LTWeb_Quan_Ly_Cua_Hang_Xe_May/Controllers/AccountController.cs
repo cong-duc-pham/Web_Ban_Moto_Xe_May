@@ -4,7 +4,10 @@ using Microsoft.AspNetCore.Mvc;
 using System.Security.Claims;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authentication.Cookies;
+using System.Text.RegularExpressions;
+using System.ComponentModel.DataAnnotations;
 namespace BTL_LTWeb_Quan_Ly_Cua_Hang_Xe_May.Controllers
+
 {
     public class AccountController : Controller
     {
@@ -70,15 +73,16 @@ namespace BTL_LTWeb_Quan_Ly_Cua_Hang_Xe_May.Controllers
         }
 
         // GET: Form đăng nhập
-        public IActionResult Login()
+        public IActionResult Login(string? returnUrl = null)
         {
+            ViewData["ReturnUrl"] = returnUrl;
             return View();
         }
 
         // POST: Đăng nhập
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Login(string phoneNumber, string password)
+        public async Task<IActionResult> Login(string phoneNumber, string password, string? returnUrl = null)
         {
             if (string.IsNullOrEmpty(phoneNumber) || string.IsNullOrEmpty(password))
             {
@@ -131,15 +135,140 @@ namespace BTL_LTWeb_Quan_Ly_Cua_Hang_Xe_May.Controllers
                 }
 
                 TempData["SuccessMessage"] = $"Chào mừng {user.FullName}!";
-                if (user.Role.RoleName == "Admin" || user.Role.RoleId == 1)
-                {
-                    return RedirectToAction("AdminDashboard", "Home"); // Hoặc Redirect("/admin")
-                }
+                if (!string.IsNullOrEmpty(returnUrl) && Url.IsLocalUrl(returnUrl))
+                    return Redirect(returnUrl);
                 return RedirectToAction("Index", "Home");
             }
 
             ModelState.AddModelError("", "Số điện thoại hoặc mật khẩu không đúng!");
             return View();
+        }
+
+        // JSON: Lấy user theo id cho AJAX
+        [HttpGet]
+        public async Task<JsonResult> GetUserById(int id)
+        {
+            var user = await _loginService.GetUserByIdAsync(id);
+            if (user == null)
+            {
+                return Json(new { success = false, message = "Không tìm thấy người dùng" });
+            }
+
+            return Json(new
+            {
+                success = true,
+                data = new
+                {
+                    user.UserId,
+                    user.FullName,
+                    user.PhoneNumber,
+                    user.Email,
+                    user.Status,
+                    user.RoleId,
+                    RoleName = user.Role?.RoleName
+                }
+            });
+        }
+
+        // JSON: Thêm khách hàng (AJAX) - nhận application/json
+        [HttpPost]
+        [Consumes("application/json")]
+        public async Task<JsonResult> Register([FromBody] UserDto dto)
+        {
+            var (isValid, message) = ValidateUserDto(dto, isAdd: true);
+            if (!isValid)
+                return Json(new { success = false, message });
+
+            // kiểm tra số điện thoại đã tồn tại
+            var existing = await _loginService.GetUserByPhoneAsync(dto.PhoneNumber);
+            if (existing != null)
+                return Json(new { success = false, message = "Số điện thoại đã được đăng ký" });
+
+            var user = new User
+            {
+                FullName = dto.FullName.Trim(),
+                PhoneNumber = dto.PhoneNumber.Trim(),
+                Email = string.IsNullOrWhiteSpace(dto.Email) ? null : dto.Email.Trim(),
+                Status = string.IsNullOrWhiteSpace(dto.Status) ? "Active" : dto.Status,
+                RoleId = 3 // ép role = Customer từ UI quản lý khách hàng
+            };
+
+            // Mật khẩu bắt buộc khi thêm
+            user.Password = dto.Password;
+
+            var result = await _loginService.RegisterUserAsync(user);
+            if (result)
+                return Json(new { success = true, message = "Thêm khách hàng thành công" });
+
+            return Json(new { success = false, message = "Không thể thêm khách hàng. Vui lòng thử lại." });
+        }
+
+        // JSON: Sửa khách hàng (AJAX) - nhận application/json
+        [HttpPost]
+        [Consumes("application/json")]
+        public async Task<JsonResult> Edit([FromBody] UserDto dto)
+        {
+            if (dto == null || dto.UserId <= 0)
+                return Json(new { success = false, message = "Dữ liệu không hợp lệ" });
+
+            // Quyền: chỉ Admin (RoleId=1) hoặc chính chủ mới được edit
+            var currentUserId = HttpContext.Session.GetInt32("UserId");
+            var currentRoleId = HttpContext.Session.GetInt32("RoleId");
+            if (currentUserId != dto.UserId && currentRoleId != 1)
+                return Json(new { success = false, message = "Bạn không có quyền chỉnh sửa tài khoản này!" });
+
+            var (isValid, message) = ValidateUserDto(dto, isAdd: false);
+            if (!isValid)
+                return Json(new { success = false, message });
+
+            var existing = await _loginService.GetUserByIdAsync(dto.UserId);
+            if (existing == null)
+                return Json(new { success = false, message = "Không tìm thấy tài khoản" });
+
+            // Cập nhật những trường cho phép
+            existing.FullName = dto.FullName.Trim();
+            existing.Email = string.IsNullOrWhiteSpace(dto.Email) ? null : dto.Email.Trim();
+            existing.PhoneNumber = dto.PhoneNumber.Trim();
+            existing.Status = string.IsNullOrWhiteSpace(dto.Status) ? existing.Status : dto.Status;
+            existing.RoleId = 3; // ép role = Customer tránh leo thang quyền
+
+            // Nếu có mật khẩu mới, cập nhật (service nên xử lý hashing)
+            if (!string.IsNullOrWhiteSpace(dto.Password))
+                existing.Password = dto.Password;
+
+            var updated = await _loginService.UpdateUserAsync(existing);
+            if (updated)
+            {
+                // Cập nhật session nếu chính chủ sửa
+                if (currentUserId == existing.UserId)
+                {
+                    HttpContext.Session.SetString("FullName", existing.FullName);
+                    if (!string.IsNullOrEmpty(existing.Email))
+                        HttpContext.Session.SetString("Email", existing.Email);
+                }
+                return Json(new { success = true, message = "Cập nhật khách hàng thành công" });
+            }
+
+            return Json(new { success = false, message = "Không thể cập nhật khách hàng. Vui lòng thử lại." });
+        }
+
+        // JSON: Xóa (AJAX) - route khớp ManageCustomers.js POST /Account/DeleteConfirmed/{id}
+        [HttpPost("DeleteConfirmed/{id}")]
+        public async Task<JsonResult> DeleteConfirmedAjax(int id)
+        {
+            var currentRoleId = HttpContext.Session.GetInt32("RoleId");
+            if (currentRoleId != 1)
+                return Json(new { success = false, message = "Chỉ Admin mới có quyền xóa tài khoản!" });
+
+            var user = await _loginService.GetUserByIdAsync(id);
+            if (user == null)
+                return Json(new { success = false, message = "Không tìm thấy tài khoản" });
+
+            var result = await _loginService.DeleteUserAsync(id);
+            if (result)
+                return Json(new { success = true, message = "Xóa tài khoản thành công" });
+
+            return Json(new { success = false, message = "Không thể xóa tài khoản. Vui lòng thử lại." });
         }
 
         // GET: Đăng xuất
@@ -341,7 +470,24 @@ namespace BTL_LTWeb_Quan_Ly_Cua_Hang_Xe_May.Controllers
             });
             return Json(result);
         }
-
+        // API: Lấy danh sách tài khoản dạng JSON (chỉ Customer RoleId = 3)
+        [HttpGet]
+        public async Task<JsonResult> GetCustomersJson()
+        {
+            // Lấy trực tiếp những user có RoleId = 3 (Customer)
+            var danhSachCustomer = await _loginService.GetUsersByRoleAsync(3);
+            var result = danhSachCustomer.Select(u => new
+            {
+                u.UserId,
+                u.FullName,
+                u.PhoneNumber,
+                u.Email,
+                u.Status,
+                RoleName = u.Role?.RoleName,
+                u.RoleId
+            });
+            return Json(result);
+        }
         // API: Kiểm tra số điện thoại có tồn tại
         [HttpGet]
         public async Task<JsonResult> CheckPhoneExists(string phoneNumber)
@@ -388,6 +534,64 @@ namespace BTL_LTWeb_Quan_Ly_Cua_Hang_Xe_May.Controllers
             {
                 return Json(new { success = false, message = ex.Message });
             }
+        }
+        // ----------------- Helpers -----------------
+        private (bool isValid, string message) ValidateUserDto(UserDto dto, bool isAdd)
+        {
+            if (dto == null)
+                return (false, "Dữ liệu bắt buộc.");
+
+            if (string.IsNullOrWhiteSpace(dto.FullName) || dto.FullName.Trim().Length < 3 || dto.FullName.Trim().Length > 100)
+                return (false, "Họ và tên phải có độ dài từ 3 đến 100 ký tự.");
+
+            if (string.IsNullOrWhiteSpace(dto.PhoneNumber))
+                return (false, "Số điện thoại là bắt buộc.");
+
+            // Kiểm tra số điện thoại: chỉ chứa chữ số, độ dài 9-11
+            var phone = dto.PhoneNumber.Trim();
+            if (!Regex.IsMatch(phone, @"^\d{9,11}$"))
+                return (false, "Số điện thoại không hợp lệ. Vui lòng nhập 9-11 chữ số.");
+
+            if (!string.IsNullOrWhiteSpace(dto.Email))
+            {
+                var emailAttr = new EmailAddressAttribute();
+                if (!emailAttr.IsValid(dto.Email.Trim()))
+                    return (false, "Email không hợp lệ.");
+            }
+
+            if (isAdd)
+            {
+                if (string.IsNullOrWhiteSpace(dto.Password) || dto.Password.Length < 6)
+                    return (false, "Mật khẩu bắt buộc và phải có ít nhất 6 ký tự.");
+            }
+            else
+            {
+                // Nếu cung cấp mật khẩu mới thì cũng yêu cầu tối thiểu 6 ký tự
+                if (!string.IsNullOrWhiteSpace(dto.Password) && dto.Password.Length < 6)
+                    return (false, "Mật khẩu mới phải có ít nhất 6 ký tự.");
+            }
+
+            // Trạng thái hợp lệ
+            if (!string.IsNullOrWhiteSpace(dto.Status))
+            {
+                var s = dto.Status.Trim();
+                if (s != "Active" && s != "Locked")
+                    return (false, "Trạng thái không hợp lệ.");
+            }
+
+            return (true, string.Empty);
+        }
+
+        // DTO dùng cho AJAX create/edit
+        public class UserDto
+        {
+            public int UserId { get; set; }
+            public string FullName { get; set; } = string.Empty;
+            public string PhoneNumber { get; set; } = string.Empty;
+            public string Email { get; set; } = string.Empty;
+            public string Password { get; set; } = string.Empty;
+            public string Status { get; set; } = "Active";
+            public int RoleId { get; set; } = 3;
         }
     }
 }
