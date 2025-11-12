@@ -1,4 +1,5 @@
-﻿@{
+﻿@model IEnumerable<BTL_LTWeb_Quan_Ly_Cua_Hang_Xe_May.Models.Entities.Vehicle>
+@{
     // Trỏ đến vị trí mới trong thư mục Shared
     Layout = "~/Views/Shared/AdminLayout.cshtml";
     ViewData["Title"] = "Tổng quan";
@@ -200,5 +201,137 @@
         </table>
     </div>
 </div>
+
+<!-- Vehicles List Section -->
+<div class="card" style="margin-top: 30px;">
+    <div class="card-header">
+        <h3><i class="fas fa-motorcycle"></i> Danh sách xe</h3>
+        <div class="btn-group">
+            <input type="text" id="searchVehicle" class="form-control" placeholder="Tìm kiếm xe..." 
+                   style="width: 300px; margin-right: 10px; border-radius: 8px; border: 1px solid #ddd; padding: 8px 15px;">
+            <select id="filterStatus" class="form-select" style="width: 150px; border-radius: 8px; border: 1px solid #ddd;">
+                <option value="">Tất cả</option>
+                <option value="Available">Còn hàng</option>
+                <option value="SoldOut">Hết hàng</option>
+                <option value="Reserved">Đã đặt</option>
+            </select>
+        </div>
+    </div>
+    <div class="table-container">
+        <table id="vehiclesTable">
+            <thead>
+                <tr>
+                    <th>ID</th>
+                    <th>Hình ảnh</th>
+                    <th>Tên xe</th>
+                    <th>Hãng</th>
+                    <th>Loại</th>
+                    <th>Giá bán</th>
+                    <th>Tồn kho</th>
+                    <th>Đã bán</th>
+                    <th>Trạng thái</th>
+                </tr>
+            </thead>
+            <tbody>
+                @if (Model != null && Model.Any())
+                {
+                    foreach (var vehicle in Model)
+                    {
+                        var mainImage = vehicle.VehicleImages?.FirstOrDefault()?.ImagePath ?? "/images/no-image.png";
+                        var statusClass = vehicle.Status == "Available" ? "active" : 
+                                        vehicle.Status == "SoldOut" ? "inactive" : "pending";
+                        var statusText = vehicle.Status == "Available" ? "Còn hàng" :
+                                       vehicle.Status == "SoldOut" ? "Hết hàng" : vehicle.Status;
+                        
+                        <tr data-title="@vehicle.Title" 
+                            data-brand="@(vehicle.Brand?.BrandName ?? "")" 
+                            data-status="@vehicle.Status">
+                            <td><strong>#@vehicle.VehicleId</strong></td>
+                            <td>
+                                <img src="@mainImage" alt="@vehicle.Title" 
+                                     style="width: 60px; height: 60px; object-fit: cover; border-radius: 8px;" 
+                                     onerror="this.src='/images/no-image.png'" />
+                            </td>
+                            <td>
+                                <div>
+                                    <div style="font-weight: 600; color: var(--dark);">@vehicle.Title</div>
+                                    <div style="font-size: 12px; color: var(--secondary);">
+                                        @vehicle.Model @if(vehicle.ManufactureYear.HasValue) { <text>- @vehicle.ManufactureYear</text> }
+                                    </div>
+                                </div>
+                            </td>
+                            <td>
+                                <span class="badge" style="background-color: #3498db; color: white; padding: 4px 8px; border-radius: 4px; font-size: 11px;">
+                                    @(vehicle.Brand?.BrandName ?? "N/A")
+                                </span>
+                            </td>
+                            <td>
+                                <span class="badge" style="background-color: #9b59b6; color: white; padding: 4px 8px; border-radius: 4px; font-size: 11px;">
+                                    @(vehicle.Category?.CategoryName ?? "N/A")
+                                </span>
+                            </td>
+                            <td>
+                                <strong style="color: #e74c3c;">@((vehicle.SalePrice ?? 0).ToString("N0")) đ</strong>
+                            </td>
+                            <td>
+                                <span class="badge" style="background-color: @(vehicle.StockQuantity > 0 ? "#27ae60" : "#e74c3c"); color: white; padding: 4px 8px; border-radius: 4px;">
+                                    @vehicle.StockQuantity
+                                </span>
+                            </td>
+                            <td>@vehicle.SoldCount</td>
+                            <td>
+                                <span class="status-badge @statusClass">@statusText</span>
+                            </td>
+                        </tr>
+                    }
+                }
+                else
+                {
+                    <tr>
+                        <td colspan="9" style="text-align: center; padding: 40px; color: var(--secondary);">
+                            <i class="fas fa-inbox fa-3x" style="opacity: 0.3; margin-bottom: 10px;"></i>
+                            <p>Chưa có xe nào trong hệ thống</p>
+                        </td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<script>
+    // Search and filter vehicles
+    document.addEventListener('DOMContentLoaded', function() {
+        const searchInput = document.getElementById('searchVehicle');
+        const filterStatus = document.getElementById('filterStatus');
+        
+        function filterVehicles() {
+            const searchTerm = searchInput.value.toLowerCase();
+            const statusFilter = filterStatus.value;
+            
+            const rows = document.querySelectorAll('#vehiclesTable tbody tr');
+            
+            rows.forEach(row => {
+                if (row.querySelector('td[colspan]')) return; // Skip "no data" row
+                
+                const title = row.dataset.title?.toLowerCase() || '';
+                const brand = row.dataset.brand?.toLowerCase() || '';
+                const status = row.dataset.status || '';
+                
+                const matchSearch = title.includes(searchTerm) || brand.includes(searchTerm);
+                const matchStatus = !statusFilter || status === statusFilter;
+                
+                if (matchSearch && matchStatus) {
+                    row.style.display = '';
+                } else {
+                    row.style.display = 'none';
+                }
+            });
+        }
+        
+        searchInput.addEventListener('input', filterVehicles);
+        filterStatus.addEventListener('change', filterVehicles);
+    });
+</script>
 
 <script src="/js/AdminLayout.js"> </script>

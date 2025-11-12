@@ -1,0 +1,256 @@
+@model IEnumerable<BTL_LTWeb_Quan_Ly_Cua_Hang_Xe_May.Models.Entities.Vehicle>
+@{
+    Layout = "~/Views/Shared/AdminLayout.cshtml";
+    ViewData["Title"] = "Quản lý xe";
+}
+
+<div class="page-header">
+    <h1>
+        <i class="fas fa-car-side"></i> Quản lý xe
+    </h1>
+    <nav aria-label="breadcrumb">
+        <ol class="breadcrumb">
+            <li class="breadcrumb-item"><a asp-action="AdminDashboard">Trang chủ</a></li>
+            <li class="breadcrumb-item active">Quản lý xe</li>
+        </ol>
+    </nav>
+</div>
+
+<!-- Toolbar -->
+<div class="card mb-4">
+    <div class="card-body">
+        <div class="row align-items-center">
+            <div class="col-md-6">
+                <div class="input-group">
+                    <span class="input-group-text">
+                        <i class="fas fa-search"></i>
+                    </span>
+                    <input type="text" id="searchInput" class="form-control" 
+                           placeholder="Tìm kiếm theo tên, model, hãng...">
+                </div>
+            </div>
+            <div class="col-md-3">
+                <select id="filterStatus" class="form-select">
+                    <option value="">Tất cả trạng thái</option>
+                    <option value="Available">Còn hàng</option>
+                    <option value="SoldOut">Hết hàng</option>
+                    <option value="Reserved">Đã đặt</option>
+                </select>
+            </div>
+            <div class="col-md-3 text-end">
+                <a href="/Home/MotorbikeOnline" class="btn btn-primary">
+                    <i class="fas fa-plus"></i> Thêm xe mới
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Statistics Cards -->
+<div class="row mb-4">
+    <div class="col-md-3">
+        <div class="card text-white bg-primary">
+            <div class="card-body">
+                <div class="d-flex justify-content-between align-items-center">
+                    <div>
+                        <h6 class="card-title mb-0">Tổng số xe</h6>
+                        <h3 class="mb-0" id="totalVehicles">@Model.Count()</h3>
+                    </div>
+                    <i class="fas fa-motorcycle fa-3x opacity-50"></i>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card text-white bg-success">
+            <div class="card-body">
+                <div class="d-flex justify-content-between align-items-center">
+                    <div>
+                        <h6 class="card-title mb-0">Còn hàng</h6>
+                        <h3 class="mb-0">@Model.Count(v => v.Status == "Available")</h3>
+                    </div>
+                    <i class="fas fa-check-circle fa-3x opacity-50"></i>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card text-white bg-danger">
+            <div class="card-body">
+                <div class="d-flex justify-content-between align-items-center">
+                    <div>
+                        <h6 class="card-title mb-0">Hết hàng</h6>
+                        <h3 class="mb-0">@Model.Count(v => v.Status == "SoldOut")</h3>
+                    </div>
+                    <i class="fas fa-times-circle fa-3x opacity-50"></i>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card text-white bg-warning">
+            <div class="card-body">
+                <div class="d-flex justify-content-between align-items-center">
+                    <div>
+                        <h6 class="card-title mb-0">Tổng tồn kho</h6>
+                        <h3 class="mb-0">@Model.Sum(v => v.StockQuantity)</h3>
+                    </div>
+                    <i class="fas fa-warehouse fa-3x opacity-50"></i>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Vehicles Table -->
+<div class="card">
+    <div class="card-body">
+        <div class="table-responsive">
+            <table class="table table-hover" id="vehiclesTable">
+                <thead>
+                    <tr>
+                        <th>ID</th>
+                        <th>Hình ảnh</th>
+                        <th>Tên xe / Model</th>
+                        <th>Hãng</th>
+                        <th>Loại</th>
+                        <th>Giá bán</th>
+                        <th>Tồn kho</th>
+                        <th>Đã bán</th>
+                        <th>Trạng thái</th>
+                       
+                    </tr>
+                </thead>
+                <tbody>
+                    @if (Model != null && Model.Any())
+                    {
+                        foreach (var vehicle in Model)
+                        {
+                            var mainImage = vehicle.VehicleImages?.FirstOrDefault()?.ImagePath ?? "/images/no-image.png";
+                            var statusClass = vehicle.Status == "Available" ? "success" : 
+                                            vehicle.Status == "SoldOut" ? "danger" : "warning";
+                            var statusText = vehicle.Status == "Available" ? "Còn hàng" :
+                                           vehicle.Status == "SoldOut" ? "Hết hàng" : vehicle.Status;
+                            
+                            <tr data-title="@vehicle.Title" 
+                                data-brand="@(vehicle.Brand?.BrandName ?? "")" 
+                                data-status="@vehicle.Status">
+                                <td><strong>#@vehicle.VehicleId</strong></td>
+                                <td>
+                                    <img src="@mainImage" alt="@vehicle.Title" 
+                                         style="width: 60px; height: 60px; object-fit: cover; border-radius: 8px;" 
+                                         onerror="this.src='/images/no-image.png'" />
+                                </td>
+                                <td>
+                                    <div>
+                                        <div style="font-weight: 600;">@vehicle.Title</div>
+                                        <small class="text-muted">
+                                            @vehicle.Model @if(vehicle.ManufactureYear.HasValue) { <text>- @vehicle.ManufactureYear</text> }
+                                        </small>
+                                    </div>
+                                </td>
+                                <td>
+                                    <span class="badge bg-primary">
+                                        @(vehicle.Brand?.BrandName ?? "N/A")
+                                    </span>
+                                </td>
+                                <td>
+                                    <span class="badge bg-info">
+                                        @(vehicle.Category?.CategoryName ?? "N/A")
+                                    </span>
+                                </td>
+                                <td>
+                                    <strong class="text-danger">@((vehicle.SalePrice ?? 0).ToString("N0")) đ</strong>
+                                </td>
+                                <td>
+                                    <span class="badge @(vehicle.StockQuantity > 0 ? "bg-success" : "bg-danger")">
+                                        @vehicle.StockQuantity
+                                    </span>
+                                </td>
+                                <td>@vehicle.SoldCount</td>
+                                <td>
+                                    <span class="badge bg-@statusClass">@statusText</span>
+                                </td>
+                                <td>
+                                    
+                                </td>
+                            </tr>
+                        }
+                    }
+                    else
+                    {
+                        <tr>
+                            <td colspan="10" class="text-center py-5">
+                                <i class="fas fa-inbox fa-3x text-muted mb-3"></i>
+                                <p class="text-muted">Chưa có xe nào trong hệ thống</p>
+                                <a href="/Home/MotorbikeOnline" class="btn btn-primary">
+                                    <i class="fas fa-plus"></i> Thêm xe đầu tiên
+                                </a>
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+<style>
+    .table-hover tbody tr:hover {
+        background-color: #f8f9fa;
+    }
+    
+    .btn-group-sm .btn {
+        padding: 0.25rem 0.5rem;
+    }
+    
+    .badge {
+        font-size: 0.875rem;
+        padding: 0.35em 0.65em;
+    }
+    
+    .card {
+        box-shadow: 0 0.125rem 0.25rem rgba(0,0,0,0.075);
+        border: none;
+    }
+</style>
+
+<script>
+    // Search and filter functionality
+    document.addEventListener('DOMContentLoaded', function() {
+        const searchInput = document.getElementById('searchInput');
+        const filterStatus = document.getElementById('filterStatus');
+        
+        function filterTable() {
+            const searchTerm = searchInput.value.toLowerCase();
+            const statusFilter = filterStatus.value;
+            
+            const rows = document.querySelectorAll('#vehiclesTable tbody tr');
+            let visibleCount = 0;
+            
+            rows.forEach(row => {
+                if (row.querySelector('td[colspan]')) return; // Skip "no data" row
+                
+                const title = row.dataset.title?.toLowerCase() || '';
+                const brand = row.dataset.brand?.toLowerCase() || '';
+                const status = row.dataset.status || '';
+                
+                const matchSearch = title.includes(searchTerm) || brand.includes(searchTerm);
+                const matchStatus = !statusFilter || status === statusFilter;
+                
+                if (matchSearch && matchStatus) {
+                    row.style.display = '';
+                    visibleCount++;
+                } else {
+                    row.style.display = 'none';
+                }
+            });
+            
+            // Update total count
+            document.getElementById('totalVehicles').textContent = visibleCount;
+        }
+        
+        searchInput.addEventListener('input', filterTable);
+        filterStatus.addEventListener('change', filterTable);
+    });
+</script>

@@ -46,9 +46,17 @@ namespace BTL_LTWeb_Quan_Ly_Cua_Hang_Xe_May.Controllers
         }
         [Authorize(Roles = "Admin")]
         [Route("/admin")] // Định nghĩa đường dẫn là /admin
-        public IActionResult AdminDashboard()
+        public async Task<IActionResult> AdminDashboard()
         {
-            return View("AdminDashboard");
+            var vehicles = await _context.Vehicles
+                .Include(v => v.Brand)
+                .Include(v => v.Category)
+                .Include(v => v.Store)
+                .Include(v => v.VehicleImages)
+                .OrderByDescending(v => v.PostedAt)
+                .ToListAsync();
+                
+            return View("AdminDashboard", vehicles);
         }
         [Authorize(Roles = "Admin")] // Bảo vệ trang này, chỉ Admin được vào
         public IActionResult ManagePosts()
@@ -70,6 +78,14 @@ namespace BTL_LTWeb_Quan_Ly_Cua_Hang_Xe_May.Controllers
         {
             return View();
         }
+
+        [Authorize(Roles = "Admin")]
+        public async Task<IActionResult> ManageVehicles()
+        {
+            var vehicles = await _xeMayService.GetAllVehiclesAsync();
+            return View(vehicles);
+        }
+
         // API endpoint: toggle favorite (add/remove)
         [HttpPost]
         public async Task<IActionResult> ToggleFavorite([FromForm] int vehicleId)
