@@ -1,159 +1,249 @@
-﻿
-@{
-    // Trỏ đến vị trí mới trong thư mục Shared
+﻿@{
+    ViewData["Title"] = "Quản lý khách hàng";
     Layout = "~/Views/Shared/AdminLayout.cshtml";
-    ViewData["Title"] = "";
 }
 
-<link rel="stylesheet" href="~/css/AdminEmployee.css" />
-
-<div class="page-title">Quản lý nhân viên</div>
-
-@if (TempData["SuccessMessage"] != null)
-{
-    <div class="alert alert-success alert-dismissible fade show" role="alert">
-        @TempData["SuccessMessage"]
-        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
-    </div>
-}
-
-@if (TempData["ErrorMessage"] != null)
-{
-    <div class="alert alert-danger alert-dismissible fade show" role="alert">
-        @TempData["ErrorMessage"]
-        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
-    </div>
-}
-
-<div class="employee-actions mb-3">
-    <button class="btn btn-primary" onclick="openEmployeeForm()">Thêm nhân viên</button>
-    <input type="text" class="form-control search-input" id="searchBox" placeholder="Tìm kiếm theo tên, email, số điện thoại...">
-</div>
-
-<div class="table-responsive">
-    <table class="table table-striped employee-table">
-        <thead class="table-dark">
-            <tr>
-                <th>#</th>
-                <th>Họ tên</th>
-                <th>Email</th>
-                <th>Số điện thoại</th>
-                <th>Vai trò</th>
-                <th>Trạng thái</th>
-                <th>Hành động</th>
-            </tr>
-        </thead>
-        <tbody id="employeeTableBody">
-            @if (Model != null && Model.Any())
-            {
-                @for (int i = 0; i < Model.Count; i++)
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Quản Lý Khách Hàng</title>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.2/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="/css/ManageCustomers.css">
+</head>
+<body>
+    <div class="dashboard-container">
+        <!-- Header -->
+        <div class="dashboard-header">
+            <div class="header-content">
+                <div>
+                    <h1><i class="fas fa-users me-3"></i>Quản Lý Khách Hàng</h1>
+                    <p class="mb-0 mt-2">Quản lý toàn bộ tài khoản khách hàng trong hệ thống</p>
+                </div>
+                @if (User?.IsInRole("Admin") == true)
                 {
-                    <tr>
-                        <td>@(i + 1)</td>
-                        <td>@Model[i].FullName</td>
-                        <td>@Model[i].Email</td>
-                        <td>@(Model[i].PhoneNumber ?? "Chưa có")</td>
-                        <td>
-                            <span class="badge @GetRoleBadgeClass(Model[i].Role?.RoleName)">
-                                @Model[i].Role?.RoleName ?? "Chưa xác định"
-                            </span>
-                        </td>
-                        <td>
-                            <span class="badge bg-success">@Model[i].Status</span>
-                        </td>
-                        <td>
-                            <button class="btn btn-sm btn-warning me-1" onclick="editEmployee(@Model[i].UserId, '@Model[i].FullName', '@Model[i].Email', '@(Model[i].PhoneNumber ?? "")', @Model[i].RoleId)">
-                                Sửa
-                            </button>
-                            <button class="btn btn-sm btn-danger" onclick="deleteEmployee(@Model[i].UserId, '@Model[i].FullName')">
-                                Xóa
-                            </button>
-                        </td>
-                    </tr>
+                    <button class="btn btn-add-new text-white" onclick="showAddModal()">
+                        <i class="fas fa-plus-circle me-2"></i>Thêm Khách Hàng
+                    </button>
                 }
-            }
-            else
-            {
-                <tr>
-                    <td colspan="8" class="text-center py-4">
-                        <i class="fas fa-users fa-3x text-muted mb-3"></i>
-                        <p class="text-muted">Chưa có nhân viên nào trong hệ thống</p>
-                        <button class="btn btn-primary" onclick="openEmployeeForm()">Thêm nhân viên đầu tiên</button>
-                    </td>
-                </tr>
-            }
-        </tbody>
-    </table>
-</div>
+            </div>
+        </div>
 
-<!-- Modal ADD/EDIT EMPLOYEE -->
-<div class="modal fade" id="employeeModal" tabindex="-1" aria-hidden="true">
-    <div class="modal-dialog modal-lg">
-        <form class="modal-content" id="employeeForm">
-            <div class="modal-header">
-                <h5 class="modal-title" id="employeeModalTitle">Thêm nhân viên mới</h5>
-                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
-            </div>
-            <div class="modal-body">
-                <input type="hidden" id="employeeId" />
-                <div class="row">
-                    <div class="col-md-6">
-                        <div class="mb-3">
-                            <label for="employeeName" class="form-label">Họ và tên <span class="text-danger">*</span></label>
-                            <input type="text" required class="form-control" id="employeeName" placeholder="Nhập họ và tên">
-                        </div>
-                    </div>
-                    <div class="col-md-6">
-                        <div class="mb-3">
-                            <label for="employeeEmail" class="form-label">Email <span class="text-danger">*</span></label>
-                            <input type="email" required class="form-control" id="employeeEmail" placeholder="Nhập email">
+        <!-- Statistics Cards -->
+        <div class="container-fluid px-4 py-4">
+            <div class="row g-4">
+                <div class="col-md-3">
+                    <div class="stats-card fade-in">
+						<div class="d-flex justify-content-between align-items-center">
+							<div class="fs-1 text-primary">
+								<i class="fas fa-users"></i>
+							</div>
+                            <div>
+                                <p class="text-muted mb-1">Tổng Khách Hàng</p>
+                                <h3 class="mb-0 fw-bold" id="totalCustomers">0</h3>
+                            </div>
                         </div>
                     </div>
                 </div>
-                <div class="row">
-                    <div class="col-md-6">
-                        <div class="mb-3">
-                            <label for="employeePhone" class="form-label">Số điện thoại</label>
-                            <input type="tel" class="form-control" id="employeePhone" placeholder="Nhập số điện thoại">
-                        </div>
-                    </div>
-                    <div class="col-md-6">
-                        <div class="mb-3">
-                            <label for="employeeRole" class="form-label">Vai trò <span class="text-danger">*</span></label>
-                            <select class="form-select" id="employeeRole" required>
-                                <option value="">Chọn vai trò</option>
-                                <option value="1">Admin</option>
-                                <option value="2">Saler</option>
-                                <option value="3">Customer</option>
-                            </select>
+                <div class="col-md-3">
+                    <div class="stats-card fade-in" style="animation-delay: 0.1s; border-left-color: var(--success-color)">
+						<div class="d-flex justify-content-between align-items-center">
+							<div class="fs-1 text-success">
+								<i class="fas fa-user-check"></i>
+							</div>
+                            <div>
+                                <p class="text-muted mb-1">Đang Hoạt Động</p>
+                                <h3 class="mb-0 fw-bold text-success" id="activeCustomers">0</h3>
+                            </div>
                         </div>
                     </div>
                 </div>
-                <div class="mb-3" id="passwordGroup" style="display: none;">
-                    <label for="employeePassword" class="form-label">Mật khẩu <span class="text-danger">*</span></label>
-                    <input type="password" required class="form-control" id="employeePassword" placeholder="Nhập mật khẩu">
-                    <div class="form-text">Mật khẩu phải có ít nhất 6 ký tự</div>
+                <div class="col-md-3">
+                    <div class="stats-card fade-in" style="animation-delay: 0.2s; border-left-color: var(--warning-color)">
+						<div class="d-flex justify-content-between align-items-center">
+							<div class="fs-1 text-warning">
+								<i class="fas fa-user-lock"></i>
+							</div>
+                            <div>
+                                <p class="text-muted mb-1">Bị Khóa</p>
+                                <h3 class="mb-0 fw-bold text-warning" id="lockedCustomers">0</h3>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                @* <div class="col-md-3">
+                    <div class="stats-card fade-in" style="animation-delay: 0.3s; border-left-color: var(--info-color)">
+                        <div class="d-flex justify-content-between align-items-center">
+                            <div class="fs-1 text-info">
+                                <i class="fas fa-user-tag"></i>
+                            </div>
+                        </div>
+                        <div>
+                            <p class="text-muted mb-1">Khách Hàng</p>
+                            <h3 class="mb-0 fw-bold text-info" id="customerRoleCount">0</h3>
+                        </div>
+                    </div>
+                </div> *@
+            </div>
+        </div>
+
+        <!-- Filter Section -->
+        <div class="table-container">
+            <div class="filter-section">
+                <div class="row g-3">
+                    <div class="col-md-6">
+                        <input type="text" class="form-control search-box" id="searchInput" placeholder="🔍 Tìm theo tên, email, SĐT...">
+                    </div>
+                    <div class="col-md-4">
+                        <select class="form-select" id="statusFilter">
+                            <option value="">Tất cả trạng thái</option>
+                            <option value="Active">Đang hoạt động</option>
+                            <option value="Locked">Bị khóa</option>
+                        </select>
+                    </div>
+                    <div class="col-md-2">
+                        <button class="btn btn-primary w-100" onclick="applyFilters()">
+                            <i class="fas fa-filter me-2"></i>Lọc
+                        </button>
+                    </div>
                 </div>
             </div>
-            <div class="modal-footer">
-                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Đóng</button>
-                <button type="submit" class="btn btn-success">Lưu nhân viên</button>
+
+            <!-- Table -->
+            <div class="table-responsive">
+                <table class="table custom-table">
+                    <thead>
+                        <tr>
+                            <th width="5%">
+                                <input type="checkbox" class="form-check-input" id="selectAll">
+                            </th>
+                            <th width="30%">Họ và Tên</th>
+                            <th width="25%">Email</th>
+                            <th width="20%">Số Điện Thoại</th>
+                            <th width="10%">Trạng Thái</th>
+                            <th width="10%">Thao Tác</th>
+                        </tr>
+                    </thead>
+                    <tbody id="customerTableBody">
+                        <!-- Data populated by JS -->
+                    </tbody>
+                </table>
             </div>
-        </form>
+
+            <!-- Pagination -->
+            <div class="d-flex justify-content-between align-items-center mt-4">
+                <div class="text-muted">
+                    Hiển thị <span id="showingCount">1-10</span> trong tổng số <span id="totalCount">0</span> khách hàng
+                </div>
+                <nav>
+                    <ul class="pagination mb-0" id="pagination">
+                        <!-- Pagination will be generated by JavaScript -->
+                    </ul>
+                </nav>
+            </div>
+        </div>
     </div>
-</div>
 
-@functions {
-    public string GetRoleBadgeClass(string roleName)
-    {
-        return roleName switch
-        {
-            "Admin" => "bg-danger",
-            "Saler" => "bg-warning",
-            "Customer" => "bg-info",
-            _ => "bg-secondary"
-        };
-    }
-}
+    <!-- Add/Edit Customer Modal -->
+    <div class="modal fade" id="customerModal" tabindex="-1">
+        <div class="modal-dialog modal-dialog-centered modal-lg">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="modalTitle">
+                        <i class="fas fa-user-plus me-2"></i>Thêm Khách Hàng
+                    </h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
 
-<script src="~/js/AdminEmployee.js"></script>
+                <div class="modal-body">
+                    <form id="customerForm" novalidate>
+                        <input type="hidden" id="customerId" name="UserId" value="0" />
+
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label for="fullName" class="form-label">Họ và Tên <span class="text-danger">*</span></label>
+                                <input type="text" class="form-control" id="fullName" name="FullName" required placeholder="Ví dụ: Nguyễn Văn A">
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label for="email" class="form-label">Email</label>
+                                <input type="email" class="form-control" id="email" name="Email" placeholder="example@email.com">
+                            </div>
+                        </div>
+
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label for="phoneNumber" class="form-label">Số Điện Thoại <span class="text-danger">*</span></label>
+                                <input type="tel" class="form-control" id="phoneNumber" name="PhoneNumber" required placeholder="0901234567">
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label for="password" class="form-label">Mật Khẩu <span class="text-danger" id="passwordRequired">*</span></label>
+                                <div class="input-group">
+                                    <input type="password" class="form-control" id="password" name="Password" required placeholder="Nhập mật khẩu">
+                                    <button class="btn btn-outline-secondary" type="button" onclick="togglePassword()">
+                                        <i class="fas fa-eye"></i>
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label for="roleId" class="form-label">Vai Trò <span class="text-danger">*</span></label>
+                                <select class="form-select" id="roleId" name="RoleId" required>
+                                    <option value="">-- Chọn vai trò --</option>
+                                    <option value="3">Khách hàng</option>
+                                </select>
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label for="status" class="form-label">Trạng Thái <span class="text-danger">*</span></label>
+                                <select class="form-select" id="status" name="Status" required>
+                                    <option value="Active">Đang hoạt động</option>
+                                    <option value="Locked">Bị khóa</option>
+                                </select>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
+                        <i class="fas fa-times me-2"></i>Hủy
+                    </button>
+                    <button type="button" class="btn btn-primary" id="saveBtn">
+                        <i class="fas fa-save me-2"></i>Lưu
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Delete Confirmation Modal -->
+    <div class="modal fade" id="deleteModal" tabindex="-1">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content">
+                <div class="modal-header bg-danger text-white">
+                    <h5 class="modal-title">
+                        <i class="fas fa-trash-alt me-2"></i>Xác Nhận Xóa
+                    </h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <p class="mb-2">Bạn chắc chắn muốn xóa khách hàng này?</p>
+                    <p class="text-muted"><strong>Thao tác này không thể hoàn tác.</strong></p>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Hủy</button>
+                    <button type="button" class="btn btn-danger" id="confirmDeleteBtn">
+                        <i class="fas fa-check me-2"></i>Xóa
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.2/js/bootstrap.bundle.min.js"></script>
+    <script src="/js/ManageCustomers.js"></script>
+</body>
+</html>

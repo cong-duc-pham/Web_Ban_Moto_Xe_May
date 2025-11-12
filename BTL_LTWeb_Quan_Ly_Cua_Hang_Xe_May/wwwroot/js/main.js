@@ -1,4 +1,4 @@
-﻿// ==================== UTILITY FUNCTIONS ====================
+﻿
 function formatPrice(price) {
     return price.toString().replace(/\B(?=(\d{3})+(?!\d))/g, '.') + ' đ';
 }
@@ -14,7 +14,6 @@ function escapeHtml(text) {
     div.textContent = text;
     return div.innerHTML;
 }
-// ==================== ACTIVITY MODAL FUNCTIONS ====================
 let modalState = {
     isOpen: false,
     liked: false,
@@ -311,7 +310,6 @@ function initActivityModal() {
     });
 }
 
-// ==================== CAROUSEL FUNCTIONALITY ====================
 function initCarousels() {
     const carousels = document.querySelectorAll('.carousel-wrapper');
 
@@ -375,7 +373,6 @@ function initCarousels() {
     });
 }
 
-// ==================== TAB FUNCTIONALITY ====================
 function initTabs() {
     document.querySelectorAll('.tab-chip').forEach(tab => {
         tab.addEventListener('click', function () {
@@ -386,7 +383,6 @@ function initTabs() {
     });
 }
 
-// ==================== SEARCH FUNCTIONALITY ====================
 function initSearch() {
     const searchBtn = document.getElementById('searchBtn');
     const searchInput = document.getElementById('searchInput');
@@ -413,7 +409,6 @@ function initSearch() {
     });
 }
 
-// ==================== FAVORITE FUNCTIONALITY ====================
 function initFavorites() {
     const favorites = JSON.parse(localStorage.getItem('favorites') || '[]');
 
@@ -451,7 +446,6 @@ function initFavorites() {
     }, 100);
 }
 
-// ==================== MOBILE MENU ====================
 function initMobileMenu() {
     const menuToggle = document.getElementById('mobileMenuToggle');
     const mobileMenu = document.getElementById('mobileMenu');
@@ -472,7 +466,6 @@ function initMobileMenu() {
     });
 }
 
-// ==================== INITIALIZATION ====================
 document.addEventListener('DOMContentLoaded', () => {
     renderLatestListings();
     renderOfficialStores();
@@ -486,9 +479,9 @@ document.addEventListener('DOMContentLoaded', () => {
     initSearch();
     initFavorites();
     initMobileMenu();
-    initActivityModal(); // ✅ Initialize modal
+    initActivityModal(); //  Initialize modal
 
-    console.log('✅ Chợ Tốt Xe loaded with Activity Modal!');
+    console.log('loaded with Activity Modal!');
 });
 
 const swiper = new Swiper(".swiper-container", {
@@ -512,7 +505,6 @@ const swiper1 = new Swiper(".swiper-container1", {
     },
 });
 
-// ==================== LOAD BEST SELLING VEHICLES ====================
 async function loadBestSellingVehicles() {
     try {
         const response = await fetch('/Home/GetBestSellingVehicles?count=5');
@@ -561,14 +553,12 @@ function renderBestSellingVehicles(vehicles) {
     `).join('');
 }
 
-// ==================== LOAD LATEST VEHICLES ====================
 async function loadLatestVehicles() {
     try {
         const response = await fetch('/Home/GetAllVehicles');
         const result = await response.json();
 
         if (result.success && result.data.length > 0) {
-            // Get latest 10 vehicles
             const latestVehicles = result.data
                 .sort((a, b) => new Date(b.postedAt) - new Date(a.postedAt))
                 .slice(0, 10);
@@ -621,8 +611,6 @@ function renderLatestVehicles(vehicles) {
         `;
     }).join('');
 }
-
-// ==================== UTILITY FUNCTIONS ====================
 function getTimeAgo(date) {
     const now = new Date();
     const diff = now - date;
@@ -677,7 +665,6 @@ function updateFavoriteUI(vehicleId, isFavorite) {
     }
 }
 
-// ==================== INIT ====================
 document.addEventListener('DOMContentLoaded', function () {
     // Load vehicles for homepage
     loadLatestVehicles();
@@ -690,3 +677,107 @@ document.addEventListener('DOMContentLoaded', function () {
         updateFavoriteUI(id, true);
     });
 });
+// xy ly cho them xoa yeu thich
+onclick = "event.stopPropagation(); toggleFavorite(${vehicle.vehicleId}, this)"
+
+async function toggleFavorite(vehicleId, btn) {
+    try {
+        const res = await fetch('/Home/ToggleFavorite', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+            body: `vehicleId=${encodeURIComponent(vehicleId)}`
+        });
+
+        const json = await res.json();
+
+        if (!json.success) {
+            if (json.needLogin) {
+                window.location.href = '/Account/Login';
+                return;
+            }
+            alert(json.message || 'Lỗi yêu thích');
+            return;
+        }
+
+        const isAdded = json.action === 'added';
+        updateFavoriteUI(vehicleId, isAdded, btn);
+        // optional: small toast/alert
+        // alert(json.message || (isAdded ? 'Đã thêm vào yêu thích' : 'Đã xóa khỏi yêu thích'));
+    } catch (err) {
+        console.error('toggleFavorite error', err);
+        alert('Lỗi khi thao tác yêu thích');
+    }
+}
+
+function updateFavoriteUI(vehicleId, isFavorite, btn) {
+    const buttons = new Set();
+    if (btn) buttons.add(btn);
+
+    document.querySelectorAll('.listing-card[data-vehicle-id]').forEach(card => {
+        if (Number(card.getAttribute('data-vehicle-id')) === Number(vehicleId)) {
+            const b = card.querySelector('.favorite-btn, .product-favorite');
+            if (b) buttons.add(b);
+        }
+    });
+
+    document.querySelectorAll(`.product-favorite[data-id="${vehicleId}"]`).forEach(el => buttons.add(el));
+
+    buttons.forEach(b => {
+        const icon = b.querySelector('i');
+        if (isFavorite) {
+            if (icon) { icon.classList.remove('far'); icon.classList.add('fas'); }
+            b.classList.add('active');
+        } else {
+            if (icon) { icon.classList.remove('fas'); icon.classList.add('far'); }
+            b.classList.remove('active');
+        }
+    });
+}
+
+// js cho phan thong bao khi chua dang nhap
+async function toggleFavorite(vehicleId, btn) {
+    try {
+        const res = await fetch('/Home/ToggleFavorite', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+            body: `vehicleId=${encodeURIComponent(vehicleId)}`
+        });
+
+        const json = await res.json();
+
+        if (!json.success) {
+            if (json.needLogin) {
+                const returnUrl = encodeURIComponent(window.location.pathname + window.location.search);
+                const loginUrl = `/Account/Login?returnUrl=${returnUrl}`;
+
+                Swal.fire({
+                    title: 'Cần đăng nhập',
+                    text: 'Bạn cần đăng nhập tài khoản mới có thể thêm vào yêu thích',
+                    icon: 'warning',
+                    showCancelButton: true,
+                    confirmButtonColor: '#ffba00',
+                    cancelButtonColor: '#d33',
+                    confirmButtonText: 'Đăng nhập',
+                    cancelButtonText: 'Hủy'
+                }).then((result) => {
+                    if (result.isConfirmed) {
+                        window.location.href = loginUrl;
+                    }
+                });
+
+                return;
+            }
+
+            showNotification(json.message || 'Lỗi yêu thích', 'error');
+            return;
+        }
+
+        const isAdded = json.action === 'added';
+        updateFavoriteUI(vehicleId, isAdded, btn);
+
+        showNotification(json.message || (isAdded ? 'Đã thêm vào yêu thích' : 'Đã xóa khỏi yêu thích'), isAdded ? 'success' : 'info');
+    } catch (err) {
+        console.error('toggleFavorite error:', err);
+        showNotification('Lỗi khi thao tác yêu thích', 'error');
+    }
+}

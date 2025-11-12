@@ -103,11 +103,7 @@ document.addEventListener("DOMContentLoaded", function () {
 
     // Gán sự kiện click cho nút "Grid View" (fas fa-th)
     gridViewBtn.addEventListener("click", function () {
-
-        // THÊM DÒNG NÀY ĐỂ KIỂM TRA:
         console.log("ĐÃ NHẤN NÚT GRID");
-
-        // Code cũ
         gridViewBtn.classList.add("active");
         listViewBtn.classList.remove("active");
         listingsContainer.classList.add("grid-view");
@@ -115,11 +111,7 @@ document.addEventListener("DOMContentLoaded", function () {
 
     // Gán sự kiện click cho nút "List View" (fas fa-list)
     listViewBtn.addEventListener("click", function () {
-
-        // (Bạn cũng có thể thêm 1 dòng log ở đây nếu muốn)
         console.log("ĐÃ NHẤN NÚT LIST");
-
-        // Code cũ
         listViewBtn.classList.add("active");
         gridViewBtn.classList.remove("active");
         listingsContainer.classList.remove("grid-view");
@@ -147,7 +139,6 @@ document.addEventListener('DOMContentLoaded', function () {
             clearFilters(); // Xóa lọc nâng cao
             clearPrice();   // Xóa giá
             clearStatus();  // Xóa tình trạng 
-
             // Cập nhật lại giao diện bộ lọc
             renderActiveFilters();
         });
@@ -201,58 +192,53 @@ function renderVehicles() {
 }
 
 // Create card
-// HÀM MỚI: Dùng Bootstrap 5
 function createVehicleCard(vehicle) {
-    // 1. Lấy ảnh
+    //  Lấy ảnh
     const primaryImage = vehicle.vehicleImages?.find(img => img.isPrimary) || vehicle.vehicleImages?.[0];
     const imagePath = primaryImage?.imagePath || '/images/default-vehicle.jpg';
 
-    // 2. Lấy thông tin
+    //  Lấy thông tin
     const price = vehicle.salePrice ? formatPrice(vehicle.salePrice) : 'Liên hệ';
     const brand = vehicle.brand?.brandName || '';
     const category = vehicle.category?.categoryName || '';
     const year = vehicle.manufactureYear || '';
     const condition = vehicle.condition || 'Chưa cập nhật';
 
-    // 3. Tính toán thời gian
+    //  Tính toán thời gian
     const timeAgo = getTimeAgo(new Date(vehicle.postedAt));
 
-    // 4. Kiểm tra yêu thích (giả sử bạn có mảng favoriteVehicles)
-    // const isFavorite = favoriteVehicles.includes(vehicle.vehicleId);
-    // const favoriteIconClass = isFavorite ? 'fas' : 'far';
-
-    // Đây là cấu trúc HTML sử dụng các lớp Bootstrap 5
+    //  Kiểm tra yêu thích
     return `
-<div class="card listing-card mb-3" data-vehicle-id="${vehicle.vehicleId}">
-    <div class="row g-0">
-        <div class="col-md-4 col-lg-3 position-relative">
-            <img src="${imagePath}" class="card-img-top listing-image" alt="${vehicle.title}">
+    <div class="card listing-card mb-3" data-vehicle-id="${vehicle.vehicleId}">
+        <div class="row g-0">
+            <div class="col-md-4 col-lg-3 position-relative">
+                <img src="${imagePath}" class="card-img-top listing-image" alt="${vehicle.title}">
             
-            <span class="badge bg-dark text-white position-absolute top-0 start-0 m-2">${timeAgo}</span>
-            <button class="btn btn-light btn-sm position-absolute bottom-0 end-0 m-2 favorite-btn" 
-                    onclick="toggleFavorite(${vehicle.vehicleId}, this)">
-                <i class="far fa-heart"></i> 
-            </button>
-        </div>
-        <div class="col-md-8 col-lg-9">
-            <div class="card-body h-100 d-flex flex-column">
-                <h5 class="card-title listing-title">${vehicle.title}</h5>
-                <h6 class="card-price text-danger fw-bold mb-2">${price}</h6>
+                <span class="badge bg-dark text-white position-absolute top-0 start-0 m-2">${timeAgo}</span>
+                <button class="btn btn-light btn-sm position-absolute bottom-0 end-0 m-2 favorite-btn" 
+                        onclick="toggleFavorite(${vehicle.vehicleId}, this)">
+                    <i class="far fa-heart"></i> 
+                </button>
+            </div>
+            <div class="col-md-8 col-lg-9">
+                <div class="card-body h-100 d-flex flex-column">
+                    <h5 class="card-title listing-title">${vehicle.title}</h5>
+                    <h6 class="card-price text-danger fw-bold mb-2">${price}</h6>
                 
-                <div class="card-meta text-muted small mb-2">
-                    ${year ? `<span>${year}</span>` : ''}
-                    ${category ? `<span>${category}</span>` : ''}
-                    ${condition ? `<span>${condition}</span>` : ''}
+                    <div class="card-meta text-muted small mb-2">
+                        ${year ? `<span>${year}</span>` : ''}
+                        ${category ? `<span>${category}</span>` : ''}
+                        ${condition ? `<span>${condition}</span>` : ''}
+                    </div>
+                
+                    <p class="card-location text-muted small mt-auto mb-0">
+                        <i class="fas fa-map-marker-alt me-1"></i>
+                        ${vehicle.store?.address || 'Chưa có địa chỉ'}
+                    </p>
                 </div>
-                
-                <p class="card-location text-muted small mt-auto mb-0">
-                    <i class="fas fa-map-marker-alt me-1"></i>
-                    ${vehicle.store?.address || 'Chưa có địa chỉ'}
-                </p>
             </div>
         </div>
     </div>
-</div>
     `;
 }
 // Tính thời gian 
@@ -528,10 +514,8 @@ function formatPrice(price) {
 }
 
 function showNotification(message, type = 'success') {
-    // Simple notification (you can use a library like Toastr for better UI)
     alert(message);
 }
-// HÀM MỚI: Hiển thị các bộ lọc đang hoạt động ra sidebar
 function renderActiveFilters() {
     const container = document.getElementById('active-filters-container');
     const display = document.getElementById('active-filters-display');
@@ -577,4 +561,125 @@ function clearPriceAndApply() {
 function removeFilterAndApply(value) {
     removeFilter(value); //
     applyFilters(); //
+}
+// xy ly viec them xoa yeu thich
+
+async function toggleFavorite(vehicleId, btn) {
+    try {
+        // POST form-encoded
+        const res = await fetch('/Home/ToggleFavorite', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+            body: `vehicleId=${encodeURIComponent(vehicleId)}`
+        });
+
+        const json = await res.json();
+
+        if (!json.success) {
+            if (json.needLogin) {
+                // redirect to login
+                window.location.href = '/Account/Login';
+                return;
+            }
+            showNotification(json.message || 'Lỗi yêu thích', 'error');
+            return;
+        }
+
+        const isAdded = json.action === 'added';
+        updateFavoriteUI(vehicleId, isAdded, btn);
+
+        showNotification(json.message || (isAdded ? 'Đã thêm vào yêu thích' : 'Đã xóa khỏi yêu thích'), isAdded ? 'success' : 'info');
+    } catch (err) {
+        console.error('toggleFavorite error:', err);
+        showNotification('Lỗi khi thao tác yêu thích', 'error');
+    }
+}
+
+function updateFavoriteUI(vehicleId, isFavorite, btn) {
+    // collect target buttons for this vehicle across different card renderings
+    const buttons = new Set();
+
+    if (btn) buttons.add(btn);
+
+    // buttons inside listing cards that contain data-vehicle-id
+    document.querySelectorAll('.listing-card[data-vehicle-id]').forEach(card => {
+        const id = Number(card.getAttribute('data-vehicle-id'));
+        if (id === Number(vehicleId)) {
+            const b = card.querySelector('.favorite-btn, .product-favorite');
+            if (b) buttons.add(b);
+        }
+    });
+
+    // product-favorite elements with data-id attribute
+    document.querySelectorAll(`.product-favorite[data-id="${vehicleId}"]`).forEach(el => buttons.add(el));
+
+    // also check generic favorite-btn that might be placed elsewhere
+    document.querySelectorAll('.favorite-btn').forEach(b => {
+        if (!buttons.has(b)) {
+            const card = b.closest('[data-vehicle-id]');
+            if (card && Number(card.getAttribute('data-vehicle-id')) === Number(vehicleId)) {
+                buttons.add(b);
+            }
+        }
+    });
+
+    buttons.forEach(b => {
+        const icon = b.querySelector('i');
+        if (isFavorite) {
+            if (icon) { icon.classList.remove('far'); icon.classList.add('fas'); }
+            b.classList.add('active');
+        } else {
+            if (icon) { icon.classList.remove('fas'); icon.classList.add('far'); }
+            b.classList.remove('active');
+        }
+    });
+}
+// js cho phan thong bao khi chua dang nhap
+async function toggleFavorite(vehicleId, btn) {
+    try {
+        // POST form-encoded
+        const res = await fetch('/Home/ToggleFavorite', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+            body: `vehicleId=${encodeURIComponent(vehicleId)}`
+        });
+
+        const json = await res.json();
+
+        if (!json.success) {
+            if (json.needLogin) {
+                // Show SweetAlert2 popup for login confirmation
+                const returnUrl = encodeURIComponent(window.location.pathname + window.location.search);
+                const loginUrl = `/Account/Login?returnUrl=${returnUrl}`;
+
+                Swal.fire({
+                    title: 'Cần đăng nhập',
+                    text: 'Bạn cần đăng nhập tài khoản mới có thể thêm vào yêu thích',
+                    icon: 'warning',
+                    showCancelButton: true,
+                    confirmButtonColor: '#ffba00',
+                    cancelButtonColor: '#d33',
+                    confirmButtonText: 'Đăng nhập',
+                    cancelButtonText: 'Hủy'
+                }).then((result) => {
+                    if (result.isConfirmed) {
+                        window.location.href = loginUrl;
+                    }
+                    // if cancelled -> do nothing (don't add favorite)
+                });
+
+                return;
+            }
+
+            showNotification(json.message || 'Lỗi yêu thích', 'error');
+            return;
+        }
+
+        const isAdded = json.action === 'added';
+        updateFavoriteUI(vehicleId, isAdded, btn);
+
+    } catch (err) {
+        console.error('toggleFavorite error:', err);
+        showNotification('Lỗi khi thao tác yêu thích', 'error');
+    }
 }

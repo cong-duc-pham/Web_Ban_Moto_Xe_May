@@ -66,7 +66,114 @@ namespace BTL_LTWeb_Quan_Ly_Cua_Hang_Xe_May.Controllers
 
             return View(users);
         }
+        public async Task<IActionResult> ManageCustomers()
+        {
+            return View();
+        }
+        // API endpoint: toggle favorite (add/remove)
+        [HttpPost]
+        public async Task<IActionResult> ToggleFavorite([FromForm] int vehicleId)
+        {
+            try
+            {
+                var userId = HttpContext.Session.GetInt32("UserId");
+                if (!userId.HasValue)
+                {
+                    return Json(new { success = false, needLogin = true, message = "Vui lòng đăng nhập để thực hiện chức năng này." });
+                }
 
+                // try to find existing favorite
+                var existing = await _context.Favorites.FirstOrDefaultAsync(f => f.UserId == userId.Value && f.VehicleId == vehicleId);
+                if (existing != null)
+                {
+                    _context.Favorites.Remove(existing);
+                    await _context.SaveChangesAsync();
+                    return Json(new { success = true, action = "removed", message = "Đã xóa khỏi yêu thích" });
+                }
+
+                var fav = new Favorite
+                {
+                    UserId = userId.Value,
+                    VehicleId = vehicleId,
+                    CreatedAt = DateTime.Now
+                };
+
+                _context.Favorites.Add(fav);
+                await _context.SaveChangesAsync();
+
+                return Json(new { success = true, action = "added", message = "Đã thêm vào yêu thích" });
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "ToggleFavorite error");
+                return Json(new { success = false, message = ex.Message });
+            }
+        }
+        [HttpGet]
+        public async Task<IActionResult> GetLatestVehicles(int count = 8)
+        {
+            try
+            {
+                var vehicles = await _xeMayService.GetAllVehiclesAsync();
+
+                // Kiểm tra quyền: Admin/Saler thấy tất cả, khách hàng chỉ thấy xe còn hàng
+                var isAdminOrSaler = IsAdminOrSaler();
+
+                if (!isAdminOrSaler)
+                {
+                    vehicles = vehicles.Where(v => v.StockQuantity > 0).ToList();
+                }
+
+                // Lấy xe mới nhất
+                var latestVehicles = vehicles
+                    .OrderByDescending(v => v.PostedAt)
+                    .Take(count)
+                    .Select(v => new
+                    {
+                        vehicleId = v.VehicleId,
+                        title = v.Title,
+                        model = v.Model,
+                        condition = v.Condition,
+                        manufactureYear = v.ManufactureYear,
+                        salePrice = v.SalePrice,
+                        originalPrice = v.OriginalPrice,
+                        status = v.Status,
+                        stockQuantity = v.StockQuantity,
+                        postedAt = v.PostedAt,
+                        brand = v.Brand != null ? new
+                        {
+                            brandId = v.Brand.BrandId,
+                            brandName = v.Brand.BrandName
+                        } : null,
+                        category = v.Category != null ? new
+                        {
+                            categoryId = v.Category.CategoryId,
+                            categoryName = v.Category.CategoryName
+                        } : null,
+                        store = v.Store != null ? new
+                        {
+                            storeId = v.Store.StoreId,
+                            storeName = v.Store.StoreName,
+                            address = v.Store.Address
+                        } : null,
+                        vehicleImages = v.VehicleImages.Select(img => new
+                        {
+                            imageId = img.ImageId,
+                            imagePath = img.ImagePath,
+                            isPrimary = img.IsPrimary,
+                            displayOrder = img.DisplayOrder
+                        }).OrderBy(img => img.displayOrder).ToList()
+                    })
+                    .ToList();
+
+                return Json(latestVehicles);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Lỗi khi lấy xe mới nhất");
+                return Json(new { success = false, message = ex.Message });
+            }
+        }
 
         [HttpPost]
         public IActionResult AddEmployee(User user)

@@ -1521,17 +1521,12 @@ body {
 
 /* --- Responsive cho Grid View --- */
 
-/* * 5. Trên tablet: Chuyển về 2 cột cho đỡ chật 
- */
 @media (max-width: 991.98px) and (min-width: 769px) {
     .listings-container.grid-view {
         grid-template-columns: repeat(2, 1fr); /* Chuyển thành 2 cột */
     }
 }
 
-/* * 6. Trên mobile: Tắt grid và quay về layout 1 cột (giống list view)
- * vì file CSS gốc của bạn đã xử lý 1 cột cho mobile rồi.
- */
 @media (max-width: 768px) {
     .listings-container.grid-view {
         display: block; /* Tắt grid, quay về layout block 1 cột */
@@ -1542,7 +1537,6 @@ body {
             margin-bottom: 16px;
         }
 }
-/* ==================== THÊM VÀO AllVehicles.css ==================== */
 
 /* Province List Styles */
 .province-list {
@@ -1919,3 +1913,63 @@ body {
         min-height: 200px;
         border-radius: var(--bs-border-radius-lg) var(--bs-border-radius-lg) 0 0;
     }
+.card .position-absolute.badge {
+    top: auto !important;
+    bottom: 8px !important;
+    left: 8px !important;
+    right: auto !important;
+    transform: none !important;
+    z-index: 3; /* đảm bảo nằm trên ảnh nhưng dưới các nút nếu cần thay đổi */
+    padding: 6px 10px;
+    border-radius: 6px;
+    background-color: rgba(0,0,0,0.75);
+    color: #fff;
+    font-size: 12px;
+}
+/*/css fix for AllVehicles list vieư*/
+/* Fix for AllVehicles list view: widen left image column so badge + favorite don't overlap */
+.list - view.listing - card > .row > .col - md - 4.position - relative,
+.list - view.listing - card > .row > .col - lg - 3.position - relative {
+    flex: 0 0 240px !important;
+    max - width: 240px !important; /* adjust width as needed (220-260px) */
+}
+
+/* Let the right column take remaining space */
+.list - view.listing - card > .row > .col - md - 8,
+.list - view.listing - card > .row > .col - lg - 9 {
+    flex: 1 1 auto !important;
+    max - width: calc(100 % - 240px) !important;
+}
+
+/* Add a small gutter inside image wrapper so absolute elements aren't flush to the edge */
+.list - view.card - img - wrapper {
+    box - sizing: border - box;
+    padding: 6px;
+    overflow: visible; /* allow badges/buttons to be visible */
+}
+
+    /* Ensure badge and favorite button appear above the image */
+    .list - view.card - img - wrapper.badge,
+    .list - view.card - img - wrapper.favorite - btn,
+    .list - view.card - img - wrapper.product - favorite {
+        z - index: 20;
+    }
+
+/* Keep behavior on small screens unchanged */
+@media(max - width: 767.98px) {
+    .list - view.listing - card > .row > .col - md - 4.position - relative,
+    .list - view.listing - card > .row > .col - lg - 3.position - relative {
+        flex: 0 0 50 % !important;
+        max - width: 50 % !important;
+    }
+
+    .list - view.listing - card > .row > .col - md - 8,
+    .list - view.listing - card > .row > .col - lg - 9 {
+        max - width: 50 % !important;
+    }
+
+    .list - view.card - img - wrapper {
+        padding: 0;
+        overflow: hidden;
+    }
+}
