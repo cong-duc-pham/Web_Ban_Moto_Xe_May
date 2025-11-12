@@ -1,43 +1,139 @@
-﻿
+﻿@model BTL_LTWeb_Quan_Ly_Cua_Hang_Xe_May.Models.Entities.User
+
 @section Styles {
     <link rel="stylesheet" href="~/css/Register.css" />
 }
 
-<form asp-action="Register" asp-controller="Account" method="post" class="login-box">
+<form asp-action="Register" asp-controller="Account" method="post" class="login-box" id="registerForm">
     <div class="title-login">
         <h1>ĐĂNG KÝ TÀI KHOẢN</h1>
     </div>
-    <div class="text-box-login">
-        <div class="name-login">
-            <span>Tên đăng nhập</span>
-            <input type="text" name="TenDangNhap" value="@Model?.TenDangNhap" placeholder="Nhập tên đăng nhập" required>
-        </div>
-        <div class="password-login">
-            <span>Mật khẩu</span>
-            <input type="password" name="MatKhau" placeholder="Nhập mật khẩu" required>
-        </div>
-        <div class="confirm-password">
-            <span>Xác nhận mật khẩu</span>
-            <input type="password" name="ConfirmPassword" placeholder="Nhập lại mật khẩu" required>
-        </div>
-        
-        <div class="email-login">
-            <span>Địa chỉ email</span>
-            <input type="email" name="Email" value="@Model?.Email" placeholder="Nhập địa chỉ email" required>
-        </div>
-    </div>
-    <div class="button-signup">
-        <button type="submit">
-            <span>Đăng ký</span>
-        </button>
-    </div>
+
+    @* THÔNG BÁO *@
+    @if (TempData["ErrorMessage"] != null)
+    {
+        <div class="alert alert-danger">@TempData["ErrorMessage"]</div>
+    }
+    @if (TempData["SuccessMessage"] != null)
+    {
+        <div class="alert alert-success">@TempData["SuccessMessage"]</div>
+    }
     @if (!ViewData.ModelState.IsValid)
     {
-        <div class="error-message" style="color:red">
+        <div class="error-message">
             @foreach (var error in ViewData.ModelState.Values.SelectMany(v => v.Errors))
             {
                 <div>@error.ErrorMessage</div>
             }
         </div>
     }
+
+    @* BƯỚC 1: CHỌN LOẠI TÀI KHOẢN *@
+    <div id="step1" class="step-container">
+        <h3 class="step-title">Bạn là ai?</h3>
+        <div class="user-type-container">
+            <div class="user-type-card" onclick="selectUserType('Customer')">
+                <input type="radio" name="UserType" value="Customer" id="typeCustomer" required>
+                <label for="typeCustomer">
+                    <i class="fas fa-user-circle fa-3x"></i>
+                    <h4>Khách hàng</h4>
+                    <p>Tôi muốn mua xe</p>
+                </label>
+            </div>
+            <div class="user-type-card" onclick="selectUserType('Employee')">
+                <input type="radio" name="UserType" value="Employee" id="typeEmployee" required>
+                <label for="typeEmployee">
+                    <i class="fas fa-user-tie fa-3x"></i>
+                    <h4>Nhân viên</h4>
+                    <p>Tôi là nhân viên bán hàng</p>
+                </label>
+            </div>
+        </div>
+        <div class="button-signup">
+            <button type="button" onclick="goToStep2()">
+                Tiếp tục <i class="fas fa-arrow-right"></i>
+            </button>
+        </div>
+    </div>
+
+    @* BƯỚC 2: NHẬP THÔNG TIN *@
+    <div id="step2" class="step-container" style="display: none;">
+        <button type="button" class="btn-back" onclick="backToStep1()">
+            <i class="fas fa-arrow-left"></i> Quay lại
+        </button>
+
+        <div class="text-box-login">
+            <div class="name-login">
+                <span>Họ và tên</span>
+                <input type="text" name="FullName" placeholder="Nhập họ và tên" required>
+            </div>
+            <div class="password-login">
+                <span>Số điện thoại</span>
+                <input type="tel" name="PhoneNumber" placeholder="10-11 chữ số" pattern="[0-9]{10,11}" required>
+            </div>
+            <div class="confirm-password">
+                <span>Email</span>
+                <input type="email" name="Email" placeholder="Email (không bắt buộc)">
+            </div>
+            <div class="email-login">
+                <span>Mật khẩu</span>
+                <input type="password" name="Password" id="password" placeholder="Tối thiểu 6 ký tự" minlength="6" required>
+            </div>
+            <div class="email-login">
+                <span>Xác nhận MK</span>
+                <input type="password" name="ConfirmPassword" id="confirmPassword" placeholder="Nhập lại mật khẩu" required>
+            </div>
+        </div>
+
+        <div class="button-signup">
+            <button type="submit">
+                <i class="fas fa-check"></i> Đăng ký
+            </button>
+        </div>
+    </div>
+
+    <div class="login-link">
+        <p>Đã có tài khoản? <a asp-action="Login" asp-controller="Home">Đăng nhập ngay</a></p>
+    </div>
 </form>
+
+@section Scripts {
+    <script>
+        function selectUserType(type) {
+            if (type === 'Customer') {
+                document.getElementById('typeCustomer').checked = true;
+            } else {
+                document.getElementById('typeEmployee').checked = true;
+            }
+            document.querySelectorAll('.user-type-card').forEach(card => {
+                card.classList.remove('selected');
+            });
+            event.currentTarget.classList.add('selected');
+        }
+
+        function goToStep2() {
+            const selected = document.querySelector('input[name="UserType"]:checked');
+            if (!selected) {
+                alert('Vui lòng chọn loại tài khoản!');
+                return;
+            }
+            document.getElementById('step1').style.display = 'none';
+            document.getElementById('step2').style.display = 'block';
+        }
+
+        function backToStep1() {
+            document.getElementById('step2').style.display = 'none';
+            document.getElementById('step1').style.display = 'block';
+        }
+
+        document.getElementById('registerForm').addEventListener('submit', function(e) {
+            const password = document.getElementById('password').value;
+            const confirmPassword = document.getElementById('confirmPassword').value;
+            if (password !== confirmPassword) {
+                e.preventDefault();
+                alert('Mật khẩu xác nhận không khớp!');
+                return false;
+            }
+        });
+    </script>
+}
