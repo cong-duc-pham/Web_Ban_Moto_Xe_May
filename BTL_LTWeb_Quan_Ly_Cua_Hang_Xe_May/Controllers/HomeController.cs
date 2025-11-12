@@ -196,24 +196,59 @@ namespace BTL_LTWeb_Quan_Ly_Cua_Hang_Xe_May.Controllers
         {
             try
             {
-                if (!ModelState.IsValid)
+                // ✅ LOG ĐỂ DEBUG
+                _logger.LogInformation("=== ADD EMPLOYEE ===");
+                _logger.LogInformation($"FullName: {user.FullName}");
+                _logger.LogInformation($"Email: {user.Email}");
+                _logger.LogInformation($"RoleId: {user.RoleId}");
+                _logger.LogInformation($"Password: {(string.IsNullOrEmpty(user.Password) ? "NULL" : "OK")}");
+
+                // ✅ FORCE RoleId = 2
+                user.RoleId = 2;
+                user.Status = "Active";
+
+                // ✅ VALIDATE
+                if (string.IsNullOrWhiteSpace(user.FullName))
                 {
-                    var errors = ModelState.Values.SelectMany(v => v.Errors).Select(e => e.ErrorMessage + " [" + e.Exception?.Message + "]");
-                    return Json(new { success = false, message = "Lỗi: " + string.Join("; ", errors) });
+                    return Json(new { success = false, message = "Họ tên không được để trống!" });
                 }
-                else
+
+                if (string.IsNullOrWhiteSpace(user.Email))
                 {
-                    _context.Users.Add(user);
-                    _context.SaveChanges();
-                    return Json(new { success = true, message = "Thêm nhân viên thành công!" });
+                    return Json(new { success = false, message = "Email không được để trống!" });
                 }
+
+                if (string.IsNullOrWhiteSpace(user.Password))
+                {
+                    return Json(new { success = false, message = "Mật khẩu không được để trống!" });
+                }
+
+                if (user.Password.Length < 6)
+                {
+                    return Json(new { success = false, message = "Mật khẩu phải có ít nhất 6 ký tự!" });
+                }
+
+                // ✅ CHECK EMAIL TRÙNG
+                var existingUser = _context.Users.FirstOrDefault(u => u.Email == user.Email);
+                if (existingUser != null)
+                {
+                    return Json(new { success = false, message = "Email đã tồn tại trong hệ thống!" });
+                }
+
+                // ✅ THÊM VÀO DATABASE
+                _context.Users.Add(user);
+                _context.SaveChanges();
+
+                _logger.LogInformation($"✅ Đã thêm nhân viên: {user.FullName} (ID: {user.UserId})");
+
+                return Json(new { success = true, message = "Thêm nhân viên thành công!" });
             }
             catch (Exception ex)
             {
+                _logger.LogError(ex, "❌ Lỗi khi thêm nhân viên");
                 return Json(new { success = false, message = "Lỗi: " + ex.Message });
             }
         }
-
 
         [HttpPost]
         public IActionResult EditEmployee(User user)
