@@ -1486,6 +1486,57 @@ namespace BTL_LTWeb_Quan_Ly_Cua_Hang_Xe_May.Controllers
             }
         }
 
+        // Admin/Saler xác nhận giao hàng thất bại (chuyển Delivered -> Rejected và hủy đơn)
+        [HttpPost]
+        public async Task<IActionResult> MarkAsDeliveryFailed([FromBody] DeliveryFailedRequest request)
+        {
+            try
+            {
+                // Kiểm tra quyền: Admin hoặc Saler
+                if (!IsAdminOrSaler())
+                {
+                    return Json(new { success = false, message = "Bạn không có quyền thực hiện thao tác này!" });
+                }
+
+                // Lấy thông tin đơn hàng
+                var order = await _xeMayService.GetOrderByIdAsync(request.OrderId);
+                if (order == null)
+                {
+                    return Json(new { success = false, message = "Không tìm thấy đơn hàng!" });
+                }
+
+                // Kiểm tra đơn hàng phải ở trạng thái Delivered
+                if (order.OrderStatus != "Delivered")
+                {
+                    return Json(new { success = false, message = "Chỉ có thể đánh dấu giao hàng thất bại cho đơn hàng đang giao!" });
+                }
+
+                // Cập nhật trạng thái sang Rejected với lý do giao hàng thất bại
+                var cancelReason = $"Giao hàng không thành công. Lý do: {request.FailureReason}";
+                var result = await _xeMayService.UpdateOrderStatusAsync(request.OrderId, "Rejected", cancelReason);
+                
+                if (result)
+                {
+                    _logger.LogInformation($"Đơn hàng ID={request.OrderId} đã bị hủy do giao hàng thất bại");
+                    return Json(new { success = true, message = "Đã xác nhận giao hàng thất bại. Đơn hàng đã bị hủy." });
+                }
+
+                return Json(new { success = false, message = "Có lỗi xảy ra khi cập nhật đơn hàng!" });
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, $"Lỗi khi xác nhận giao hàng thất bại ID: {request.OrderId}");
+                return Json(new { success = false, message = $"Lỗi: {ex.Message}" });
+            }
+        }
+
+        // DTO cho request giao hàng thất bại
+        public class DeliveryFailedRequest
+        {
+            public int OrderId { get; set; }
+            public string FailureReason { get; set; } = string.Empty;
+        }
+
         [ResponseCache(Duration = 0, Location = ResponseCacheLocation.None, NoStore = true)]
         public IActionResult Error()
         {

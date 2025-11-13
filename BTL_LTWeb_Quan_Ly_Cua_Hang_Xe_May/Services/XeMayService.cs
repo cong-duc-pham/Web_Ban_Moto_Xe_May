@@ -672,6 +672,19 @@ namespace BTL_LTWeb_Quan_Ly_Cua_Hang_Xe_May.Services
                     if (order.Vehicle != null)
                     {
                         order.Vehicle.Status = "Available";
+                        Console.WriteLine($"[XeMayService] Đưa xe VehicleId={order.Vehicle.VehicleId} về trạng thái Available");
+                    }
+                }
+                else if (status == "DeliveryFailed")
+                {
+                    // Giao hàng thất bại -> Tự động chuyển sang Rejected
+                    order.OrderStatus = "Rejected";
+                    order.CancelReason = cancelReason;
+                    // Đưa xe trở lại trạng thái "Available"
+                    if (order.Vehicle != null)
+                    {
+                        order.Vehicle.Status = "Available";
+                        Console.WriteLine($"[XeMayService] Giao hàng thất bại - Đưa xe VehicleId={order.Vehicle.VehicleId} về trạng thái Available");
                     }
                 }
 

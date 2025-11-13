@@ -141,11 +141,14 @@ else
                         }
                         else if (order.OrderStatus == "Delivered")
                         {
-                            <div class="alert alert-info small mb-0">
+                            <div class="alert alert-info small mb-2">
                                 <i class="fas fa-truck"></i>
                                 <strong>Đang giao hàng</strong><br>
                                 <small>Chờ khách xác nhận nhận xe</small>
                             </div>
+                            <button class="btn btn-danger btn-sm w-100" onclick="showDeliveryFailedModal(@order.OrderId)">
+                                <i class="fas fa-exclamation-triangle"></i> Giao hàng thất bại
+                            </button>
                         }
                         else if (order.OrderStatus == "Completed")
                         {
