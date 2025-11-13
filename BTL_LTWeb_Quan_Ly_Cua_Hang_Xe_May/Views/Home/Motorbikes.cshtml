@@ -1,0 +1,237 @@
+﻿@{
+    Layout = null;
+}
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Xe máy - AutoWings</title>
+
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600&family=Roboto:wght@400;500;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="/css/AllVehicles.css" />
+    <link rel="stylesheet" href="/css/style.css" />
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/nouislider@15.7.0/dist/nouislider.min.css" />
+    <script src="https://cdn.jsdelivr.net/npm/nouislider@15.7.0/dist/nouislider.min.js"></script>
+    <link rel="stylesheet" href="/css/Motorbikes.css" />
+</head>
+<body>
+    @await Html.PartialAsync("_Header")
+
+    <div class="container bg-white mt-4 rounded-4">
+        <div class="top-bar p-3">
+            <h1 class="page-title mb-0">Xe máy - Cập nhật mới nhất</h1>
+        </div>      
+
+        <div class="filter-bar py-2">
+            <div class="container d-flex align-items-center gap-2">
+                <button class="filter-btn" onclick="openPopup('popup-filter')">Lọc</button>
+                <button class="filter-btn" onclick="openPopup('popup-price')">Giá</button>
+                <button class="filter-btn" onclick="openPopup('popup-status')">Tình trạng</button>
+                <a href="#" id="clear-all-filters-link" class="clear-filter-link ms-auto">Xoá lọc</a>
+            </div>
+        </div>
+
+        <!-- Popup filter -->
+        <div id="popup-filter" class="popup-modal" style="display:none">
+            <div class="popup-content d-flex flex-column flex-lg-row gap-3" style="max-width:980px; width:100%;">
+                <div class="popup-main flex-fill">
+                    <div class="popup-header d-flex justify-content-between align-items-center">
+                        <span>Lọc nâng cao</span>
+                        <button class="close-popup" onclick="closePopup('popup-filter')">&times;</button>
+                    </div>
+                    <div class="popup-body">
+                        <div class="filter-section">
+                            <div class="filter-title">Hãng xe</div>
+                            <div id="brand-list-short" class="d-flex flex-wrap gap-2"></div>
+                            <button class="btn btn-link p-0" onclick="openPopup('popup-brand')">Xem thêm</button>
+                        </div>
+
+                        <div class="filter-section">
+                            <div class="filter-title">Màu sắc</div>
+                            <div id="popup-colors" class="d-flex flex-wrap gap-2"></div>
+                        </div>
+
+                        <div class="filter-section">
+                            <div class="filter-title">Loại xe</div>
+                            <div id="popup-types" class="d-flex flex-wrap gap-2"></div>
+                        </div>
+
+                        <div class="filter-section">
+                            <div class="filter-title">Tình trạng</div>
+                            <div id="popup-condition" class="d-flex flex-wrap gap-2"></div>
+                        </div>
+
+                        <div class="popup-actions d-flex justify-content-between mt-3">
+                            <button class="btn btn-outline-secondary btn-sm" onclick="clearPopupFilters()">Xóa lọc</button>
+                            <button class="btn btn-primary btn-sm" onclick="applyPopupFilters()">Áp dụng</button>
+                        </div>
+                    </div>
+                </div>
+
+                <aside class="popup-right" style="width:280px;">
+                    <div class="popup-header"><strong>Đã chọn</strong></div>
+                    <div class="p-2">
+                        <div id="selected-filters">Lọc theo:</div>
+                    </div>
+                    <div class="p-2">
+                        <button class="btn btn-danger w-100 btn-sm" onclick="clearAllAndApply()">Xóa tất cả và áp dụng</button>
+                    </div>
+                </aside>
+            </div>
+        </div>
+
+        <!-- Popup brand full list -->
+        <div id="popup-brand" class="popup-modal" style="display:none">
+            <div class="popup-content" style="max-width:700px">
+                <div class="popup-header d-flex justify-content-between align-items-center">
+                    <span>Chọn hãng</span>
+                    <button class="close-popup" onclick="closePopup('popup-brand')">&times;</button>
+                </div>
+                <div class="popup-body">
+                    <input id="brand-search" class="form-control mb-2" placeholder="Tìm hãng..." oninput="filterBrandList()" />
+                    <div id="brand-list-full" class="d-flex flex-wrap gap-2"></div>
+                    <div class="popup-actions mt-2 text-end">
+                        <button class="btn btn-secondary btn-sm" onclick="closePopup('popup-brand')">Đóng</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Popup Giá -->
+        <div id="popup-price" class="popup-modal" style="display:none">
+            <div class="popup-content">
+                <div class="popup-header">
+                    <span>Chọn khoảng giá</span>
+                    <button class="close-popup" onclick="closePopup('popup-price')">&times;</button>
+                </div>
+                <div class="popup-body">
+                    <div class="price-slider-section">
+                        <div id="price-slider"></div>
+                        <div class="slider-labels"><span>0</span><span>100 triệu</span></div>
+                        <div class="price-num-wrap">
+                            <div class="price-field">
+                                <label>Giá tối thiểu</label>
+                                <input type="number" id="minPriceInput" min="0" max="100000000" value="0" onchange="updateSliderFromInput()" />
+                                <span class="currency">đ</span>
+                            </div>
+                            <span style="font-size:22px; color:#888; margin:0 9px">-</span>
+                            <div class="price-field">
+                                <label>Giá tối đa</label>
+                                <input type="number" id="maxPriceInput" min="0" max="100000000" value="100000000" onchange="updateSliderFromInput()" />
+                                <span class="currency">đ</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="popup-actions">
+                    <button onclick="clearPrice()">Xóa lọc</button>
+                    <button class="btn-primary" onclick="applyPrice()">Áp dụng</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Popup Tình trạng -->
+        <div id="popup-status" class="popup-modal" style="display:none">
+            <div class="popup-content">
+                <div class="popup-header">
+                    <span>Tình trạng</span>
+                    <button class="close-popup" onclick="closePopup('popup-status')">&times;</button>
+                </div>
+                <div class="popup-body">
+                    <label><input type="radio" name="status" value="used" onchange="selectStatus()" /> Đã sử dụng</label>
+                    <label><input type="radio" name="status" value="new" onchange="selectStatus()" /> Mới</label>
+                </div>
+                <div class="popup-actions">
+                    <button onclick="clearStatus()">Xóa lọc</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Brand strip -->
+        <div class="container py-2">
+            <div id="mb-brand-strip" class="brand-strip d-flex gap-3 overflow-auto"></div>
+        </div>
+
+        <div class="row">
+            <div class="col-lg-9">
+                <div class="tabs-section d-flex justify-content-between align-items-center mb-3">
+                    <ul class="nav nav-tabs"><li class="nav-item"><a class="nav-link active">Tất cả</a></li></ul>
+                    <div class="sort-bar d-flex align-items-center gap-3">
+                        <div class="view-toggle d-none d-md-flex">
+                            <button id="list-view-btn" class="view-btn active"><i class="fas fa-list"></i></button>
+                            <button id="grid-view-btn" class="view-btn"><i class="fas fa-th"></i></button>
+                        </div>
+                    </div>
+                </div>
+
+                <div id="listings-container" class="list-view"></div>
+            </div>
+
+            <div class="col-lg-3 mt-lg-5">
+                <div class="sidebar-section" id="active-filters-container" style="display:none;">
+                    <div class="sidebar-title">Đang lọc theo</div>
+                    <div id="active-filters-display" class="sidebar-option"></div>
+                </div>
+
+                <div class="sidebar-section" id="sb-brands">
+                    <div class="sidebar-title">Hãng xe</div>
+                </div>
+
+                <div class="sidebar-section" id="sb-colors">
+                    <div class="sidebar-title">Màu sắc</div>
+                </div>
+
+                <div class="sidebar-section" id="sb-types">
+                    <div class="sidebar-title">Loại</div>
+                </div>
+
+                <div class="sidebar-section" id="sb-condition">
+                    <div class="sidebar-title">Tình trạng</div>
+                </div>
+            </div>
+        </div>
+
+        <nav class="pagination-container" aria-label="Page navigation"></nav>
+    </div>
+
+    @await Html.PartialAsync("_Footer")
+    <script src="/js/CategoryVehicles.js"></script>
+    <script src="/js/Motorbikes.js"></script>
+<script>
+    document.addEventListener('DOMContentLoaded', function () {
+        const clearAll = document.getElementById('clear-all-filters-link');
+        if (clearAll) {
+            clearAll.addEventListener('click', function (e) {
+                e.preventDefault();
+                if (typeof window.clearAllFilters === 'function') {
+                    window.clearAllFilters();
+                } else if (typeof clearAllFilters === 'function') {
+                    clearAllFilters();
+                }
+            });
+        }
+
+        document.body.addEventListener('click', function (e) {
+            const fav = e.target.closest('.favorite-btn, .product-favorite');
+            if (!fav) return;
+            e.stopPropagation();
+            const id = fav.dataset.id || fav.getAttribute('data-id');
+            if (!id) return;
+            if (typeof window.toggleFavorite === 'function') {
+                window.toggleFavorite(Number(id), fav);
+            }
+        }, true);
+    });
+
+  if (typeof window.openPopup !== 'function') {
+    window.openPopup = function (id) { var el = document.getElementById(id); if (!el) return; el.style.display = 'flex'; el.classList && el.classList.add('active'); };
+  }
+  if (typeof window.closePopup !== 'function') {
+    window.closePopup = function (id) { var el = document.getElementById(id); if (!el) return; el.style.display = 'none'; el.classList && el.classList.remove('active'); };
+  }
+</script>
+</body>
+</html>

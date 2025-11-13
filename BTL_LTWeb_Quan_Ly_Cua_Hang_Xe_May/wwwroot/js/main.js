@@ -635,19 +635,19 @@ function formatPrice(price) {
     return price.toString().replace(/\B(?=(\d{3})+(?!\d))/g, '.') + ' đ';
 }
 
-function toggleFavorite(vehicleId) {
-    const favorites = JSON.parse(localStorage.getItem('favorites') || '[]');
-    const index = favorites.indexOf(vehicleId);
+//function toggleFavorite(vehicleId) {
+//    const favorites = JSON.parse(localStorage.getItem('favorites') || '[]');
+//    const index = favorites.indexOf(vehicleId);
 
-    if (index > -1) {
-        favorites.splice(index, 1);
-    } else {
-        favorites.push(vehicleId);
-    }
+//    if (index > -1) {
+//        favorites.splice(index, 1);
+//    } else {
+//        favorites.push(vehicleId);
+//    }
 
-    localStorage.setItem('favorites', JSON.stringify(favorites));
-    updateFavoriteUI(vehicleId, index === -1);
-}
+//    localStorage.setItem('favorites', JSON.stringify(favorites));
+//    updateFavoriteUI(vehicleId, index === -1);
+//}
 
 function updateFavoriteUI(vehicleId, isFavorite) {
     const btn = document.querySelector(`.product-favorite[data-id="${vehicleId}"]`);
@@ -680,34 +680,34 @@ document.addEventListener('DOMContentLoaded', function () {
 // xy ly cho them xoa yeu thich
 onclick = "event.stopPropagation(); toggleFavorite(${vehicle.vehicleId}, this)"
 
-async function toggleFavorite(vehicleId, btn) {
-    try {
-        const res = await fetch('/Home/ToggleFavorite', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-            body: `vehicleId=${encodeURIComponent(vehicleId)}`
-        });
+//async function toggleFavorite(vehicleId, btn) {
+//    try {
+//        const res = await fetch('/Home/ToggleFavorite', {
+//            method: 'POST',
+//            headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+//            body: `vehicleId=${encodeURIComponent(vehicleId)}`
+//        });
 
-        const json = await res.json();
+//        const json = await res.json();
 
-        if (!json.success) {
-            if (json.needLogin) {
-                window.location.href = '/Account/Login';
-                return;
-            }
-            alert(json.message || 'Lỗi yêu thích');
-            return;
-        }
+//        if (!json.success) {
+//            if (json.needLogin) {
+//                window.location.href = '/Account/Login';
+//                return;
+//            }
+//            alert(json.message || 'Lỗi yêu thích');
+//            return;
+//        }
 
-        const isAdded = json.action === 'added';
-        updateFavoriteUI(vehicleId, isAdded, btn);
-        // optional: small toast/alert
-        // alert(json.message || (isAdded ? 'Đã thêm vào yêu thích' : 'Đã xóa khỏi yêu thích'));
-    } catch (err) {
-        console.error('toggleFavorite error', err);
-        alert('Lỗi khi thao tác yêu thích');
-    }
-}
+//        const isAdded = json.action === 'added';
+//        updateFavoriteUI(vehicleId, isAdded, btn);
+//        // optional: small toast/alert
+//        // alert(json.message || (isAdded ? 'Đã thêm vào yêu thích' : 'Đã xóa khỏi yêu thích'));
+//    } catch (err) {
+//        console.error('toggleFavorite error', err);
+//        alert('Lỗi khi thao tác yêu thích');
+//    }
+//}
 
 function updateFavoriteUI(vehicleId, isFavorite, btn) {
     const buttons = new Set();
@@ -735,49 +735,49 @@ function updateFavoriteUI(vehicleId, isFavorite, btn) {
 }
 
 // js cho phan thong bao khi chua dang nhap
-async function toggleFavorite(vehicleId, btn) {
-    try {
-        const res = await fetch('/Home/ToggleFavorite', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-            body: `vehicleId=${encodeURIComponent(vehicleId)}`
-        });
+//async function toggleFavorite(vehicleId, btn) {
+//    try {
+//        const res = await fetch('/Home/ToggleFavorite', {
+//            method: 'POST',
+//            headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+//            body: `vehicleId=${encodeURIComponent(vehicleId)}`
+//        });
 
-        const json = await res.json();
+//        const json = await res.json();
 
-        if (!json.success) {
-            if (json.needLogin) {
-                const returnUrl = encodeURIComponent(window.location.pathname + window.location.search);
-                const loginUrl = `/Account/Login?returnUrl=${returnUrl}`;
+//        if (!json.success) {
+//            if (json.needLogin) {
+//                const returnUrl = encodeURIComponent(window.location.pathname + window.location.search);
+//                const loginUrl = `/Account/Login?returnUrl=${returnUrl}`;
 
-                Swal.fire({
-                    title: 'Cần đăng nhập',
-                    text: 'Bạn cần đăng nhập tài khoản mới có thể thêm vào yêu thích',
-                    icon: 'warning',
-                    showCancelButton: true,
-                    confirmButtonColor: '#ffba00',
-                    cancelButtonColor: '#d33',
-                    confirmButtonText: 'Đăng nhập',
-                    cancelButtonText: 'Hủy'
-                }).then((result) => {
-                    if (result.isConfirmed) {
-                        window.location.href = loginUrl;
-                    }
-                });
+//                Swal.fire({
+//                    title: 'Cần đăng nhập',
+//                    text: 'Bạn cần đăng nhập tài khoản mới có thể thêm vào yêu thích',
+//                    icon: 'warning',
+//                    showCancelButton: true,
+//                    confirmButtonColor: '#ffba00',
+//                    cancelButtonColor: '#d33',
+//                    confirmButtonText: 'Đăng nhập',
+//                    cancelButtonText: 'Hủy'
+//                }).then((result) => {
+//                    if (result.isConfirmed) {
+//                        window.location.href = loginUrl;
+//                    }
+//                });
 
-                return;
-            }
+//                return;
+//            }
 
-            showNotification(json.message || 'Lỗi yêu thích', 'error');
-            return;
-        }
+//            showNotification(json.message || 'Lỗi yêu thích', 'error');
+//            return;
+//        }
 
-        const isAdded = json.action === 'added';
-        updateFavoriteUI(vehicleId, isAdded, btn);
+//        const isAdded = json.action === 'added';
+//        updateFavoriteUI(vehicleId, isAdded, btn);
 
-        showNotification(json.message || (isAdded ? 'Đã thêm vào yêu thích' : 'Đã xóa khỏi yêu thích'), isAdded ? 'success' : 'info');
-    } catch (err) {
-        console.error('toggleFavorite error:', err);
-        showNotification('Lỗi khi thao tác yêu thích', 'error');
-    }
-}
+//        showNotification(json.message || (isAdded ? 'Đã thêm vào yêu thích' : 'Đã xóa khỏi yêu thích'), isAdded ? 'success' : 'info');
+//    } catch (err) {
+//        console.error('toggleFavorite error:', err);
+//        showNotification('Lỗi khi thao tác yêu thích', 'error');
+//    }
+//}

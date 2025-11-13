@@ -1,0 +1,236 @@
+﻿/* Styles for Motorbikes page filter-bar, popups, chips, sidebar and brand strip */
+body {
+    font-family: 'Inter','Roboto', system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial;
+}
+
+.brand-strip .brand-pill {
+    color:wheat;
+    cursor: pointer;
+    opacity: .9;
+    transition: .15s;
+    background-color: #ff6b00;
+}
+
+    .brand-strip .brand-pill.active {
+        transform: translateY(-2px);
+        opacity: 1;
+        background-color: #e4da6d;
+        color:#333;
+    }
+
+/* Filter bar */
+.filter-bar {
+    background: #fff;
+    border-bottom: 1px solid #ececec;
+    padding: 10px 0;
+}
+
+    .filter-bar .filter-btn {
+        background: #f5f6f7;
+        border: 1px solid #e0e0e0;
+        color: #333;
+        padding: 6px 12px;
+        border-radius: 20px;
+        font-size: 14px;
+    }
+
+        .filter-bar .filter-btn:hover {
+            background: #eeeeee;
+        }
+
+/* Clear link */
+.clear-filter-link {
+    font-size: 14px;
+    color: #6c757d;
+    text-decoration: none;
+}
+
+    .clear-filter-link:hover {
+        text-decoration: underline;
+    }
+
+/* Popup modal (simple centered panel) */
+.popup-modal {
+    position: fixed;
+    inset: 0;
+    display: none;
+    align-items: center;
+    justify-content: center;
+    background: rgba(0,0,0,0.35);
+    z-index: 1050;
+}
+
+    .popup-modal.active, .popup-modal[style*="display:flex"] {
+        display: flex !important;
+    }
+
+.popup-content {
+    background: #fff;
+    border-radius: 8px;
+    padding: 16px;
+    box-shadow: 0 8px 24px rgba(0,0,0,0.12);
+    width: 94%;
+    max-width: 980px;
+}
+
+/* Popup body layout */
+.popup-main {
+    max-height: 60vh;
+    overflow: auto;
+    padding-right: 8px;
+}
+
+.popup-right {
+    border-left: 1px solid #f0f0f0;
+    padding-left: 12px;
+}
+
+/* Filter sections */
+.filter-section {
+    margin-bottom: 12px;
+}
+
+.filter-title {
+    font-weight: 600;
+    margin-bottom: 6px;
+}
+
+/* Chips for active filters */
+.filter-chip, .chip {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    background: #f3f4f6;
+    color: #333;
+    padding: 6px 10px;
+    border-radius: 20px;
+    font-size: 13px;
+    margin-right: 8px;
+    margin-bottom: 8px;
+}
+
+    .filter-chip i.fa-times, .chip-delete {
+        cursor: pointer;
+        margin-left: 6px;
+        color: #888;
+    }
+
+/* Brand strip */
+.brand-strip {
+    padding: 8px 0;
+}
+
+.brand-pill {
+    min-width: 64px;
+    padding: 6px;
+    border-radius: 8px;
+    text-align: center;
+    cursor: pointer;
+    transition: transform .12s, box-shadow .12s;
+    background: transparent;
+}
+
+    .brand-pill img {
+        display: block;
+        margin: 0 auto;
+    }
+
+    .brand-pill.active {
+        transform: translateY(-4px);
+        box-shadow: 0 6px 18px rgba(0,0,0,0.08);
+    }
+
+/* Sidebar */
+.sidebar-section {
+    background: #fff;
+    border: 1px solid #f0f0f0;
+    padding: 12px;
+    border-radius: 8px;
+    margin-bottom: 12px;
+}
+
+.sidebar-title {
+    font-weight: 600;
+    margin-bottom: 8px;
+}
+
+/* Listings list/grid helpers */
+#listings-container.list-view .listing-card {
+    display: block;
+}
+
+#listings-container.grid-view {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 12px;
+}
+
+    #listings-container.grid-view .listing-card {
+        margin: 0;
+    }
+
+/* Small responsive tweaks */
+@media (max-width: 768px) {
+    .brand-strip .brand-pill {
+        min-width: 56px;
+    }
+
+    .popup-content {
+        width: 96%;
+        max-width: 760px;
+    }
+}
+/* Sidebar / active-filters adjustments to prevent overflow and make chips wrap */
+#active-filters-container {
+    width: 100%;
+    margin-bottom: 12px;
+}
+
+#active-filters-display {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    align-items: center;
+    /* ensure chips stay inside sidebar and flow to next line */
+    overflow: hidden;
+    max-width: 100%;
+}
+
+    #active-filters-display .filter-chip,
+    #active-filters-display .chip {
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        padding: 6px 10px;
+        border-radius: 18px;
+        background: #f3f4f6;
+        color: #222;
+        font-size: 13px;
+        line-height: 1;
+        white-space: normal;
+        word-break: break-word;
+        max-width: 100%;
+    }
+
+        /* ensure the close icon is clickable and doesn't push layout */
+        #active-filters-display .filter-chip i,
+        #active-filters-display .chip .chip-delete {
+            cursor: pointer;
+            color: #666;
+            margin-left: 6px;
+        }
+
+/* Make sidebar section allow the chip area to wrap correctly */
+.sidebar-section {
+    /* keep other behavior but allow children to wrap */
+    overflow: visible;
+}
+
+/* Small responsive tweak so chips don't overflow narrow screens */
+@media (max-width: 576px) {
+    #active-filters-display .filter-chip,
+    #active-filters-display .chip {
+        font-size: 12px;
+        padding: 5px 8px;
+    }
+}

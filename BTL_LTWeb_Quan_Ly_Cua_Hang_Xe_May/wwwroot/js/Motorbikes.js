@@ -1,36 +1,22 @@
-﻿// wwwroot/js/AllVehicles.js
-// AllVehicles page — dynamic filters (brands, colors, types, condition, locations) from DB data or API metadata.
+﻿// wwwroot/js/Motorbikes.js
+// Motorbike page — dynamic filters (brands, colors, types, condition) from DB or derived set.
 (function () {
     'use strict';
 
-    const state = {
-        all: [],
-        filtered: [],
-        currentPage: 1,
-        itemsPerPage: 12,
-        sort: 'newest',
-        filtersBuilt: false,
-        meta: null
-    };
+    const state = { all: [], filtered: [], currentPage: 1, itemsPerPage: 12, sort: 'newest', filtersBuilt: false, meta: null };
 
     let applyTimer = null;
-    let eventsWired = false;
-
     function scheduleApplyFilters() {
         if (applyTimer) clearTimeout(applyTimer);
         applyTimer = setTimeout(() => { applyFilters(); applyTimer = null; }, 40);
     }
 
-    // ===== Helpers =====
-    function esc(s) { return s == null ? '' : String(s).replace(/[&<>"']/g, m => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[m])); }
+    // Helpers
+    function esc(s) { return s == null ? '' : String(s).replace(/[&<>"']/g, m => ({ '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;' }[m])); }
     function formatPrice(price) { if (price == null) return 'Liên hệ'; return price.toString().replace(/\B(?=(\d{3})+(?!\d))/g, '.') + ' đ'; }
     function toLower(v) { return (v || '').toString().toLowerCase(); }
-    function normalizeCondition(v) {
-        const c = toLower(v).trim();
-        if (['mới', 'new', 'moi'].includes(c)) return 'new';
-        if (['đã sử dụng', 'used', 'da su dung'].includes(c)) return 'used';
-        return c;
-    }
+    function normalizeCondition(v) { const c = toLower(v).trim(); if (['mới','new','moi'].includes(c)) return 'new'; if (['đã sử dụng','used','da su dung'].includes(c)) return 'used'; return c; }
+    function isElectric(v) { const t = toLower(v.title || ''), c = toLower(v.category?.categoryName || ''); return c.includes('điện') || t.includes('điện') || t.includes('ev') || t.includes('electric'); }
     function getTimeAgo(dt) {
         if (!dt) return '';
         const d = new Date(dt), n = new Date(), diff = (n - d) / 1000;
@@ -41,41 +27,7 @@
         return d.toLocaleDateString('vi-VN');
     }
 
-    // ===== Location helpers =====
-    function stripDiacritics(s) {
-        return (s || '').normalize('NFD').replace(/[\u0300-\u036f]/g, '');
-    }
-    function locKey(s) {
-        return stripDiacritics(toLower(s)).replace(/\s+/g, ' ').trim();
-    }
-    function canonicalizeLocation(label) {
-        const t = locKey(label);
-        if (t.includes('ho chi minh') || t.includes('hcm')) return 'Tp Hồ Chí Minh';
-        if (t.includes('ha noi') || t.includes('hanoi')) return 'Hà Nội';
-        return (label || '').trim();
-    }
-    function parseCityFromAddress(addr) {
-        if (!addr) return null;
-        const parts = addr.split(',').map(p => p.trim()).filter(Boolean);
-        if (parts.length === 0) return null;
-        let last = parts[parts.length - 1];
-        // If last is Vietnam, try previous
-        if (locKey(last).includes('viet nam') || locKey(last) === 'vn') {
-            last = parts[parts.length - 2] || last;
-        }
-        return canonicalizeLocation(last);
-    }
-    function getVehicleLocationLabel(v) {
-        const city = v?.store?.city || v?.store?.City; // support different casings if they exist
-        if (city) return canonicalizeLocation(city);
-        const prov = v?.store?.province || v?.store?.Province;
-        if (prov) return canonicalizeLocation(prov);
-        const addr = v?.store?.address || v?.store?.Address;
-        const parsed = parseCityFromAddress(addr);
-        return parsed;
-    }
-
-    // ===== Brand pills sync =====
+    // Brand pills sync
     function setBrandSelection(brand, selected) {
         const sel = `.flt-brand[value="${CSS.escape(brand)}"]`;
         document.querySelectorAll(`#popup-filter ${sel}, #popup-brand ${sel}, .sidebar-section ${sel}`).forEach(i => { i.checked = selected; });
@@ -91,14 +43,13 @@
         });
     }
 
-    // ===== Sync popup <-> sidebar =====
+    // Sync popup <-> sidebar
     function syncFromPopupToSidebar() {
-        ['brand', 'type', 'color'].forEach(cls => {
+        ['brand','type','color'].forEach(cls => {
             document.querySelectorAll(`#popup-filter .flt-${cls}`).forEach(pi => {
                 document.querySelectorAll(`.sidebar-section .flt-${cls}[value="${CSS.escape(pi.value)}"]`).forEach(si => si.checked = pi.checked);
             });
         });
-        // condition sync
         const conds = Array.from(document.querySelectorAll('#popup-filter .flt-condition:checked')).map(i => normalizeCondition(i.value));
         const sidebarRadios = document.querySelectorAll('input[name="sidebar-condition"]');
         const statusRadios = document.querySelectorAll('#popup-status input[name="status"]');
@@ -113,7 +64,7 @@
         syncBrandPillsFromInputs();
     }
     function syncFromSidebarToPopup() {
-        ['brand', 'type', 'color'].forEach(cls => {
+        ['brand','type','color'].forEach(cls => {
             document.querySelectorAll(`.sidebar-section .flt-${cls}`).forEach(si => {
                 document.querySelectorAll(`#popup-filter .flt-${cls}[value="${CSS.escape(si.value)}"]`).forEach(pi => pi.checked = si.checked);
             });
@@ -128,7 +79,7 @@
         updateSelectedFilters();
     }
 
-    // ===== Render cards & pagination =====
+    // Cards & pagination
     function createCard(v) {
         const img = v.vehicleImages?.[0]?.imagePath || '/images/default-vehicle.jpg';
         return `
@@ -195,13 +146,13 @@
     function favHandler(e) { e.stopPropagation(); const id = this.dataset.id; if (id) toggleFavorite(Number(id), this); }
     function cardClickHandler() { const id = this.dataset.vehicleId; if (id) location.href = `/Home/VehicleDetail/${id}`; }
 
-    // ===== Data fetch =====
+    // Data fetch
     async function fetchAllVehicles() {
         try {
             const res = await fetch('/Home/GetAllVehicles');
             const json = await res.json();
             if (!json.success) return [];
-            return (json.data || []);
+            return (json.data || []).filter(v => !isElectric(v));
         } catch (err) {
             console.error('fetchAllVehicles', err);
             return [];
@@ -209,60 +160,37 @@
     }
     async function fetchMetaFromServer() {
         try {
-            const res = await fetch('/Home/GetAllVehiclesFilterData');
+            const res = await fetch('/Home/GetMotorbikeFilterData');
             const json = await res.json();
             if (json.success) return json;
             return null;
-        } catch {
-            return null;
-        }
+        } catch { return null; }
     }
 
-    // ===== Build filter sets (fallback nếu không có metadata) =====
+    // Build filter sets
     function buildFiltersFromVehicles(vehicles) {
         if (state.filtersBuilt) return;
-        const brands = new Set();
-        const colors = new Set();
-        const types = new Set();
-        const conditions = new Set();
-        const locations = new Set();
-
+        const brands = new Set(), colors = new Set(), types = new Set(), conditions = new Set();
         vehicles.forEach(v => {
             if (v.brand?.brandName) brands.add(v.brand.brandName.trim());
             if (v.color) colors.add(v.color.trim());
             if (v.condition) conditions.add(v.condition.trim());
-
-            const loc = getVehicleLocationLabel(v);
-            if (loc) locations.add(loc);
-
-            // Derive type từ category/title/model — gồm cả xe điện và xe thường
-            const src = toLower(`${v.category?.categoryName || ''} ${v.title || ''} ${v.model || ''}`);
-            const isEV = src.includes('điện') || src.includes('electric') || src.includes(' ev ');
-
-            if (isEV) {
-                if (src.includes('xe đạp')) types.add('Xe đạp điện');
-                if (src.includes('xe máy điện') || src.includes('tay ga') || src.includes('scooter')) types.add('Xe máy điện');
-                if (src.includes('mô tô') || src.includes('moto')) types.add('Mô tô điện');
-                if (src.includes('scooter')) types.add('Scooter điện');
-            } else {
-                if (src.includes('tay ga') || src.includes('scooter')) types.add('Xe tay ga');
-                if (src.includes('côn tay') || src.includes('manual')) types.add('Xe côn tay');
-                if (src.includes('xe số') || src.includes('underbone')) types.add('Xe số');
-                if (src.includes('phân khối lớn') || src.includes('mô tô') || src.includes('moto')) types.add('Mô tô');
-            }
+            const src = toLower(`${v.category?.categoryName || ''} ${v.title || ''}`);
+            if (src.includes('tay ga') || src.includes('scooter')) types.add('Xe tay ga');
+            if (src.includes('côn tay') || src.includes('manual')) types.add('Xe côn tay');
+            if (src.includes('phân khối lớn') || src.includes('mô tô') || src.includes('moto')) types.add('Mô tô');
             if (v.category?.categoryName) types.add(v.category.categoryName.trim());
         });
-
-        injectFilterOptions({ brands, colors, types, conditions, locations });
+        injectFilterOptions({ brands, colors, types, conditions });
         state.filtersBuilt = true;
     }
 
-    // ===== Inject dynamic popup + sidebar + location pills =====
+    // Inject popup + sidebar
     function fillPopup(containerId, cssClass, set) {
         const el = document.getElementById(containerId);
         if (!el) return;
         el.innerHTML = '';
-        [...set].filter(Boolean).sort().forEach(v => {
+        [...set].sort().forEach(v => {
             el.insertAdjacentHTML('beforeend', `<label class="me-2"><input type="checkbox" class="${cssClass} flt" value="${esc(v)}" /> ${esc(v)}</label>`);
         });
     }
@@ -278,7 +206,7 @@
         const wrap = document.getElementById(id);
         if (!wrap || !set) return;
         Array.from(wrap.querySelectorAll('.sidebar-option')).forEach(op => op.remove());
-        [...set].filter(Boolean).sort().forEach(v => {
+        [...set].sort().forEach(v => {
             wrap.insertAdjacentHTML('beforeend', `<div class="sidebar-option"><input class="${cls}" type="checkbox" value="${esc(v)}" /> ${esc(v)}</div>`);
         });
     }
@@ -290,85 +218,38 @@
         if (present.has('new')) wrap.insertAdjacentHTML('beforeend', `<div class="sidebar-option"><input name="sidebar-condition" class="flt-condition" type="radio" value="Mới" /> Mới</div>`);
         if (present.has('used')) wrap.insertAdjacentHTML('beforeend', `<div class="sidebar-option"><input name="sidebar-condition" class="flt-condition" type="radio" value="Đã sử dụng" /> Đã sử dụng</div>`);
     }
-    function renderLocationPills(locationsSet) {
-        const cont = document.querySelector('.location-pills');
-        if (!cont) return;
-        // Keep the label if present
-        const labelEl = cont.querySelector('.location-label');
-        cont.innerHTML = '';
-        if (labelEl) cont.appendChild(labelEl);
-        const arr = Array.from(locationsSet || []).filter(Boolean).sort((a, b) => a.localeCompare(b, 'vi'));
-        arr.forEach(loc => {
-            const key = locKey(loc);
-            const div = document.createElement('div');
-            div.className = 'location-pill';
-            div.dataset.key = key;
-            div.textContent = loc;
-            cont.appendChild(div);
-        });
-        wireLocationPills();
-    }
 
     function injectFilterOptions(metaSets) {
-        // Popup (brands/colors/types/conditions)
         fillPopup('brand-list-short', 'flt-brand', metaSets.brands);
         fillPopup('popup-colors', 'flt-color', metaSets.colors);
         fillPopup('popup-types', 'flt-type', metaSets.types);
         fillPopupCondition('popup-condition', metaSets.conditions);
 
-        // Popup brand full
         const brandFull = document.getElementById('brand-list-full');
         if (brandFull) {
             brandFull.innerHTML = '';
-            [...metaSets.brands].filter(Boolean).sort().forEach(b => {
+            [...metaSets.brands].sort().forEach(b => {
                 brandFull.insertAdjacentHTML('beforeend', `<label><input type="checkbox" class="flt-brand flt" value="${esc(b)}" /> ${esc(b)}</label>`);
             });
         }
 
-        // Sidebar
         fillSidebar('sb-brands', 'flt-brand', metaSets.brands);
         fillSidebar('sb-colors', 'flt-color', metaSets.colors);
         fillSidebar('sb-types', 'flt-type', metaSets.types);
         fillSidebarCondition(metaSets.conditions);
 
-        // Location pills (top bar)
-        if (metaSets.locations) renderLocationPills(metaSets.locations);
-
         renderBrandPills(metaSets.brands);
         wireFilterEvents();
     }
 
-    // ===== Events =====
-    function wireLocationPills() {
-        const cont = document.querySelector('.location-pills');
-        if (!cont) return;
-        cont.querySelectorAll('.location-pill').forEach(pill => {
-            pill.addEventListener('click', function () {
-                this.classList.toggle('active');
-                scheduleApplyFilters();
-            });
-        });
-    }
     function wireFilterEvents() {
-        if (eventsWired) return; // avoid duplicate listeners
-        eventsWired = true;
-
         document.querySelectorAll('#popup-filter .flt, #popup-brand .flt-brand')
             .forEach(chk => chk.addEventListener('change', () => { syncFromPopupToSidebar(); updateSelectedFilters(); scheduleApplyFilters(); }));
         document.querySelectorAll('.sidebar-section input')
             .forEach(chk => chk.addEventListener('change', () => { syncFromSidebarToPopup(); scheduleApplyFilters(); }));
-
-        // Optional brand search in popup-brand
-        const brandSearch = document.getElementById('brand-search');
-        if (brandSearch) {
-            brandSearch.addEventListener('input', filterBrandList);
-        }
-
-        // Ensure location pills are wired if already in DOM
-        wireLocationPills();
     }
 
-    // ===== Read filters =====
+    // Read filters
     function readDOMFilters() {
         const min = Number(document.getElementById('minPriceInput')?.value || 0);
         const max = Number(document.getElementById('maxPriceInput')?.value || 200000000);
@@ -384,20 +265,10 @@
         const sidebarStatus = document.querySelector('input[name="sidebar-condition"]:checked')?.value || null;
         const popupStatus = document.querySelector('#popup-status input[name="status"]:checked')?.value || null;
 
-        // Location pills (selected)
-        const selectedLocKeys = Array.from(document.querySelectorAll('.location-pills .location-pill.active'))
-            .map(el => el.dataset.key || locKey(el.textContent || '')).filter(Boolean);
-
-        return {
-            min, max,
-            popupBrands, popupTypes, popupColors, popupConds,
-            sidebarBrands, sidebarTypes, sidebarColors,
-            popupStatus, sidebarStatus,
-            locationsSelected: selectedLocKeys
-        };
+        return { min, max, popupBrands, popupTypes, popupColors, popupConds, sidebarBrands, sidebarTypes, sidebarColors, popupStatus, sidebarStatus };
     }
 
-    // ===== Apply filters =====
+    // Apply filters
     async function applyFilters() {
         if (!state.filtersBuilt) {
             state.all = await fetchAllVehicles();
@@ -407,8 +278,7 @@
                     brands: new Set(state.meta.brands || []),
                     colors: new Set(state.meta.colors || []),
                     types: new Set(state.meta.types || []),
-                    conditions: new Set(state.meta.conditions || []),
-                    locations: new Set(state.meta.locations || []) // if API returns locations
+                    conditions: new Set(state.meta.conditions || [])
                 });
                 state.filtersBuilt = true;
             } else {
@@ -450,14 +320,6 @@
                     if (s === 'used' && vCondNorm !== 'used') return false;
                 }
             }
-
-            // Location filter
-            if (f.locationsSelected && f.locationsSelected.length > 0) {
-                const locLabel = getVehicleLocationLabel(v);
-                const key = locKey(locLabel || '');
-                if (!key || !f.locationsSelected.includes(key)) return false;
-            }
-
             return true;
         });
 
@@ -470,7 +332,7 @@
         renderActiveFilters();
     }
 
-    // ===== Active filters chips =====
+    // Active filters chips
     function renderActiveFilters() {
         const container = document.getElementById('active-filters-container');
         const display = document.getElementById('active-filters-display');
@@ -481,15 +343,11 @@
         const min = Number(document.getElementById('minPriceInput')?.value || 0);
         const max = Number(document.getElementById('maxPriceInput')?.value || 200000000);
         if (min > 0 || max < 200000000) {
-            display.insertAdjacentHTML('beforeend',
-                `<span class="filter-chip">${formatPrice(min)} - ${formatPrice(max)} <i class="fas fa-times" data-action="clear-price"></i></span>`);
+            display.insertAdjacentHTML('beforeend', `<span class="filter-chip">${formatPrice(min)} - ${formatPrice(max)} <i class="fas fa-times" data-action="clear-price"></i></span>`);
             has = true;
         }
 
-        const checked = Array.from(document.querySelectorAll(
-            '#popup-filter .flt:not(.flt-condition):checked, .sidebar-section .flt-brand:checked, .sidebar-section .flt-type:checked, .sidebar-section .flt-color:checked'
-        ));
-
+        const checked = Array.from(document.querySelectorAll('#popup-filter .flt:not(.flt-condition):checked, .sidebar-section .flt-brand:checked, .sidebar-section .flt-type:checked, .sidebar-section .flt-color:checked'));
         const seen = new Set();
         checked.forEach(ch => {
             const val = ch.value || '';
@@ -497,17 +355,7 @@
             if (seen.has(key)) return;
             seen.add(key);
             const label = ch.parentElement?.textContent?.trim() || val;
-            display.insertAdjacentHTML('beforeend',
-                `<span class="filter-chip">${esc(label)} <i class="fas fa-times" data-remove="${esc(val)}"></i></span>`);
-            has = true;
-        });
-
-        // Add chips for selected locations
-        const selectedLocs = Array.from(document.querySelectorAll('.location-pills .location-pill.active'))
-            .map(el => el.textContent?.trim()).filter(Boolean);
-        selectedLocs.forEach(lbl => {
-            display.insertAdjacentHTML('beforeend',
-                `<span class="filter-chip">${esc(lbl)} <i class="fas fa-times" data-remove-location="${esc(lbl)}"></i></span>`);
+            display.insertAdjacentHTML('beforeend', `<span class="filter-chip">${esc(label)} <i class="fas fa-times" data-remove="${esc(val)}"></i></span>`);
             has = true;
         });
 
@@ -515,35 +363,19 @@
             || document.querySelector('input[name="sidebar-condition"]:checked')?.value;
         if (stRaw) {
             const stVi = stRaw === 'new' ? 'Mới' : (stRaw === 'used' ? 'Đã sử dụng' : stRaw);
-            display.insertAdjacentHTML('beforeend',
-                `<span class="filter-chip">${esc(stVi)} <i class="fas fa-times" data-action="clear-status"></i></span>`);
+            display.insertAdjacentHTML('beforeend', `<span class="filter-chip">${esc(stVi)} <i class="fas fa-times" data-action="clear-status"></i></span>`);
             has = true;
         }
 
         container.style.display = has ? 'block' : 'none';
 
-        // Remove brand/color/type chips
         display.querySelectorAll('[data-remove]').forEach(el => {
             el.addEventListener('click', () => {
                 const val = el.getAttribute('data-remove');
-                document.querySelectorAll(`#popup-filter .flt[value="${CSS.escape(val)}"], #popup-brand .flt[value="${CSS.escape(val)}"]`)
-                    .forEach(i => i.checked = false);
-                document.querySelectorAll(`.sidebar-section input[value="${CSS.escape(val)}"]`)
-                    .forEach(i => i.checked = false);
-                document.querySelectorAll(`.brand-pill[data-brand="${CSS.escape(val)}"]`)
-                    .forEach(p => p.classList.remove('active'));
+                document.querySelectorAll(`#popup-filter .flt[value="${CSS.escape(val)}"], #popup-brand .flt[value="${CSS.escape(val)}"]`).forEach(i => i.checked = false);
+                document.querySelectorAll(`.sidebar-section input[value="${CSS.escape(val)}"]`).forEach(i => i.checked = false);
+                document.querySelectorAll(`.brand-pill[data-brand="${CSS.escape(val)}"]`).forEach(p => p.classList.remove('active'));
                 syncFromPopupToSidebar();
-                scheduleApplyFilters();
-            });
-        });
-        // Remove location chips
-        display.querySelectorAll('[data-remove-location]').forEach(el => {
-            el.addEventListener('click', () => {
-                const lbl = el.getAttribute('data-remove-location') || '';
-                const key = locKey(lbl);
-                document.querySelectorAll(`.location-pills .location-pill`).forEach(p => {
-                    if ((p.dataset.key || '') === key) p.classList.remove('active');
-                });
                 scheduleApplyFilters();
             });
         });
@@ -563,14 +395,14 @@
         });
     }
 
-    // ===== Sort / favorites / slider / view toggle =====
+    // Sort / favorites / slider / view toggle init
     function createSortMenu() {
         const sortBar = document.querySelector('.sort-bar');
         if (!sortBar) return;
         const wrapper = document.createElement('div');
         wrapper.className = 'sort-dropdown ms-2 position-relative';
         wrapper.innerHTML = `
-          <button class="sort-btn btn btn-sm btn-outline-secondary">Tin mới nhất <i class="fas fa-chevron-down ms-1" style="font-size:10px"></i></button>
+          <button class="sort-btn btn btn-sm btn-outline-secondary">Tin mới nhất <i class="fas fa-chevron-down ms-1" style="font-size:10px)"></i></button>
           <div class="sort-menu position-absolute bg-white border rounded shadow-sm" style="display:none; right:0; z-index:2000; min-width:180px;">
             <a href="#" class="sort-option d-block px-3 py-2" data-sort="newest">Tin mới nhất</a>
             <a href="#" class="sort-option d-block px-3 py-2" data-sort="price-asc">Giá: thấp → cao</a>
@@ -638,21 +470,13 @@
         };
     }
     function initViewToggle() {
-        const l = document.getElementById('list-view-btn'),
-            g = document.getElementById('grid-view-btn'),
-            c = document.getElementById('listings-container');
+        const l = document.getElementById('list-view-btn'), g = document.getElementById('grid-view-btn'), c = document.getElementById('listings-container');
         if (!l || !g || !c) return;
-        l.addEventListener('click', () => {
-            c.classList.remove('grid-view'); c.classList.add('list-view');
-            l.classList.add('active'); g.classList.remove('active');
-        });
-        g.addEventListener('click', () => {
-            c.classList.remove('list-view'); c.classList.add('grid-view');
-            g.classList.add('active'); l.classList.remove('active');
-        });
+        l.addEventListener('click', () => { c.classList.remove('grid-view'); c.classList.add('list-view'); l.classList.add('active'); g.classList.remove('active'); });
+        g.addEventListener('click', () => { c.classList.remove('list-view'); c.classList.add('grid-view'); g.classList.add('active'); l.classList.remove('active'); });
     }
 
-    // ===== Selected filters (popup right) =====
+    // Selected filters (popup right)
     function updateSelectedFilters() {
         const box = document.getElementById('selected-filters');
         if (!box) return;
@@ -678,15 +502,12 @@
         });
     }
 
-    // ===== Clear all =====
+    // Clear
     function clearAllFilters() {
         document.querySelectorAll('#popup-filter .flt').forEach(i => i.checked = false);
         document.querySelectorAll('#popup-brand .flt').forEach(i => i.checked = false);
         document.querySelectorAll('.sidebar-section input[type=checkbox], .sidebar-section input[type=radio]').forEach(i => i.checked = false);
         document.querySelectorAll('.brand-pill').forEach(p => p.classList.remove('active'));
-        // Clear location pills too
-        document.querySelectorAll('.location-pills .location-pill.active').forEach(p => p.classList.remove('active'));
-
         const min = document.getElementById('minPriceInput'), max = document.getElementById('maxPriceInput');
         if (min) min.value = 0;
         if (max) max.value = 200000000;
@@ -696,17 +517,13 @@
         scheduleApplyFilters();
     }
 
-    // ===== Global listeners & init =====
+    // Global init
     function initListenAllChanges() {
         document.addEventListener('change', e => {
             const t = e.target;
             if (!t) return;
-            if (t.closest('#popup-filter') && t.classList.contains('flt')) {
-                syncFromPopupToSidebar(); updateSelectedFilters(); scheduleApplyFilters(); return;
-            }
-            if (t.closest('#popup-brand') && t.classList.contains('flt-brand')) {
-                syncFromPopupToSidebar(); updateSelectedFilters(); scheduleApplyFilters(); return;
-            }
+            if (t.closest('#popup-filter') && t.classList.contains('flt')) { syncFromPopupToSidebar(); updateSelectedFilters(); scheduleApplyFilters(); return; }
+            if (t.closest('#popup-brand') && t.classList.contains('flt-brand')) { syncFromPopupToSidebar(); updateSelectedFilters(); scheduleApplyFilters(); return; }
             if (t.closest('.sidebar-section') &&
                 (t.matches('.flt-brand, .flt-type, .flt-color') || t.matches('input[name="sidebar-condition"]'))) {
                 syncFromSidebarToPopup(); scheduleApplyFilters(); return;
@@ -721,7 +538,6 @@
             }
         });
     }
-
     function initBrandPills() {
         document.querySelectorAll('.brand-pill').forEach(p => {
             p.addEventListener('click', function () {
@@ -734,7 +550,6 @@
             });
         });
     }
-
     function init() {
         document.addEventListener('DOMContentLoaded', () => {
             initViewToggle();
@@ -742,15 +557,13 @@
             initBrandPills();
             initListenAllChanges();
             initPriceSlider();
-
             const clearAll = document.getElementById('clear-all-filters-link');
             if (clearAll) clearAll.addEventListener('click', e => { e.preventDefault(); clearAllFilters(); });
-
-            scheduleApplyFilters(); // build filters + load list
+            scheduleApplyFilters();
         });
     }
 
-    // ===== Expose =====
+    // Expose
     window.applyFilters = applyFilters;
     window.updateSelectedFilters = updateSelectedFilters;
     window.applyPopupFilters = function () { syncFromPopupToSidebar(); updateSelectedFilters(); scheduleApplyFilters(); if (typeof closePopup === 'function') closePopup('popup-filter'); };
@@ -762,35 +575,14 @@
     window.selectStatus = function () { scheduleApplyFilters(); };
     window.clearStatus = function () { document.querySelectorAll('#popup-status input[type=radio]').forEach(el => el.checked = false); scheduleApplyFilters(); };
 
-    // Safe fallbacks for popup open/close if page doesn't define them
-    if (typeof window.openPopup !== 'function') {
-        window.openPopup = function (id) { const el = document.getElementById(id); if (!el) return; el.style.display = 'flex'; el.classList && el.classList.add('active'); };
-    }
-    if (typeof window.closePopup !== 'function') {
-        window.closePopup = function (id) { const el = document.getElementById(id); if (!el) return; el.style.display = 'none'; el.classList && el.classList.remove('active'); };
-    }
-
-    // Brand search helper in popup-brand (optional)
-    window.filterBrandList = function () {
-        const q = (document.getElementById('brand-search')?.value || '').toLowerCase().trim();
-        const wrap = document.getElementById('brand-list-full');
-        if (!wrap) return;
-        wrap.querySelectorAll('label').forEach(lbl => {
-            const txt = lbl.textContent?.toLowerCase() || '';
-            lbl.style.display = txt.includes(q) ? '' : 'none';
-        });
-    };
-
     init();
 
-    // ===== Brand strip =====
+    // Brand strip
     function renderBrandPills(brandsSet) {
-        const cont = document.getElementById('av-brand-strip') || document.querySelector('.brand-strip');
+        const cont = document.getElementById('mb-brand-strip') || document.querySelector('.brand-strip');
         if (!cont) return;
         const arr = Array.from(brandsSet || []).filter(Boolean).sort();
-        cont.innerHTML = arr.map(b =>
-            `<div class="brand-pill text-center" data-brand="${esc(b)}"><div class="small mt-1">${esc(b)}</div></div>`
-        ).join('');
+        cont.innerHTML = arr.map(b => `<div class="brand-pill text-center" data-brand="${esc(b)}"><div class="small mt-1">${esc(b)}</div></div>`).join('');
         initBrandPills();
         syncBrandPillsFromInputs();
     }

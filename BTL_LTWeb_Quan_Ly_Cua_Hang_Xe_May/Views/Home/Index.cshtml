@@ -57,7 +57,7 @@ else
 <body class="bg-light overflow-x-hidden">
     <!-- Header -->
     <!-- Header -->
-    <header class="sticky-top bg-white shadow-sm">
+    @* <header class="sticky-top bg-white shadow-sm">
 
 
         <!-- Mobile Menu -->
@@ -69,7 +69,7 @@ else
 
             </div>
         </div>
-    </header>
+    </header> *@
 
     <!-- Hero Section -->
     <section class="hero-section position-relative overflow-hidden">
@@ -205,15 +205,14 @@ else
     <!-- Category Strip -->
     <section class="py-0">
         <div class="container">
-            <div class="category-strip">
-                </a>
-                <a href="#" class="category-item">
-                    <img src="~/images/2020.svg" class="category-icon"></img>
+            <div class="category-strip" id="category-icons">
+                <a asp-controller="Home" asp-action="Motorbikes" class="category-item" data-category="Xe máy">
+                    <img src="/images/2020.svg" class="category-icon" alt="Xe máy" />
                     <div class="category-name">Xe máy</div>
                 </a>
-                </a>
-                <a href="#" class="category-item">
-                    <img src="/images/2090.svg" class="category-icon"></img>
+
+                <a asp-controller="Home" asp-action="Electric" class="category-item" data-category="Xe điện">
+                    <img src="/images/2090.svg" class="category-icon" alt="Xe điện" />
                     <div class="category-name">Xe điện</div>
                 </a>
             </div>

@@ -253,7 +253,6 @@ body {
     background: #fff;
     padding: 12px 0;
     border-bottom: 1px solid var(--border-color);
-    position: sticky;
     top: 68px;
     z-index: 1010;
     box-shadow: 0 2px 4px rgba(0,0,0,0.04);
@@ -1971,5 +1970,545 @@ body {
     .list - view.card - img - wrapper {
         padding: 0;
         overflow: hidden;
+    }
+}
+
+/*<!-- Style cho filter chips -->*/
+.filter-chip {
+    display: inline-block;
+    background: #f0f0f0;
+    padding: 5px 10px;
+    margin: 5px;
+    border-radius: 15px;
+    font-size: 14px;
+}
+
+    .filter-chip i {
+        margin-left: 8px;
+        cursor: pointer;
+        color: #999;
+    }
+
+        .filter-chip i:hover {
+            color: #e74c3c;
+        }
+
+.chip {
+    display: inline-block;
+    background: #e0e0e0;
+    padding: 4px 12px;
+    margin: 2px;
+    border-radius: 12px;
+    font-size: 13px;
+}
+
+.chip-delete {
+    border: none;
+    background: transparent;
+    color: #666;
+    margin-left: 6px;
+    cursor: pointer;
+    font-size: 16px;
+}
+
+    .chip-delete:hover {
+        color: #e74c3c;
+    }
+
+.popup-modal {
+    display: none;
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0,0,0,0.5);
+    z-index: 9999;
+    align-items: center;
+    justify-content: center;
+}
+
+.popup-content {
+    background: white;
+    padding: 20px;
+    border-radius: 8px;
+    max-width: 600px;
+    width: 90%;
+    max-height: 80vh;
+    overflow-y: auto;
+}
+
+.popup-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 15px;
+    font-size: 18px;
+    font-weight: bold;
+}
+
+.close-popup {
+    border: none;
+    background: transparent;
+    font-size: 24px;
+    cursor: pointer;
+    color: #999;
+}
+
+    .close-popup:hover {
+        color: #333;
+    }
+
+.filter-section {
+    margin-bottom: 20px;
+}
+
+.filter-title {
+    font-weight: bold;
+    margin-bottom: 10px;
+}
+
+.popup-actions {
+    display: flex;
+    justify-content: space-between;
+    margin-top: 20px;
+}
+
+.location-pill {
+    display: inline-block;
+    padding: 8px 16px;
+    margin: 5px;
+    border: 1px solid #ddd;
+    border-radius: 20px;
+    cursor: pointer;
+    transition: all 0.3s;
+}
+
+    .location-pill:hover {
+        background: #f0f0f0;
+    }
+
+    .location-pill.active {
+        background: #ffba00;
+        color: white;
+        border-color: #ffba00;
+    }
+
+.sort-dropdown .sort-menu a:hover {
+    background: #f5f5f5;
+}
+/* Đang lọc theo - cho phép chip xuống dòng, không tràn ra ngoài */
+.sidebar-option#active-filters-display {
+    display: flex; /* container là flex */
+    flex-wrap: wrap; /* cho phép wrap xuống dòng */
+    gap: 8px; /* khoảng cách giữa các chip */
+    align-items: center;
+    cursor: default; /* không hiện bàn tay */
+    padding: 8px 0; /* đệm nhẹ */
+    width: 100%;
+}
+
+/* Chip không bị kéo giãn, vẫn giữ kích thước nội dung */
+#active-filters-display .filter-chip {
+    flex: 0 0 auto; /* không co giãn, giữ nguyên kích thước */
+    margin: 0; /* tránh cộng dồn khoảng cách khi đã có gap */
+}
+
+/* Nếu có text quá dài, tránh tràn ngang toàn container (tuỳ chọn) */
+#active-filters-display {
+    overflow: hidden; /* tránh thanh cuộn ngang */
+}
+/* Thêm/sửa các style sau vào file AllVehicles.css */
+
+/* ===== POPUP FILTER - IMPROVED DESIGN ===== */
+.popup-modal {
+    display: none;
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    z-index: 2002;
+    background: rgba(0, 0, 0, 0.5);
+    align-items: center;
+    justify-content: center;
+    animation: fadeIn 0.3s ease;
+}
+
+    .popup-modal.active {
+        display: flex !important;
+    }
+
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+    }
+
+    to {
+        opacity: 1;
+    }
+}
+
+/* Popup content với 2 cột: main + sidebar */
+.popup-content {
+    background: #fff;
+    border-radius: 16px;
+    max-width: 980px;
+    width: 95%;
+    max-height: 90vh;
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.15);
+    display: flex;
+    flex-direction: row;
+    overflow: hidden;
+    animation: slideUp 0.3s ease;
+}
+
+@keyframes slideUp {
+    from {
+        opacity: 0;
+        transform: translateY(30px);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+/* Main content area (left side) */
+.popup-main {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    max-height: 90vh;
+}
+
+.popup-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 20px 24px;
+    border-bottom: 1px solid #e5e7eb;
+    flex-shrink: 0;
+}
+
+    .popup-header span {
+        font-size: 20px;
+        font-weight: 600;
+        color: #1f2937;
+    }
+
+.close-popup {
+    background: none;
+    border: none;
+    font-size: 28px;
+    color: #9ca3af;
+    cursor: pointer;
+    width: 32px;
+    height: 32px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 50%;
+    transition: all 0.2s;
+}
+
+    .close-popup:hover {
+        background: #f3f4f6;
+        color: #374151;
+    }
+
+.popup-body {
+    flex: 1;
+    overflow-y: auto;
+    padding: 24px;
+}
+
+/* Filter sections */
+.filter-section {
+    margin-bottom: 28px;
+}
+
+.filter-title {
+    font-size: 16px;
+    font-weight: 600;
+    color: #1f2937;
+    margin-bottom: 12px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.filter-section label {
+    display: flex;
+    align-items: center;
+    padding: 8px 12px;
+    margin: 4px 0;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: all 0.2s;
+    font-size: 15px;
+    color: #374151;
+}
+
+    .filter-section label:hover {
+        background: #f9fafb;
+    }
+
+.filter-section input[type="checkbox"],
+.filter-section input[type="radio"] {
+    width: 20px;
+    height: 20px;
+    margin-right: 10px;
+    cursor: pointer;
+    accent-color: #ffba00;
+}
+
+/* Popup actions (2 clear buttons) */
+.popup-actions {
+    display: flex;
+    gap: 12px;
+    padding: 16px 24px;
+    border-top: 1px solid #e5e7eb;
+    background: #f9fafb;
+    flex-shrink: 0;
+}
+
+    .popup-actions button {
+        flex: 1;
+        padding: 12px 20px;
+        border-radius: 10px;
+        font-size: 15px;
+        font-weight: 600;
+        cursor: pointer;
+        transition: all 0.2s;
+        border: none;
+    }
+
+.btn-clear {
+    background: #fff;
+    color: #374151;
+    border: 1.5px solid #d1d5db;
+}
+
+    .btn-clear:hover {
+        background: #f3f4f6;
+        border-color: #9ca3af;
+    }
+
+.btn-primary {
+    background: #ffba00;
+    color: #1f2937;
+    border: none;
+}
+
+    .btn-primary:hover {
+        background: #f0ad00;
+        transform: translateY(-1px);
+        box-shadow: 0 4px 12px rgba(255, 186, 0, 0.3);
+    }
+
+    .btn-primary:active {
+        transform: translateY(0);
+    }
+
+/* Right sidebar (selected filters) */
+.popup-right {
+    width: 280px;
+    background: #f9fafb;
+    border-left: 1px solid #e5e7eb;
+    display: flex;
+    flex-direction: column;
+    max-height: 90vh;
+}
+
+    .popup-right .popup-header {
+        background: #f3f4f6;
+        border-bottom: 1px solid #e5e7eb;
+    }
+
+#selected-filters-container {
+    flex: 1;
+    overflow-y: auto;
+    padding: 16px;
+}
+
+#selected-filters {
+    font-size: 14px;
+    color: #6b7280;
+    margin-bottom: 8px;
+}
+
+.chip {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    background: #fff;
+    border: 1px solid #d1d5db;
+    border-radius: 20px;
+    padding: 6px 12px;
+    margin: 4px 4px 4px 0;
+    font-size: 14px;
+    color: #374151;
+    font-weight: 500;
+}
+
+.chip-delete {
+    background: none;
+    border: none;
+    color: #9ca3af;
+    cursor: pointer;
+    font-size: 16px;
+    width: 18px;
+    height: 18px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 50%;
+    transition: all 0.2s;
+}
+
+    .chip-delete:hover {
+        background: #fee2e2;
+        color: #dc2626;
+    }
+
+/* Responsive */
+@media (max-width: 768px) {
+    .popup-content {
+        flex-direction: column;
+        width: 100%;
+        max-width: 100%;
+        height: 100vh;
+        max-height: 100vh;
+        border-radius: 0;
+    }
+
+    .popup-right {
+        width: 100%;
+        max-height: 200px;
+        border-left: none;
+        border-top: 1px solid #e5e7eb;
+    }
+
+    .popup-main {
+        max-height: calc(100vh - 200px);
+    }
+}
+
+/* Active filters display (below filter bar) */
+#active-filters-container {
+    background: #fff;
+    padding: 12px 16px;
+    border: 1px solid #e5e7eb;
+    border-radius: 8px;
+    margin-bottom: 16px;
+}
+
+.filter-chip {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    background: #ffba00;
+    color: #1f2937;
+    padding: 6px 12px;
+    border-radius: 16px;
+    font-size: 14px;
+    font-weight: 500;
+    margin: 4px 4px 4px 0;
+}
+
+.filter-chip i {
+    cursor: pointer;
+    font-size: 14px;
+    width: 16px;
+    height: 16px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 50%;
+    transition: all 0.2s;
+}
+
+.filter-chip i:hover {
+    background: rgba(0, 0, 0, 0.1);
+}
+/*css cho pop up*/
+/* Ưu tiên: popup lọc nâng cao (giữ layout 2 cột) */
+#popup-filter .popup-content {
+    display: flex;
+    flex-direction: row;
+    max-width: 980px;
+    width: 95%;
+}
+
+/* Popup nhỏ: Giá + Tình trạng — ép về layout 1 cột, kích thước gọn */
+#popup-price, #popup-status {
+    z-index: 3000; /* đảm bảo nổi trên overlay khác nếu vô tình mở chồng */
+}
+
+    #popup-price .popup-content,
+    #popup-status .popup-content {
+        display: block; /* hủy flex 2 cột từ rule tổng quát */
+        max-width: 560px; /* mặc định cho popup Giá */
+        width: 92vw; /* gọn trên mobile */
+        border-radius: 16px;
+        overflow: visible; /* để phần trong không bị cắt */
+        padding: 0; /* dùng padding của header/body */
+    }
+
+    /* Popup Tình trạng hẹp hơn */
+    #popup-status .popup-content {
+        max-width: 380px;
+    }
+
+    /* Header/body/actions thống nhất cho 2 popup nhỏ */
+    #popup-price .popup-header,
+    #popup-status .popup-header {
+        padding: 16px 24px;
+        border-bottom: 1px solid #e5e7eb;
+    }
+
+    #popup-price .popup-body,
+    #popup-status .popup-body {
+        padding: 20px 24px;
+        max-height: calc(90vh - 120px);
+        overflow-y: auto; /* cuộn nội dung dài */
+    }
+
+    /* Hành động phía dưới */
+    #popup-price .popup-actions,
+    #popup-status .popup-actions {
+        padding: 12px 24px;
+        border-top: 1px solid #e5e7eb;
+        background: #f9fafb;
+        gap: 12px;
+    }
+
+        #popup-price .popup-actions button,
+        #popup-status .popup-actions button {
+            min-width: 120px;
+        }
+
+    /* Tối ưu slider trong popup Giá */
+    #popup-price #price-slider {
+        margin: 6px 12px 12px;
+    }
+
+    /* Radio/checkbox căn thẳng hàng trong popup nhỏ */
+    #popup-status .popup-body label,
+    #popup-price .popup-body label {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        padding: 6px 0;
+    }
+
+/* Mobile: vẫn giữ popup nhỏ, không full-screen */
+@media (max-width: 576px) {
+    #popup-price .popup-content,
+    #popup-status .popup-content {
+        max-width: 95vw;
+        width: 95vw;
     }
 }
