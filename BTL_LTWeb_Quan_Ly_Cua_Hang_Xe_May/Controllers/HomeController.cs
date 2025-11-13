@@ -78,14 +78,6 @@ namespace BTL_LTWeb_Quan_Ly_Cua_Hang_Xe_May.Controllers
         {
             return View();
         }
-
-        [Authorize(Roles = "Admin")]
-        public async Task<IActionResult> ManageVehicles()
-        {
-            var vehicles = await _xeMayService.GetAllVehiclesAsync();
-            return View(vehicles);
-        }
-
         // API endpoint: toggle favorite (add/remove)
         [HttpPost]
         public async Task<IActionResult> ToggleFavorite([FromForm] int vehicleId)
@@ -334,8 +326,6 @@ namespace BTL_LTWeb_Quan_Ly_Cua_Hang_Xe_May.Controllers
                 var vehicles = await _xeMayService.GetAllVehiclesAsync();
                 var stores = new List<Store>();
                 var news = new List<News>();
-
-                // ✅ CHECK NULL VEHICLES
                 if (vehicles == null || !vehicles.Any())
                 {
                     _logger.LogWarning("⚠️ Không có dữ liệu xe trong database");
@@ -354,7 +344,6 @@ namespace BTL_LTWeb_Quan_Ly_Cua_Hang_Xe_May.Controllers
 
                 _logger.LogInformation($"✅ Đã load {vehicles.Count} xe từ database");
 
-                // ✅ TÍNH TOÁN CATEGORY STATS với NULL CHECKS
                 var categoryStatsTemp = vehicles
                     .Where(v => v.Category != null)  // ⭐ Lọc null
                     .GroupBy(v => v.Category)
@@ -399,7 +388,6 @@ namespace BTL_LTWeb_Quan_Ly_Cua_Hang_Xe_May.Controllers
 
                 _logger.LogInformation($"✅ Tính toán xong {categoryStats.Count} categories");
 
-                // ✅ TÍNH TOÁN BRAND STATS với NULL CHECKS
                 var brandStatsTemp = vehicles
                     .Where(v => v.Brand != null)  // ⭐ Lọc null
                     .GroupBy(v => v.Brand)
@@ -439,7 +427,6 @@ namespace BTL_LTWeb_Quan_Ly_Cua_Hang_Xe_May.Controllers
 
                 _logger.LogInformation($"✅ Tính toán xong {brandStats.Count} brands");
 
-                // ✅ TẠO MODEL với NULL CHECKS
                 var model = new HomePageViewModel
                 {
                     Vehicles = vehicles ?? new List<Vehicle>(),
@@ -1564,7 +1551,99 @@ namespace BTL_LTWeb_Quan_Ly_Cua_Hang_Xe_May.Controllers
                 return Json(new { success = false, message = ex.Message });
             }
         }
+        // API: Bộ lọc động cho trang Xe điện
+        [HttpGet]
+        public async Task<IActionResult> GetElectricFilterData()
+        {
+            try
+            {
+                var vehicles = await _xeMayService.GetAllVehiclesAsync();
+                // Lọc EV theo tên category/title
+                bool IsEV(string? title, string? cat)
+                    => (cat ?? "").Contains("điện", StringComparison.OrdinalIgnoreCase)
+                       || (title ?? "").Contains("điện", StringComparison.OrdinalIgnoreCase)
+                       || (title ?? "").Contains("EV", StringComparison.OrdinalIgnoreCase)
+                       || (title ?? "").Contains("electric", StringComparison.OrdinalIgnoreCase);
+                var evs = vehicles.Where(v => IsEV(v.Title, v.Category?.CategoryName)).ToList();
 
+                var brands = evs.Where(v => v.Brand?.BrandName != null)
+                                .Select(v => v.Brand!.BrandName!.Trim())
+                                .Distinct().OrderBy(x => x).ToList();
+
+                var colors = evs.Where(v => !string.IsNullOrWhiteSpace(v.Color))
+                                .Select(v => v.Color!.Trim())
+                                .Distinct().OrderBy(x => x).ToList();
+
+                var conditions = evs.Where(v => !string.IsNullOrWhiteSpace(v.Condition))
+                                    .Select(v => v.Condition!.Trim())
+                                    .Distinct().ToList();
+
+                // Hiện tạm đầy đủ buckets; phía JS sẽ chỉ hiển thị khi có dữ liệu phù hợp
+                var batteryBuckets = new[] { "under-500wh", "500-1000wh", "1-2kwh", "over-2kwh" };
+                var powerBuckets = new[] { "under-500w", "500-1000w", "1-2kw", "over-2kw" };
+                var rangeBuckets = new[] { "under-50km", "50-80km", "80-120km", "over-120km" };
+
+                return Json(new
+                {
+                    success = true,
+                    brands,
+                    colors,
+                    batteryBuckets,
+                    powerBuckets,
+                    rangeBuckets,
+                    conditions
+                });
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "GetElectricFilterData error");
+                return Json(new { success = false, message = ex.Message });
+            }
+        }
+        [HttpGet]
+        public async Task<IActionResult> GetMotorbikeFilterData()
+        {
+            try
+            {
+                var vehicles = await _xeMayService.GetAllVehiclesAsync();
+
+                // Không lấy EV
+                bool IsEV(string? title, string? cat) =>
+                    (cat ?? "").Contains("điện", StringComparison.OrdinalIgnoreCase)
+                    || (title ?? "").Contains("điện", StringComparison.OrdinalIgnoreCase)
+                    || (title ?? "").Contains("EV", StringComparison.OrdinalIgnoreCase)
+                    || (title ?? "").Contains("electric", StringComparison.OrdinalIgnoreCase);
+
+                var bikes = vehicles.Where(v => !IsEV(v.Title, v.Category?.CategoryName)).ToList();
+
+                var brands = bikes.Where(v => v.Brand?.BrandName != null)
+                                  .Select(v => v.Brand!.BrandName!.Trim())
+                                  .Distinct().OrderBy(x => x).ToList();
+
+                var colors = bikes.Where(v => !string.IsNullOrWhiteSpace(v.Color))
+                                  .Select(v => v.Color!.Trim())
+                                  .Distinct().OrderBy(x => x).ToList();
+
+                var conditions = bikes.Where(v => !string.IsNullOrWhiteSpace(v.Condition))
+                                      .Select(v => v.Condition!.Trim())
+                                      .Distinct().OrderBy(x => x).ToList();
+
+                // Loại xe: ưu tiên CategoryName, fallback theo title
+                var types = bikes
+                    .Select(v => (v.Category?.CategoryName ?? "").Trim())
+                    .Where(s => !string.IsNullOrWhiteSpace(s))
+                    .Distinct()
+                    .OrderBy(x => x)
+                    .ToList();
+
+                return Json(new { success = true, brands, colors, types, conditions });
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "GetMotorbikeFilterData error");
+                return Json(new { success = false, message = ex.Message });
+            }
+        }
         // API: Tìm kiếm xe
         [HttpGet]
         public async Task<IActionResult> SearchVehicles(
@@ -1750,6 +1829,89 @@ namespace BTL_LTWeb_Quan_Ly_Cua_Hang_Xe_May.Controllers
             catch (Exception ex)
             {
                 _logger.LogError(ex, "Lỗi khi lấy thống kê hãng xe");
+                return Json(new { success = false, message = ex.Message });
+            }
+        }
+        [HttpGet]
+        public async Task<IActionResult> GetProvinces()
+        {
+            try
+            {
+                // Lấy stores từ service (nếu không có stores thì lấy provinces từ vehicles)
+                var stores = await _xeMayService.GetAllStoresAsync();
+                var provinces = new List<string>();
+
+                if (stores != null && stores.Any())
+                {
+                    provinces = stores
+                        .Select(s => s.Address ?? string.Empty)
+                        .Where(a => !string.IsNullOrWhiteSpace(a))
+                        .Select(a =>
+                        {
+                            // Cố gắng tách phần tỉnh/thành ở cuối chuỗi address
+                            var parts = a.Split(new[] { ',', '-', '/' }, StringSplitOptions.RemoveEmptyEntries)
+                                         .Select(p => p.Trim())
+                                         .Where(p => !string.IsNullOrEmpty(p))
+                                         .ToArray();
+                            return parts.Length > 0 ? parts.Last() : a.Trim();
+                        })
+                        .Where(p => !string.IsNullOrWhiteSpace(p))
+                        .Distinct()
+                        .OrderBy(p => p)
+                        .ToList();
+                }
+
+                // Fallback: nếu không có stores thì thử lấy từ vehicles
+                if ((provinces == null || provinces.Count == 0))
+                {
+                    var vehicles = await _xeMayService.GetAllVehiclesAsync();
+                    provinces = vehicles
+                        .Select(v => v.Store?.Address ?? string.Empty)
+                        .Where(a => !string.IsNullOrWhiteSpace(a))
+                        .Select(a =>
+                        {
+                            var parts = a.Split(new[] { ',', '-', '/' }, StringSplitOptions.RemoveEmptyEntries)
+                                         .Select(p => p.Trim())
+                                         .Where(p => !string.IsNullOrEmpty(p))
+                                         .ToArray();
+                            return parts.Length > 0 ? parts.Last() : a.Trim();
+                        })
+                        .Where(p => !string.IsNullOrWhiteSpace(p))
+                        .Distinct()
+                        .OrderBy(p => p)
+                        .ToList();
+                }
+
+                return Json(new { success = true, data = provinces });
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Lỗi khi lấy danh sách tỉnh");
+                return Json(new { success = false, message = ex.Message });
+            }
+        }
+
+        // API: Lấy tất cả xe (dùng cho AllVehicles page)
+        [HttpGet]
+        public async Task<IActionResult> GetAllVehiclesFilterData()
+        {
+            try
+            {
+                var vehicles = await _xeMayService.GetAllVehiclesAsync(); // dùng service sẵn có trong dự án
+                var brands = vehicles.Where(v => v.Brand?.BrandName != null).Select(v => v.Brand!.BrandName!.Trim()).Distinct().OrderBy(x => x).ToList();
+                var colors = vehicles.Where(v => !string.IsNullOrWhiteSpace(v.Color)).Select(v => v.Color!.Trim()).Distinct().OrderBy(x => x).ToList();
+                var conditions = vehicles.Where(v => !string.IsNullOrWhiteSpace(v.Condition)).Select(v => v.Condition!.Trim()).Distinct().OrderBy(x => x).ToList();
+
+                // types: hợp nhất từ CategoryName
+                var types = vehicles.Select(v => (v.Category?.CategoryName ?? "").Trim())
+                                    .Where(s => !string.IsNullOrWhiteSpace(s))
+                                    .Distinct().OrderBy(x => x).ToList();
+
+                return Json(new { success = true, brands, colors, types, conditions });
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "GetAllVehiclesFilterData error");
                 return Json(new { success = false, message = ex.Message });
             }
         }

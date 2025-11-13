@@ -294,10 +294,10 @@ namespace BTL_LTWeb_Quan_Ly_Cua_Hang_Xe_May.Controllers
 
                 if (!string.IsNullOrEmpty(returnUrl) && Url.IsLocalUrl(returnUrl))
                     return Redirect(returnUrl);
-                if (user.Role.RoleName == "Admin" || user.Role.RoleId == 1)
-                {
-                    return RedirectToAction("AdminDashboard", "Home");
-                }
+                //if (user.Role.RoleName == "Admin" || user.Role.RoleId == 1)
+                //{
+                //    return RedirectToAction("AdminDashboard", "Home");
+                //}
                 return RedirectToAction("Index", "Home");
             }
 

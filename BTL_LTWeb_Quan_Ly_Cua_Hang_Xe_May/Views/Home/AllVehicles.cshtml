@@ -1,6 +1,6 @@
-﻿@*
-*@
-@{
+﻿@{
+    Layout = "_Layout";
+    ViewData["Title"] = "Mua bán xe - All Vehicles";
 }
 <!DOCTYPE html>
 <html lang="vi">
@@ -8,64 +8,19 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Bản tin mua bán xe giá rẻ</title>
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css"
-          rel="stylesheet" />
-    <link rel="stylesheet"
-          href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
+
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
+
     <link rel="stylesheet" href="/css/AllVehicles.css" />
     <link rel="stylesheet" href="/css/style.css" />
-    <link rel="stylesheet"
-          href="https://cdn.jsdelivr.net/npm/nouislider@15.7.0/dist/nouislider.min.css" />
+
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/nouislider@15.7.0/dist/nouislider.min.css" />
     <script src="https://cdn.jsdelivr.net/npm/nouislider@15.7.0/dist/nouislider.min.js"></script>
 </head>
 <body>
-    <!-- Header -->
-    <header class="sticky-header">
-        <div class="header-container">
-            <div class="header-left">
-                <button class="header-icon-btn hamburger-menu" aria-label="Menu">
-                    <i class="fas fa-bars"></i>
-                </button>
-                <a href="#" class="header-logo">
-                    Auto<span class="logo-xe">Wings</span>
-                </a>
-                <button class="location-selector">
-                    <span>Toàn quốc</span>
-                    <i class="fas fa-chevron-down"></i>
-                </button>
-            </div>
+    @await Html.PartialAsync("_Header")
 
-            <div class="header-center">
-                <form class="search-form" action="/search">
-                    <div class="search-bar">
-                        <i class="fas fa-search search-icon"></i>
-                        <input type="text"
-                               placeholder="Tìm xe cộ..."
-                               name="query"
-                               class="search-input" />
-                    </div>
-                    <button type="submit" class="search-submit-btn" aria-label="Tìm kiếm">
-                        <i class="fas fa-search"></i>
-                    </button>
-                </form>
-            </div>
-
-            <div class="header-right">
-                <button class="header-icon-btn" aria-label="Tin đã lưu">
-                    <i class="far fa-heart"></i>
-                </button>
-                <button class="header-icon-btn" aria-label="Thông báo">
-                    <i class="far fa-bell"></i>
-                </button>
-                <a href="#" class="manage-link">Quản lý tin</a>
-                <a href="#" class="post-ad-btn">Đăng xe</a>
-                <button class="user-profile-btn" aria-label="Tài khoản">
-                    <span class="avatar-initial">B</span>
-                    <i class="fas fa-chevron-down"></i>
-                </button>
-            </div>
-        </div>
-    </header>
     <div class="container bg-white mt-lg-4 rounded-5">
         <!-- Top Bar -->
         <div class="top-bar rounded-5">
@@ -84,131 +39,101 @@
         <div class="filter-bar">
             <div class="container">
                 <div class="filter-controls">
-                    <button class="filter-btn" onclick="openPopup('popup-filter')">
-                        Lọc
-                    </button>
-                    <button class="filter-btn" onclick="openPopup('popup-price')">
-                        Giá
-                    </button>
-                    <button class="filter-btn" onclick="openPopup('popup-status')">
-                        Tình trạng
-                    </button>
+                    <button class="filter-btn" onclick="openPopup('popup-filter')">Lọc</button>
+                    <button class="filter-btn" onclick="openPopup('popup-price')">Giá</button>
+                    <button class="filter-btn" onclick="openPopup('popup-status')">Tình trạng</button>
                     <a href="#" id="clear-all-filters-link" class="clear-filter-link d-none d-md-inline">Xoá lọc</a>
                 </div>
             </div>
         </div>
 
-        <!-- pop up lọc-->
-        <div id="popup-filter" class="popup-modal" style="display: none">
-            <div class="popup-content">
-                <div class="popup-header">
-                    <span>Lọc Nâng Cao</span>
-                    <button class="close-popup" onclick="closePopup('popup-filter')">
-                        &times;
-                    </button>
+        <!-- Popup Lọc (dynamic) -->
+        <div id="popup-filter" class="popup-modal" style="display:none">
+            <div class="popup-content d-flex flex-column flex-lg-row gap-3" style="max-width:980px; width:100%;">
+                <div class="popup-main flex-fill">
+                    <div class="popup-header d-flex justify-content-between align-items-center">
+                        <span>Lọc Nâng Cao</span>
+                        <button class="close-popup" onclick="closePopup('popup-filter')">&times;</button>
+                    </div>
+                    <div class="popup-body">
+                        <div class="filter-section">
+                            <div class="filter-title">Hãng xe</div>
+                            <div id="brand-list-short" class="d-flex flex-wrap gap-2"></div>
+                            <button type="button" class="btn btn-link p-0" onclick="openPopup('popup-brand')">Xem thêm</button>
+                        </div>
+
+                        <div class="filter-section">
+                            <div class="filter-title">Màu sắc</div>
+                            <div id="popup-colors" class="d-flex flex-wrap gap-2"></div>
+                        </div>
+
+                        <div class="filter-section">
+                            <div class="filter-title">Loại xe</div>
+                            <div id="popup-types" class="d-flex flex-wrap gap-2"></div>
+                        </div>
+
+                        <div class="filter-section">
+                            <div class="filter-title">Tình trạng</div>
+                            <div id="popup-condition" class="d-flex flex-wrap gap-2"></div>
+                        </div>
+
+                        <div class="popup-actions d-flex justify-content-between mt-3">
+                            <button class="btn btn-sm btn-outline-secondary" onclick="clearPopupFilters()">Xóa lọc</button>
+                            <button class="btn btn-primary btn-sm" onclick="applyPopupFilters()">Áp dụng</button>
+                        </div>
+                    </div>
+                </div>
+
+                <aside class="popup-right" style="width:280px;">
+                    <div class="popup-header"><strong>Đã chọn</strong></div>
+                    <div id="selected-filters-container" class="p-2">
+                        <div id="selected-filters">Lọc theo:</div>
+                    </div>
+                    <div class="p-2">
+                        <button class="btn btn-sm btn-outline-danger w-100" onclick="clearAllAndApply()">Xóa tất cả và áp dụng</button>
+                    </div>
+                </aside>
+            </div>
+        </div>
+
+        <!-- Popup xem thêm hãng (dynamic) -->
+        <div id="popup-brand" class="popup-modal" style="display:none">
+            <div class="popup-content" style="max-width:700px; width:100%;">
+                <div class="popup-header d-flex justify-content-between align-items-center">
+                    <span>Chọn hãng xe</span>
+                    <button class="close-popup" onclick="closePopup('popup-brand')">&times;</button>
                 </div>
                 <div class="popup-body">
-                    <div class="filter-section">
-                        <div class="filter-title">Tình trạng</div>
-                        <label>
-                            <input type="checkbox"
-                                   class="flt"
-                                   value="used"
-                                   onchange="updateSelectedFilters()" />
-                            Đã sử dụng
-                        </label>
-                        <label>
-                            <input type="checkbox"
-                                   class="flt"
-                                   value="new"
-                                   onchange="updateSelectedFilters()" />
-                            Mới
-                        </label>
-                    </div>
-                    <div class="filter-section">
-                        <div class="filter-title">Tin có video</div>
-                        <label class="switch">
-                            <!-- Mới thêm -->
-                            <input type="checkbox"
-                                   class="flt"
-                                   value="video"
-                                   onchange="updateSelectedFilters()" /><span class="slider"></span>
-                        </label>
-                    </div>
-                    <div class="filter-section">
-                        <div class="filter-title">Đăng bởi</div>
-                        <label>
-                            <input type="checkbox"
-                                   class="flt"
-                                   value="person"
-                                   onchange="updateSelectedFilters()" />
-                            Cá nhân
-                        </label>
-                        <label>
-                            <input type="checkbox"
-                                   class="flt"
-                                   value="professional"
-                                   onchange="updateSelectedFilters()" />
-                            Bán chuyên
-                        </label>
-                        <label>
-                            <input type="checkbox"
-                                   class="flt"
-                                   value="partner"
-                                   onchange="updateSelectedFilters()" />
-                            Đối Tác Chợ Tốt
-                        </label>
-                    </div>
-                    <!-- Chip filter đã tick, sẽ hiện ra dưới -->
-                    <div id="selected-filters" class="selected-filters">
-                        Lọc theo:
-                        <!-- mục đã chọn sẽ xuất hiện tại đây -->
-                    </div>
-                    <div class="popup-actions">
-                        <button onclick="clearFilters()">Xóa lọc</button>
-                        <button class="btn-primary" onclick="applyFilters()">
-                            Áp dụng
-                        </button>
+                    <input id="brand-search" class="form-control mb-2" placeholder="Tìm hãng xe..." oninput="filterBrandList()" />
+                    <div id="brand-list-full" class="d-flex flex-wrap gap-2"></div>
+                    <div class="popup-actions mt-2 d-flex justify-content-end">
+                        <button class="btn btn-sm btn-secondary" onclick="closePopup('popup-brand')">Đóng</button>
                     </div>
                 </div>
             </div>
         </div>
+
         <!-- Popup Giá -->
-        <div id="popup-price" class="popup-modal" style="display: none">
+        <div id="popup-price" class="popup-modal" style="display:none">
             <div class="popup-content">
                 <div class="popup-header">
                     <span>Chọn khoảng giá</span>
-                    <button class="close-popup" onclick="closePopup('popup-price')">
-                        &times;
-                    </button>
+                    <button class="close-popup" onclick="closePopup('popup-price')">&times;</button>
                 </div>
                 <div class="popup-body">
                     <div class="price-slider-section">
                         <div id="price-slider"></div>
-                        <div class="slider-labels">
-                            <span>0</span>
-                            <span>1.5 tỷ</span>
-                        </div>
+                        <div class="slider-labels"><span>0</span><span>100 triệu</span></div>
                         <div class="price-num-wrap">
                             <div class="price-field">
                                 <label>Giá tối thiểu</label>
-                                <input type="number"
-                                       id="minPriceInput"
-                                       min="0"
-                                       max="1500000000"
-                                       value="0"
-                                       onchange="updateSliderFromInput()" />
+                                <input type="number" id="minPriceInput" min="0" max="100000000" value="0" onchange="updateSliderFromInput()" />
                                 <span class="currency">đ</span>
                             </div>
-                            <span style="font-size: 22px; color: #888; margin: 0 9px">-</span>
+                            <span style="font-size:22px; color:#888; margin:0 9px">-</span>
                             <div class="price-field">
                                 <label>Giá tối đa</label>
-                                <input type="number"
-                                       id="maxPriceInput"
-                                       min="0"
-                                       max="1500000000"
-                                       value="1500000000"
-                                       onchange="updateSliderFromInput()" />
+                                <input type="number" id="maxPriceInput" min="0" max="100000000" value="100000000" onchange="updateSliderFromInput()" />
                                 <span class="currency">đ</span>
                             </div>
                         </div>
@@ -221,30 +146,16 @@
             </div>
         </div>
 
-        <!-- pop up tình trạng -->
-        <div id="popup-status" class="popup-modal" style="display: none">
+        <!-- Popup Tình trạng -->
+        <div id="popup-status" class="popup-modal" style="display:none">
             <div class="popup-content">
                 <div class="popup-header">
                     <span>Tình trạng</span>
-                    <button class="close-popup" onclick="closePopup('popup-status')">
-                        &times;
-                    </button>
+                    <button class="close-popup" onclick="closePopup('popup-status')">&times;</button>
                 </div>
                 <div class="popup-body">
-                    <label>
-                        <input type="radio"
-                               name="status"
-                               value="used"
-                               onchange="selectStatus()" />
-                        Đã sử dụng
-                    </label>
-                    <label>
-                        <input type="radio"
-                               name="status"
-                               value="new"
-                               onchange="selectStatus()" />
-                        Mới
-                    </label>
+                    <label><input type="radio" name="status" value="used" onchange="selectStatus()" /> Đã sử dụng</label>
+                    <label><input type="radio" name="status" value="new" onchange="selectStatus()" /> Mới</label>
                     <div class="popup-actions">
                         <button onclick="clearStatus()">Xóa lọc</button>
                     </div>
@@ -252,411 +163,87 @@
             </div>
         </div>
 
-        <!-- Location Section -->
+        <!-- Khu vực (dynamic) -->
         <div class="container">
             <div class="location-section">
                 <div class="location-pills">
                     <span class="location-label">Khu vực:</span>
-                    <div class="location-pill active">Tp Hồ Chí Minh</div>
-                    <div class="location-pill">Hà Nội</div>
+                    <!-- JS sẽ bơm các .location-pill ở đây -->
                 </div>
             </div>
 
             <!-- Category Icons -->
             <div class="category-section">
-                <div class="category-icons">
-                    <a href="#" class="category-item">
-                        <img src="/images/2010.svg" class="category-icon"></img>
-                        <div class="category-name">Ô tô</div>
-                    </a>
-                    <a href="#" class="category-item">
-                        <img src="~/images/2020.svg" class="category-icon"></img>
+                <div class="category-icons" id="category-icons">
+                    <a asp-controller="Home" asp-action="Motorbikes" class="category-item" data-category="Xe máy">
+                        <img src="/images/2020.svg" class="category-icon" alt="Xe máy">
                         <div class="category-name">Xe máy</div>
                     </a>
-                    </a>
-                    <a href="#" class="category-item">
-                        <img src="/images/2090.svg" class="category-icon"></img>
+                    <a asp-controller="Home" asp-action="Electric" class="category-item" data-category="Xe điện">
+                        <img src="/images/2020.svg" class="category-icon" alt="Xe điện">
                         <div class="category-name">Xe điện</div>
-                    </a>
                     </a>
                 </div>
             </div>
 
             <!-- Main Content -->
             <div class="row">
-                <div class="col-lg-9 ">
-                    <!-- Tabs -->
+                <!-- Listings -->
+                <div class="col-lg-9">
                     <div class="tabs-section d-flex justify-content-between">
                         <ul class="nav nav-tabs">
-                            <li class="nav-item">
-                                <a class="nav-link active" href="#">Tất cả</a>
-                            </li>
+                            <li class="nav-item"><a class="nav-link active" href="#">Tất cả</a></li>
                         </ul>
-
-                        <!-- Sort Bar -->
                         <div class="sort-bar">
                             <button class="sort-btn me-lg-3">
-                                Tin mới nhất
-                                <i class="fas fa-chevron-down" style="font-size: 10px"></i>
+                                Tin mới nhất <i class="fas fa-chevron-down" style="font-size:10px"></i>
                             </button>
                             <div class="view-toggle d-none d-md-flex">
-                                <button class="view-btn active" id="list-view-btn">
-                                    <i class="fas fa-list"></i>
-                                </button>
-                                <button class="view-btn " id="grid-view-btn">
-                                    <i class="fas fa-th"></i>
-                                </button>
+                                <button class="view-btn active" id="list-view-btn"><i class="fas fa-list"></i></button>
+                                <button class="view-btn" id="grid-view-btn"><i class="fas fa-th"></i></button>
                             </div>
                         </div>
                     </div>
 
-                    <!-- Listings -->
-                    <div id="listings-container" class="list-view">
-                    @*     <div class="listing-card">
-                            <div class="listing-image">
-                                <img src="https://images.unsplash.com/photo-1558981806-ec527fa84c39?w=400&h=300&fit=crop"
-                                     alt="Yamaha Jupiter" />
-                                <div class="image-badge"><i class="fas fa-camera"></i> 4</div>
-                            </div>
-                            <div class="listing-content">
-                                <h3 class="listing-title">
-                                    Yamaha Jupiter Fi 115cc 2014 đô đen Zin100% bs.Tp
-                                </h3>
-                                <div class="listing-meta">
-                                    <span>2014</span>
-                                    <span>Xe số</span>
-                                    <span>Đã sử dụng</span>
-                                </div>
-                                <div class="listing-price">10.700.000 đ</div>
-                                <div class="listing-location">
-                                    <i class="fas fa-map-marker-alt"></i> Tp Hồ Chí Minh
-                                </div>
-                                <div class="listing-seller">
-                                    <span class="seller-badge">A</span>
-                                    <span>Anh Khuê</span>
-                                    <span>4.2 ⭐</span>
-                                    <span>118 đã bán</span>
-                                </div>
-                            </div>
-                            <div class="listing-actions">
-                                <button class="btn-action">
-                                    <i class="far fa-comment"></i> Chat
-                                </button>
-                                <button class="btn-action btn-favorite">
-                                    <i class="far fa-heart"></i>
-                                </button>
-                            </div>
-                        </div>
-
-                        <div class="listing-card">
-                            <div class="listing-image">
-                                <img src="https://images.unsplash.com/photo-1583267746897-c45e7d12f8c5?w=400&h=300&fit=crop"
-                                     alt="VinFast VF5" />
-                                <div class="image-badge"><i class="fas fa-camera"></i> 7</div>
-                            </div>
-                            <div class="listing-content">
-                                <h3 class="listing-title">
-                                    🚙 VF5 TRẢ TRƯỚC 0 ĐỒNG, VINCLUB 10TB, GIẢM GIÁ X64%
-                                </h3>
-                                <div class="listing-meta">
-                                    <span>2025</span>
-                                    <span>Điện</span>
-                                    <span>Tự động</span>
-                                    <span>Mới</span>
-                                </div>
-                                <div class="listing-price">495.000.000 đ</div>
-                                <div class="listing-location">
-                                    <i class="fas fa-map-marker-alt"></i> Tp Hồ Chí Minh
-                                </div>
-                                <div class="listing-seller">
-                                    <span>Ms Phương Thảo</span>
-                                    <span>5.0 ⭐</span>
-                                </div>
-                            </div>
-                            <div class="listing-actions">
-                                <button class="btn-action">
-                                    <i class="far fa-comment"></i> Chat
-                                </button>
-                                <button class="btn-action btn-favorite">
-                                    <i class="far fa-heart"></i>
-                                </button>
-                            </div>
-                        </div>
-
-                        <div class="listing-card">
-                            <div class="listing-image">
-                                <img src="https://images.unsplash.com/photo-1583267746897-c45e7d12f8c5?w=400&h=300&fit=crop"
-                                     alt="VinFast VF5" />
-                                <div class="image-badge"><i class="fas fa-camera"></i> 7</div>
-                            </div>
-                            <div class="listing-content">
-                                <h3 class="listing-title">
-                                    🚙 VF5 TRẢ TRƯỚC 0 ĐỒNG, VINCLUB 10TB, GIẢM GIÁ X64%
-                                </h3>
-                                <div class="listing-meta">
-                                    <span>2025</span>
-                                    <span>Điện</span>
-                                    <span>Tự động</span>
-                                    <span>Mới</span>
-                                </div>
-                                <div class="listing-price">495.000.000 đ</div>
-                                <div class="listing-location">
-                                    <i class="fas fa-map-marker-alt"></i> Tp Hồ Chí Minh
-                                </div>
-                                <div class="listing-seller">
-                                    <span>Ms Phương Thảo</span>
-                                    <span>5.0 ⭐</span>
-                                </div>
-                            </div>
-                            <div class="listing-actions">
-                                <button class="btn-action">
-                                    <i class="far fa-comment"></i> Chat
-                                </button>
-                                <button class="btn-action btn-favorite">
-                                    <i class="far fa-heart"></i>
-                                </button>
-                            </div>
-                        </div>
-
-                        <div class="listing-card">
-                            <div class="listing-image">
-                                <img src="https://images.unsplash.com/photo-1558981806-ec527fa84c39?w=400&h=300&fit=crop"
-                                     alt="Yamaha Jupiter" />
-                                <div class="image-badge"><i class="fas fa-camera"></i> 4</div>
-                            </div>
-                            <div class="listing-content">
-                                <h3 class="listing-title">
-                                    Yamaha Jupiter Fi 115cc 2014 đô đen Zin100% bs.Tp
-                                </h3>
-                                <div class="listing-meta">
-                                    <span>2014</span>
-                                    <span>Xe số</span>
-                                    <span>Đã sử dụng</span>
-                                </div>
-                                <div class="listing-price">10.700.000 đ</div>
-                                <div class="listing-location">
-                                    <i class="fas fa-map-marker-alt"></i> Tp Hồ Chí Minh
-                                </div>
-                                <div class="listing-seller">
-                                    <span class="seller-badge">A</span>
-                                    <span>Anh Khuê</span>
-                                    <span>4.2 ⭐</span>
-                                    <span>118 đã bán</span>
-                                </div>
-                            </div>
-                            <div class="listing-actions">
-                                <button class="btn-action">
-                                    <i class="far fa-comment"></i> Chat
-                                </button>
-                                <button class="btn-action btn-favorite">
-                                    <i class="far fa-heart"></i>
-                                </button>
-                            </div>
-                        </div>
-
-                        <div class="listing-card">
-                            <div class="listing-image">
-                                <img src="https://images.unsplash.com/photo-1558981806-ec527fa84c39?w=400&h=300&fit=crop"
-                                     alt="Yamaha Jupiter" />
-                                <div class="image-badge"><i class="fas fa-camera"></i> 4</div>
-                            </div>
-                            <div class="listing-content">
-                                <h3 class="listing-title">
-                                    Yamaha Jupiter Fi 115cc 2014 đô đen Zin100% bs.Tp
-                                </h3>
-                                <div class="listing-meta">
-                                    <span>2014</span>
-                                    <span>Xe số</span>
-                                    <span>Đã sử dụng</span>
-                                </div>
-                                <div class="listing-price">10.700.000 đ</div>
-                                <div class="listing-location">
-                                    <i class="fas fa-map-marker-alt"></i> Tp Hồ Chí Minh
-                                </div>
-                                <div class="listing-seller">
-                                    <span class="seller-badge">A</span>
-                                    <span>Anh Khuê</span>
-                                    <span>4.2 ⭐</span>
-                                    <span>118 đã bán</span>
-                                </div>
-                            </div>
-                            <div class="listing-actions">
-                                <button class="btn-action">
-                                    <i class="far fa-comment"></i> Chat
-                                </button>
-                                <button class="btn-action btn-favorite">
-                                    <i class="far fa-heart"></i>
-                                </button>
-                            </div>
-                        </div>*@
-                    </div> 
-
+                    <div id="listings-container" class="list-view"></div>
                 </div>
-                <!-- Lọc theo tình trạng -->
+
+                <!-- Sidebar bộ lọc động (KHÔNG lồng col vào col) -->
                 <div class="col-lg-3 mt-lg-5">
-                    <div class="sidebar-section" id="active-filters-container" style="display: none;">
+                    <div class="sidebar-section" id="active-filters-container" style="display:none;">
                         <div class="sidebar-title">Đang lọc theo</div>
-                        <div class="sidebar-option" id="active-filters-display">
-                        </div>
+                        <div class="sidebar-option" id="active-filters-display"></div>
                     </div>
 
-                    <div class="sidebar-section">
-                        <div class="sidebar-title">Lọc theo tình trạng</div>
-                    <div class="sidebar-section">
-                        <div class="sidebar-title">Lọc theo tình trạng</div>
-                        <div class="sidebar-option">
-                            <input type="radio" id="used" name="condition" />
-                            <label for="used">Đã sử dụng</label>
-                        </div>
-                        <div class="sidebar-option">
-                            <input type="radio" id="new" name="condition" />
-                            <label for="new">Mới</label>
-                        </div>
+                    <div class="sidebar-section" id="sb-brands">
+                        <div class="sidebar-title">Hãng xe</div>
                     </div>
-                    <!-- Mua bán xe: Tỉnh sau sáp nhập -->
-                    <div class="sidebar-section">
-                        <div class="sidebar-title">Mua bán xe</div>
-                        <div class="province-list">
-                            <!-- Hiển thị ngay 6 tỉnh/thành phố -->
-                            <a href="/mua-ban-xe-ha-noi" class="province-link">Thành phố Hà Nội</a>
-                            <a href="/mua-ban-xe-hue" class="province-link">Thành phố Huế</a>
-                            <a href="/mua-ban-xe-son-la" class="province-link">Tỉnh Sơn La</a>
-                            <a href="/mua-ban-xe-cao-bang" class="province-link">Tỉnh Cao Bằng</a>
-                            <a href="/mua-ban-xe-quang-ninh" class="province-link">Tỉnh Quảng Ninh</a>
-                            <a href="/mua-ban-xe-nghe-an" class="province-link">Tỉnh Nghệ An</a>
 
-                            <!-- Các tỉnh/thành còn lại (ẩn ban đầu) -->
-                            <a href="/mua-ban-xe-dien-bien" class="province-link hidden">Tỉnh Điện Biên</a>
-                            <a href="/mua-ban-xe-lai-chau" class="province-link hidden">Tỉnh Lai Châu</a>
-                            <a href="/mua-ban-xe-lang-son" class="province-link hidden">Tỉnh Lạng Sơn</a>
-                            <a href="/mua-ban-xe-thanh-hoa" class="province-link hidden">Tỉnh Thanh Hóa</a>
-                            <a href="/mua-ban-xe-ha-tinh" class="province-link hidden">Tỉnh Hà Tĩnh</a>
-                            <a href="/mua-ban-xe-tuyen-quang" class="province-link hidden">Tỉnh Tuyên Quang</a>
-                            <a href="/mua-ban-xe-lao-cai" class="province-link hidden">Tỉnh Lào Cai</a>
-                            <a href="/mua-ban-xe-thai-nguyen" class="province-link hidden">Tỉnh Thái Nguyên</a>
-                            <a href="/mua-ban-xe-phu-tho" class="province-link hidden">Tỉnh Phú Thọ</a>
-                            <a href="/mua-ban-xe-bac-ninh" class="province-link hidden">Tỉnh Bắc Ninh</a>
-                            <a href="/mua-ban-xe-hung-yen" class="province-link hidden">Tỉnh Hưng Yên</a>
-                            <a href="/mua-ban-xe-hai-phong" class="province-link hidden">Thành phố Hải Phòng</a>
-                            <a href="/mua-ban-xe-ninh-binh" class="province-link hidden">Tỉnh Ninh Bình</a>
-                            <a href="/mua-ban-xe-quang-tri" class="province-link hidden">Tỉnh Quảng Trị</a>
-                            <a href="/mua-ban-xe-da-nang" class="province-link hidden">Thành phố Đà Nẵng</a>
-                            <a href="/mua-ban-xe-quang-ngai" class="province-link hidden">Tỉnh Quảng Ngãi</a>
-                            <a href="/mua-ban-xe-gia-lai" class="province-link hidden">Tỉnh Gia Lai</a>
-                            <a href="/mua-ban-xe-khanh-hoa" class="province-link hidden">Tỉnh Khánh Hòa</a>
-                            <a href="/mua-ban-xe-lam-dong" class="province-link hidden">Tỉnh Lâm Đồng</a>
-                            <a href="/mua-ban-xe-dak-lak" class="province-link hidden">Tỉnh Đắk Lắk</a>
-                            <a href="/mua-ban-xe-tp-ho-chi-minh" class="province-link hidden">Thành phố Hồ Chí Minh</a>
-                            <a href="/mua-ban-xe-dong-nai" class="province-link hidden">Tỉnh Đồng Nai</a>
-                            <a href="/mua-ban-xe-tay-ninh" class="province-link hidden">Tỉnh Tây Ninh</a>
-                            <a href="/mua-ban-xe-can-tho" class="province-link hidden">Thành phố Cần Thơ</a>
-                            <a href="/mua-ban-xe-vinh-long" class="province-link hidden">Tỉnh Vĩnh Long</a>
-                            <a href="/mua-ban-xe-dong-thap" class="province-link hidden">Tỉnh Đồng Tháp</a>
-                            <a href="/mua-ban-xe-ca-mau" class="province-link hidden">Tỉnh Cà Mau</a>
-                            <a href="/mua-ban-xe-an-giang" class="province-link hidden">Tỉnh An Giang</a>
-                        </div>
-                        <div class="toggle-province-list"
-                             onclick="toggleProvinceList(this)">
-                            Xem thêm
-                        </div>
+                    <div class="sidebar-section" id="sb-colors">
+                        <div class="sidebar-title">Màu sắc</div>
+                    </div>
+
+                    <div class="sidebar-section" id="sb-types">
+                        <div class="sidebar-title">Loại</div>
+                    </div>
+
+                    <div class="sidebar-section" id="sb-condition">
+                        <div class="sidebar-title">Tình trạng</div>
+                        <!-- JS sẽ inject radio nếu có -->
                     </div>
                 </div>
             </div>
         </div>
-        <!-- Thanh chuyen trang -->
-        <nav class="pagination-container" aria-label="Page navigation">
-            <a href="#" class="page-link disabled" aria-label="Previous">
-                <span aria-hidden="true">&lsaquo;</span>
-            </a>
 
-            <a href="#" class="page-link active">1</a>
-            <a href="#" class="page-link">2</a>
-            <a href="#" class="page-link">3</a>
-            <a href="#" class="page-link">4</a>
-            <a href="#" class="page-link">5</a>
-            <a href="#" class="page-link">6</a>
-            <a href="#" class="page-link">7</a>
-            <a href="#" class="page-link">8</a>
-            <a href="#" class="page-link">9</a>
-
-            <a href="#" class="page-link" aria-label="Next">
-                <span aria-hidden="true">&rsaquo;</span>
-            </a>
-        </nav>
+        <!-- Pagination -->
+        <nav class="pagination-container" aria-label="Page navigation"></nav>
     </div>
-    <!-- Footer -->
-    <footer class="main-footer">
-        <div class="container">
-            <div class="row g-4">
-                <div class="col-lg-3 col-md-6">
-                    <h5 class="footer-title">Tải ứng dụng Chợ Tốt</h5>
-                    <div class="mb-3">
-                        <div class="qr-placeholder">
-                            <i class="fas fa-qrcode fa-3x"></i>
-                        </div>
-                    </div>
-                    <div class="app-badges">
-                        <a href="#" class="app-badge">
-                            <i class="fab fa-apple"></i> App Store
-                        </a>
-                        <a href="#" class="app-badge">
-                            <i class="fab fa-google-play"></i> Google Play
-                        </a>
-                    </div>
-                </div>
-                <div class="col-lg-3 col-md-6">
-                    <h5 class="footer-title">Hỗ trợ khách hàng</h5>
-                    <ul class="footer-links">
-                        <li><a href="#">Trung tâm trợ giúp</a></li>
-                        <li><a href="#">An toàn mua bán</a></li>
-                        <li><a href="#">Quy định đăng tin</a></li>
-                        <li><a href="#">Liên hệ hỗ trợ</a></li>
-                    </ul>
-                </div>
-                <div class="col-lg-3 col-md-6">
-                    <h5 class="footer-title">Về Chợ Tốt</h5>
-                    <ul class="footer-links">
-                        <li><a href="#">Giới thiệu</a></li>
-                        <li><a href="#">Quy chế hoạt động sàn</a></li>
-                        <li><a href="#">Chính sách bảo mật</a></li>
-                        <li><a href="#">Giải quyết tranh chấp</a></li>
-                        <li><a href="#">Tuyển dụng</a></li>
-                        <li><a href="#">Truyền thông</a></li>
-                        <li><a href="#">Blog</a></li>
-                    </ul>
-                </div>
-                <div class="col-lg-3 col-md-6">
-                    <h5 class="footer-title">Liên kết</h5>
-                    <div class="social-links mb-3">
-                        <a href="#" aria-label="LinkedIn"><i class="fab fa-linkedin"></i></a>
-                        <a href="#" aria-label="YouTube"><i class="fab fa-youtube"></i></a>
-                        <a href="#" aria-label="Facebook"><i class="fab fa-facebook"></i></a>
-                    </div>
-                    <div class="contact-info">
-                        <p class="mb-2"><strong>Email:</strong> trogiup@chotot.vn</p>
-                        <p class="mb-2"><strong>CSKH:</strong> 19003003 (1000đ/phút)</p>
-                        <p class="small mb-0">
-                            Địa chỉ: Tầng 18, Toà nhà UOA, Số 6 đường Tân Trào, Phường Tân Mỹ, Thành
-                            phố Hồ Chí Minh, Việt Nam
-                        </p>
-                    </div>
-                </div>
-            </div>
-            <div class="footer-bottom">
-                <div class="d-flex flex-column flex-md-row justify-content-between align-items-center gap-3">
-                    <p class="mb-0 small text-secondary">
-                        CÔNG TY TNHH CHỢ TỐT - Người đại diện theo pháp luật: Nguyễn
-                        Trọng Tấn; GPDKKD: 0312120782 do Sở KH & ĐT TPHCM cấp ngày 11/01/2013; GPMXH: 185/GP-BTTTT do Bộ
-                        Thông tin và Truyền thông cấp ngày 09/07/2024 - Chịu trách nhiệm nội dung: Trần Hoàng Ly. <a href="#" class="text-decoration-none">Chính sách sử dụng</a>
-                    </p>
-                    <div class="certification-badge">
-                        <img src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='120' height='45' viewBox='0 0 120 45'%3E%3Crect fill='%23e74c3c' width='120' height='45' rx='5'/%3E%3Ctext x='60' y='25' font-family='Arial' font-size='12' fill='white' text-anchor='middle' font-weight='bold'%3EĐÃ ĐĂNG KÝ%3C/text%3E%3Ctext x='60' y='38' font-family='Arial' font-size='8' fill='white' text-anchor='middle'%3EBỘ CÔNG THƯƠNG%3C/text%3E%3C/svg%3E"
-                             alt="Đã đăng ký Bộ Công Thương">
-                    </div>
-                </div>
-            </div>
-        </div>
-    </footer>
+
+    @await Html.PartialAsync("_Footer")
+
+    <!-- SweetAlert2 (tuỳ chọn) -->
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <!-- JS chính (include 1 lần) -->
     <script src="/js/AllVehicles.js"></script>
 </body>
 </html>
