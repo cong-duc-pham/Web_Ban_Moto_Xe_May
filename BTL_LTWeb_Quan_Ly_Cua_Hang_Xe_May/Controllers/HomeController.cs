@@ -460,6 +460,11 @@ namespace BTL_LTWeb_Quan_Ly_Cua_Hang_Xe_May.Controllers
         }
         public IActionResult QaA() => View();
         public IActionResult MotorbikeStore() => View();
+        [HttpGet]
+        public IActionResult Electric() => View();
+
+        [HttpGet]
+        public IActionResult Motorbikes() => View("AllVehicles"); 
 
         public async Task<IActionResult> MotorbikeOnline()
         {
