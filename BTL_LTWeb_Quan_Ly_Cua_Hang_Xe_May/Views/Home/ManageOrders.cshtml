@@ -230,6 +230,44 @@
         </div>
     </div>
 
+    <!-- Modal Giao hàng thất bại -->
+    <div class="modal fade" id="deliveryFailedModal" tabindex="-1">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content">
+                <div class="modal-header bg-danger text-white">
+                    <h5 class="modal-title">
+                        <i class="fas fa-exclamation-triangle"></i> Giao hàng thất bại
+                    </h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+                </div>
+                <form id="deliveryFailedForm">
+                    <div class="modal-body">
+                        <input type="hidden" id="deliveryFailedOrderId" />
+                        
+                        <div class="alert alert-danger">
+                            <i class="fas fa-exclamation-triangle"></i>
+                            <strong>Lưu ý:</strong> Sau khi xác nhận giao hàng thất bại, đơn hàng sẽ bị hủy và xe sẽ được đưa trở lại trang bán.
+                        </div>
+
+                        <div class="mb-3">
+                            <label for="deliveryFailureReason" class="form-label">Lý do giao hàng thất bại <span class="text-danger">*</span></label>
+                            <textarea class="form-control" id="deliveryFailureReason" rows="3" required
+                                      placeholder="Ví dụ: Khách hàng không nhận máy, không liên lạc được, địa chỉ sai..."></textarea>
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
+                            <i class="fas fa-times"></i> Hủy
+                        </button>
+                        <button type="submit" class="btn btn-danger">
+                            <i class="fas fa-ban"></i> Xác nhận giao hàng thất bại
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
     <!-- Modal QR Code Hoàn Tiền (Admin) -->
     <div class="modal fade" id="adminRefundQRModal" tabindex="-1">
         <div class="modal-dialog modal-dialog-centered">
@@ -370,6 +408,13 @@
             new bootstrap.Modal(document.getElementById('rejectModal')).show();
         }
 
+        // Hiển thị modal giao hàng thất bại
+        function showDeliveryFailedModal(orderId) {
+            document.getElementById('deliveryFailedOrderId').value = orderId;
+            document.getElementById('deliveryFailureReason').value = '';
+            new bootstrap.Modal(document.getElementById('deliveryFailedModal')).show();
+        }
+
         // Hiển thị modal QR hoàn tiền cho Admin
         function showAdminRefundQR(orderNumber, refundAmount, customerName, customerQRImage) {
             document.getElementById('adminRefundOrderNumber').textContent = orderNumber;
@@ -417,6 +462,43 @@
             .catch(error => {
                 console.error('Error:', error);
                 alert('Có lỗi xảy ra khi từ chối đơn hàng!');
+            });
+        });
+
+        // Xử lý form giao hàng thất bại
+        document.getElementById('deliveryFailedForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+            
+            const orderId = document.getElementById('deliveryFailedOrderId').value;
+            const failureReason = document.getElementById('deliveryFailureReason').value;
+
+            if (!failureReason.trim()) {
+                alert('Vui lòng nhập lý do giao hàng thất bại!');
+                return;
+            }
+
+            fetch('/Home/MarkAsDeliveryFailed', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                    orderId: parseInt(orderId),
+                    failureReason: failureReason
+                })
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    alert(data.message);
+                    location.reload();
+                } else {
+                    alert('Lỗi: ' + data.message);
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                alert('Có lỗi xảy ra khi xác nhận giao hàng thất bại!');
             });
         });
 
