@@ -1,6 +1,25 @@
 ﻿@{
     var currentAction = ViewContext.RouteData.Values["Action"]?.ToString();
     var currentController = ViewContext.RouteData.Values["Controller"]?.ToString();
+    
+    // Lấy thông tin người dùng từ Session
+    var fullName = Context.Session.GetString("FullName") ?? "Admin";
+    var roleName = Context.Session.GetString("RoleName") ?? "Quản trị viên";
+    
+    // Lấy 2 chữ cái đầu của tên để làm avatar
+    var initials = "AD";
+    if (!string.IsNullOrEmpty(fullName))
+    {
+        var nameParts = fullName.Split(' ');
+        if (nameParts.Length >= 2)
+        {
+            initials = nameParts[^2].Substring(0, 1).ToUpper() + nameParts[^1].Substring(0, 1).ToUpper();
+        }
+        else if (nameParts.Length == 1 && nameParts[0].Length >= 2)
+        {
+            initials = nameParts[0].Substring(0, 2).ToUpper();
+        }
+    }
 }
 <!DOCTYPE html>
 <html lang="vi">
@@ -108,13 +127,36 @@
                     <i class="fas fa-envelope"></i>
                     <span class="badge"></span>
                 </button> *@
-                <div class="user-profile">
-                    <div class="user-avatar">AD</div>
-                    <div>
-                        <div style="font-weight: 600; font-size: 14px;">Admin</div>
-                        <div style="font-size: 12px; color: var(--secondary);">Quản trị viên</div>
+                <div class="user-profile-wrapper">
+                    <div class="user-profile" onclick="toggleUserMenu()">
+                        <div class="user-avatar">@initials</div>
+                        <div>
+                            <div style="font-weight: 600; font-size: 14px;">@fullName</div>
+                            <div style="font-size: 12px; color: var(--secondary);">@roleName</div>
+                        </div>
+                        <i class="fas fa-chevron-down" style="color: var(--secondary); font-size: 12px;"></i>
                     </div>
-                    <i class="fas fa-chevron-down" style="color: var(--secondary); font-size: 12px;"></i>
+                    
+                    <!-- Dropdown Menu -->
+                    <div class="user-dropdown-menu" id="userDropdownMenu">
+                        <a href="/QA/Index" class="dropdown-item">
+                            <i class="fas fa-question-circle"></i>
+                            <span>Trang hỏi đáp</span>
+                        </a>
+                        <a href="/Account/AccountProfile" class="dropdown-item">
+                            <i class="fas fa-user"></i>
+                            <span>Thông tin cá nhân</span>
+                        </a>
+                        <a href="/Home/ManageOrders" class="dropdown-item">
+                            <i class="fas fa-tasks"></i>
+                            <span>Quản lý đơn hàng</span>
+                        </a>
+                        <div class="dropdown-divider"></div>
+                        <a href="/Account/Logout" class="dropdown-item text-danger">
+                            <i class="fas fa-sign-out-alt"></i>
+                            <span>Đăng xuất</span>
+                        </a>
+                    </div>
                 </div>
             </div>
         </div>
@@ -126,6 +168,25 @@
     </div>
 
     <script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.2/js/bootstrap.bundle.min.js"></script>
+    
+    <script>
+        // Toggle user dropdown menu
+        function toggleUserMenu() {
+            const menu = document.getElementById('userDropdownMenu');
+            menu.classList.toggle('show');
+        }
+
+        // Close dropdown when clicking outside
+        document.addEventListener('click', function(event) {
+            const userProfile = document.querySelector('.user-profile-wrapper');
+            const menu = document.getElementById('userDropdownMenu');
+            
+            if (!userProfile.contains(event.target)) {
+                menu.classList.remove('show');
+            }
+        });
+    </script>
+    
     <script src="/js/AdminLayout.js"> </script>
 </body>
 </html>
