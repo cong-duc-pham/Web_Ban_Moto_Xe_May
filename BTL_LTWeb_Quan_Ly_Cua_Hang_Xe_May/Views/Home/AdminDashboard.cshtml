@@ -5,6 +5,7 @@
     ViewData["Title"] = "Tổng quan";
 }
 
+@Html.AntiForgeryToken()
 
 <div class="page-header">
     <h1>Tổng quan hệ thống</h1>
@@ -258,12 +259,13 @@
 
     function deleteCustomer(userId, customerName) {
         if (confirm(`Bạn có chắc chắn muốn xóa khách hàng "${customerName}"?\n\nLưu ý: Chỉ có thể xóa khách hàng chưa có đơn hàng.`)) {
+            const token = document.querySelector('input[name="__RequestVerificationToken"]').value;
             fetch('/Home/DeleteCustomer', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/x-www-form-urlencoded',
                 },
-                body: `userId=${userId}`
+                body: `userId=${userId}&__RequestVerificationToken=${encodeURIComponent(token)}`
             })
             .then(response => response.json())
             .then(data => {
@@ -313,40 +315,6 @@
         searchInput.addEventListener('input', filterVehicles);
         filterStatus.addEventListener('change', filterVehicles);
     });
-    
-    // Customer management functions
-    function viewCustomer(userId) {
-        alert('Xem chi tiết khách hàng ID: ' + userId + ' (Chức năng đang phát triển)');
-    }
-
-    function editCustomer(userId) {
-        alert('Chỉnh sửa khách hàng ID: ' + userId + ' (Chức năng đang phát triển)');
-    }
-
-    function deleteCustomer(userId, customerName) {
-        if (confirm(`Bạn có chắc chắn muốn xóa khách hàng "${customerName}"?\n\nLưu ý: Chỉ có thể xóa khách hàng chưa có đơn hàng.`)) {
-            fetch('/Home/DeleteCustomer', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/x-www-form-urlencoded',
-                },
-                body: `userId=${userId}`
-            })
-            .then(response => response.json())
-            .then(data => {
-                if (data.success) {
-                    alert(data.message);
-                    location.reload();
-                } else {
-                    alert('Lỗi: ' + data.message);
-                }
-            })
-            .catch(error => {
-                console.error('Error:', error);
-                alert('Có lỗi xảy ra khi xóa khách hàng!');
-            });
-        }
-    }
 </script>
 
 <script src="/js/AdminLayout.js"> </script>

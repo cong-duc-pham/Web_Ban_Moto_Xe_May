@@ -1603,6 +1603,7 @@ namespace BTL_LTWeb_Quan_Ly_Cua_Hang_Xe_May.Controllers
 
         // Xóa khách hàng (Admin only)
         [HttpPost]
+        [ValidateAntiForgeryToken]
         [Authorize(Roles = "Admin")]
         public async Task<IActionResult> DeleteCustomer(int userId)
         {
