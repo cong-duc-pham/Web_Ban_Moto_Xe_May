@@ -1,5 +1,4 @@
-﻿
-function formatPrice(price) {
+﻿function formatPrice(price) {
     return price.toString().replace(/\B(?=(\d{3})+(?!\d))/g, '.') + ' đ';
 }
 
@@ -14,6 +13,7 @@ function escapeHtml(text) {
     div.textContent = text;
     return div.innerHTML;
 }
+
 let modalState = {
     isOpen: false,
     liked: false,
@@ -389,6 +389,8 @@ function initSearch() {
     const locationSelect = document.getElementById('locationSelect');
     const vehicleTypeSelect = document.getElementById('vehicleTypeSelect');
 
+    if (!searchBtn) return;
+
     function performSearch() {
         const keyword = searchInput.value.trim();
         const location = locationSelect.value;
@@ -407,43 +409,6 @@ function initSearch() {
     searchInput.addEventListener('keypress', (e) => {
         if (e.key === 'Enter') performSearch();
     });
-}
-
-function initFavorites() {
-    const favorites = JSON.parse(localStorage.getItem('favorites') || '[]');
-
-    document.addEventListener('click', (e) => {
-        if (e.target.closest('.product-favorite')) {
-            const btn = e.target.closest('.product-favorite');
-            const id = btn.dataset.id;
-            const icon = btn.querySelector('i');
-
-            if (favorites.includes(id)) {
-                favorites.splice(favorites.indexOf(id), 1);
-                icon.classList.remove('fas');
-                icon.classList.add('far');
-                btn.classList.remove('active');
-            } else {
-                favorites.push(id);
-                icon.classList.remove('far');
-                icon.classList.add('fas');
-                btn.classList.add('active');
-            }
-
-            localStorage.setItem('favorites', JSON.stringify(favorites));
-        }
-    });
-
-    setTimeout(() => {
-        favorites.forEach(id => {
-            const btn = document.querySelector(`.product-favorite[data-id="${id}"]`);
-            if (btn) {
-                btn.querySelector('i').classList.remove('far');
-                btn.querySelector('i').classList.add('fas');
-                btn.classList.add('active');
-            }
-        });
-    }, 100);
 }
 
 function initMobileMenu() {
@@ -466,44 +431,199 @@ function initMobileMenu() {
     });
 }
 
-document.addEventListener('DOMContentLoaded', () => {
-    renderLatestListings();
-    renderOfficialStores();
-    renderFeaturedStores();
-    renderActivities();
-    renderQAArticles();
-    renderKeywords();
+function getTimeAgo(date) {
+    const now = new Date();
+    const diff = now - date;
+    const seconds = Math.floor(diff / 1000);
+    const minutes = Math.floor(seconds / 60);
+    const hours = Math.floor(minutes / 60);
+    const days = Math.floor(hours / 24);
 
-    initCarousels();
-    initTabs();
-    initSearch();
-    initFavorites();
-    initMobileMenu();
-    initActivityModal(); //  Initialize modal
+    if (seconds < 60) return `${seconds} giây trước`;
+    if (minutes < 60) return `${minutes} phút trước`;
+    if (hours < 24) return `${hours} giờ trước`;
+    if (days < 7) return `${days} ngày trước`;
+    return date.toLocaleDateString('vi-VN');
+}
 
-    console.log('loaded with Activity Modal!');
-});
+function viewVehicleDetail(vehicleId) {
+    window.location.href = `/Home/VehicleDetail/${vehicleId}`;
+}
 
-const swiper = new Swiper(".swiper-container", {
-    autoplay: {
-        delay: 2000,
-    },
-    loop: true,
-    navigation: {
-        nextEl: ".swiper-button-next",
-        prevEl: ".swiper-button-prev",
-    },
-});
-const swiper1 = new Swiper(".swiper-container1", {
-    autoplay: {
-        delay: 2000,
-    },
-    loop: false,
-    navigation: {
-        nextEl: ".swiper-button-next",
-        prevEl: ".swiper-button-prev",
-    },
-});
+// ===== UNIFIED TOGGLE FAVORITE WITH SWEETALERT2 =====
+async function toggleFavorite(vehicleId, btn) {
+    try {
+        console.log('🔥 toggleFavorite called:', vehicleId, btn);
+
+        const res = await fetch('/Home/ToggleFavorite', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+            body: `vehicleId=${encodeURIComponent(vehicleId)}`
+        });
+
+        const json = await res.json();
+        console.log('📡 Response:', json);
+
+        if (!json.success) {
+            if (json.needLogin) {
+                const returnUrl = encodeURIComponent(window.location.pathname + window.location.search);
+                const loginUrl = `/Account/Login?returnUrl=${returnUrl}`;
+
+                Swal.fire({
+                    title: 'Cần đăng nhập',
+                    text: 'Bạn cần đăng nhập tài khoản mới có thể thêm vào yêu thích',
+                    icon: 'warning',
+                    showCancelButton: true,
+                    confirmButtonColor: '#ffba00',
+                    cancelButtonColor: '#6c757d',
+                    confirmButtonText: '<i class="fas fa-sign-in-alt"></i> Đăng nhập',
+                    cancelButtonText: '<i class="fas fa-times"></i> Đóng',
+                    reverseButtons: true
+                }).then((result) => {
+                    if (result.isConfirmed) {
+                        window.location.href = loginUrl;
+                    }
+                });
+                return;
+            }
+
+            Swal.fire({
+                title: 'Lỗi',
+                text: json.message || 'Không thể thêm vào yêu thích',
+                icon: 'error',
+                confirmButtonColor: '#dc3545'
+            });
+            return;
+        }
+
+        const isAdded = json.action === 'added';
+
+        // Update ALL instances of this button
+        const buttons = new Set();
+        if (btn) buttons.add(btn);
+
+        document.querySelectorAll(`.product-favorite[data-id="${vehicleId}"], .favorite-btn[data-id="${vehicleId}"]`).forEach(b => buttons.add(b));
+
+        buttons.forEach(b => {
+            const icon = b.querySelector('i');
+            if (icon) {
+                icon.classList.toggle('far', !isAdded);
+                icon.classList.toggle('fas', isAdded);
+            }
+            b.classList.toggle('active', isAdded);
+        });
+
+        // Show notification
+        const Toast = Swal.mixin({
+            toast: true,
+            position: 'top-end',
+            showConfirmButton: false,
+            timer: 2000,
+            timerProgressBar: true,
+            didOpen: (toast) => {
+                toast.addEventListener('mouseenter', Swal.stopTimer);
+                toast.addEventListener('mouseleave', Swal.resumeTimer);
+            }
+        });
+
+        Toast.fire({
+            icon: 'success',
+            title: isAdded ? '✅ Đã thêm yêu thích' : '❌ Đã xóa yêu thích'
+        });
+
+    } catch (err) {
+        console.error('❌ toggleFavorite error', err);
+        Swal.fire({
+            title: 'Lỗi',
+            text: 'Không thể kết nối đến máy chủ',
+            icon: 'error',
+            confirmButtonColor: '#dc3545'
+        });
+    }
+}
+
+// ===== RESTORE FAVORITE STATES =====
+function restoreFavoriteStates() {
+    fetch('/Home/GetUserFavorites')
+        .then(res => res.json())
+        .then(json => {
+            if (json.success && Array.isArray(json.favoriteIds)) {
+                json.favoriteIds.forEach(id => {
+                    document.querySelectorAll(`.product-favorite[data-id="${id}"], .favorite-btn[data-id="${id}"]`).forEach(btn => {
+                        const icon = btn.querySelector('i');
+                        if (icon) {
+                            icon.classList.remove('far');
+                            icon.classList.add('fas');
+                        }
+                        btn.classList.add('active');
+                    });
+                });
+            }
+        })
+        .catch(err => console.error('Error restoring favorites:', err));
+}
+
+async function loadLatestVehicles() {
+    try {
+        const response = await fetch('/Home/GetAllVehicles');
+        const result = await response.json();
+
+        if (result.success && result.data.length > 0) {
+            const latestVehicles = result.data
+                .sort((a, b) => new Date(b.postedAt) - new Date(a.postedAt))
+                .slice(0, 10);
+
+            renderLatestVehicles(latestVehicles);
+        }
+    } catch (error) {
+        console.error('Error loading latest vehicles:', error);
+    }
+}
+
+function renderLatestVehicles(vehicles) {
+    const container = document.getElementById('latestListingsCarousel');
+    if (!container) return;
+
+    container.innerHTML = vehicles.map(vehicle => {
+        const primaryImage = vehicle.vehicleImages?.find(img => img.isPrimary) || vehicle.vehicleImages?.[0];
+        const imagePath = primaryImage?.imagePath || '/images/default-vehicle.jpg';
+        const timeAgo = getTimeAgo(new Date(vehicle.postedAt));
+
+        return `
+            <div class="product-card" data-id="${vehicle.vehicleId}" onclick="viewVehicleDetail(${vehicle.vehicleId})">
+                <div class="product-image-container">
+                    <img src="${imagePath}" 
+                         alt="${vehicle.title}" 
+                         class="product-image" 
+                         loading="lazy">
+                    <div class="product-badge">${timeAgo}</div>
+                    <button class="product-favorite" 
+                            data-id="${vehicle.vehicleId}" 
+                            onclick="event.stopPropagation(); toggleFavorite(${vehicle.vehicleId}, this)" 
+                            aria-label="Yêu thích">
+                        <i class="far fa-heart"></i>
+                    </button>
+                </div>
+                <div class="product-content">
+                    <h3 class="product-title">${vehicle.title}</h3>
+                    <div class="product-meta">
+                        ${vehicle.manufactureYear || ''} • 
+                        ${vehicle.category?.categoryName || ''} • 
+                        ${vehicle.condition || ''}
+                    </div>
+                    <div class="product-price">${formatPrice(vehicle.salePrice)}</div>
+                    <div class="product-location">
+                        <i class="fas fa-map-marker-alt"></i> 
+                        ${vehicle.store?.address || 'Chưa có địa chỉ'}
+                    </div>
+                </div>
+            </div>
+        `;
+    }).join('');
+
+    // ✅ RESTORE STATE AFTER RENDER
+    restoreFavoriteStates();
+}
 
 async function loadBestSellingVehicles() {
     try {
@@ -530,7 +650,10 @@ function renderBestSellingVehicles(vehicles) {
                      class="product-image" 
                      loading="lazy">
                 <div class="product-badge">Bán chạy</div>
-                <button class="product-favorite" data-id="${vehicle.vehicleId}" aria-label="Yêu thích">
+                <button class="product-favorite" 
+                        data-id="${vehicle.vehicleId}" 
+                        onclick="event.stopPropagation(); toggleFavorite(${vehicle.vehicleId}, this)" 
+                        aria-label="Yêu thích">
                     <i class="far fa-heart"></i>
                 </button>
             </div>
@@ -551,233 +674,49 @@ function renderBestSellingVehicles(vehicles) {
             </div>
         </div>
     `).join('');
+
+    // ✅ RESTORE STATE AFTER RENDER
+    restoreFavoriteStates();
 }
 
-async function loadLatestVehicles() {
-    try {
-        const response = await fetch('/Home/GetAllVehicles');
-        const result = await response.json();
+document.addEventListener('DOMContentLoaded', () => {
+    renderLatestListings();
+    renderOfficialStores();
+    renderFeaturedStores();
+    renderActivities();
+    renderQAArticles();
+    renderKeywords();
 
-        if (result.success && result.data.length > 0) {
-            const latestVehicles = result.data
-                .sort((a, b) => new Date(b.postedAt) - new Date(a.postedAt))
-                .slice(0, 10);
+    initCarousels();
+    initTabs();
+    initSearch();
+    initMobileMenu();
+    initActivityModal();
 
-            renderLatestVehicles(latestVehicles);
-        }
-    } catch (error) {
-        console.error('Error loading latest vehicles:', error);
-    }
-}
-
-function renderLatestVehicles(vehicles) {
-    const container = document.getElementById('latestListingsCarousel');
-    if (!container) return;
-
-    container.innerHTML = vehicles.map(vehicle => {
-        const primaryImage = vehicle.vehicleImages.find(img => img.isPrimary) || vehicle.vehicleImages[0];
-        const imagePath = primaryImage?.imagePath || '/images/default-vehicle.jpg';
-        const timeAgo = getTimeAgo(new Date(vehicle.postedAt));
-
-        return `
-            <div class="product-card" data-id="${vehicle.vehicleId}" onclick="viewVehicleDetail(${vehicle.vehicleId})">
-                <div class="product-image-container">
-                    <img src="${imagePath}" 
-                         alt="${vehicle.title}" 
-                         class="product-image" 
-                         loading="lazy">
-                    <div class="product-badge">${timeAgo}</div>
-                    <button class="product-favorite" 
-                            data-id="${vehicle.vehicleId}" 
-                            onclick="event.stopPropagation(); toggleFavorite(${vehicle.vehicleId})" 
-                            aria-label="Yêu thích">
-                        <i class="far fa-heart"></i>
-                    </button>
-                </div>
-                <div class="product-content">
-                    <h3 class="product-title">${vehicle.title}</h3>
-                    <div class="product-meta">
-                        ${vehicle.manufactureYear || ''} • 
-                        ${vehicle.category?.categoryName || ''} • 
-                        ${vehicle.condition || ''}
-                    </div>
-                    <div class="product-price">${formatPrice(vehicle.salePrice)}</div>
-                    <div class="product-location">
-                        <i class="fas fa-map-marker-alt"></i> 
-                        ${vehicle.store?.address || 'Chưa có địa chỉ'}
-                    </div>
-                </div>
-            </div>
-        `;
-    }).join('');
-}
-function getTimeAgo(date) {
-    const now = new Date();
-    const diff = now - date;
-    const seconds = Math.floor(diff / 1000);
-    const minutes = Math.floor(seconds / 60);
-    const hours = Math.floor(minutes / 60);
-    const days = Math.floor(hours / 24);
-
-    if (seconds < 60) return `${seconds} giây trước`;
-    if (minutes < 60) return `${minutes} phút trước`;
-    if (hours < 24) return `${hours} giờ trước`;
-    if (days < 7) return `${days} ngày trước`;
-    return date.toLocaleDateString('vi-VN');
-}
-
-function viewVehicleDetail(vehicleId) {
-    window.location.href = `/Home/VehicleDetail/${vehicleId}`;
-}
-
-function formatPrice(price) {
-    if (!price) return 'Liên hệ';
-    return price.toString().replace(/\B(?=(\d{3})+(?!\d))/g, '.') + ' đ';
-}
-
-//function toggleFavorite(vehicleId) {
-//    const favorites = JSON.parse(localStorage.getItem('favorites') || '[]');
-//    const index = favorites.indexOf(vehicleId);
-
-//    if (index > -1) {
-//        favorites.splice(index, 1);
-//    } else {
-//        favorites.push(vehicleId);
-//    }
-
-//    localStorage.setItem('favorites', JSON.stringify(favorites));
-//    updateFavoriteUI(vehicleId, index === -1);
-//}
-
-function updateFavoriteUI(vehicleId, isFavorite) {
-    const btn = document.querySelector(`.product-favorite[data-id="${vehicleId}"]`);
-    if (!btn) return;
-
-    const icon = btn.querySelector('i');
-    if (isFavorite) {
-        icon.classList.remove('far');
-        icon.classList.add('fas');
-        btn.classList.add('active');
-    } else {
-        icon.classList.remove('fas');
-        icon.classList.add('far');
-        btn.classList.remove('active');
-    }
-}
-
-document.addEventListener('DOMContentLoaded', function () {
-    // Load vehicles for homepage
+    // ✅ LOAD VEHICLES + RESTORE STATE
     loadLatestVehicles();
-    // OR load best selling vehicles
-    // loadBestSellingVehicles();
 
-    // Initialize favorites from localStorage
-    const favorites = JSON.parse(localStorage.getItem('favorites') || '[]');
-    favorites.forEach(id => {
-        updateFavoriteUI(id, true);
-    });
+    console.log('✅ Main.js loaded successfully!');
 });
-// xy ly cho them xoa yeu thich
-onclick = "event.stopPropagation(); toggleFavorite(${vehicle.vehicleId}, this)"
 
-//async function toggleFavorite(vehicleId, btn) {
-//    try {
-//        const res = await fetch('/Home/ToggleFavorite', {
-//            method: 'POST',
-//            headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-//            body: `vehicleId=${encodeURIComponent(vehicleId)}`
-//        });
+const swiper = new Swiper(".swiper-container", {
+    autoplay: {
+        delay: 2000,
+    },
+    loop: true,
+    navigation: {
+        nextEl: ".swiper-button-next",
+        prevEl: ".swiper-button-prev",
+    },
+});
 
-//        const json = await res.json();
-
-//        if (!json.success) {
-//            if (json.needLogin) {
-//                window.location.href = '/Account/Login';
-//                return;
-//            }
-//            alert(json.message || 'Lỗi yêu thích');
-//            return;
-//        }
-
-//        const isAdded = json.action === 'added';
-//        updateFavoriteUI(vehicleId, isAdded, btn);
-//        // optional: small toast/alert
-//        // alert(json.message || (isAdded ? 'Đã thêm vào yêu thích' : 'Đã xóa khỏi yêu thích'));
-//    } catch (err) {
-//        console.error('toggleFavorite error', err);
-//        alert('Lỗi khi thao tác yêu thích');
-//    }
-//}
-
-function updateFavoriteUI(vehicleId, isFavorite, btn) {
-    const buttons = new Set();
-    if (btn) buttons.add(btn);
-
-    document.querySelectorAll('.listing-card[data-vehicle-id]').forEach(card => {
-        if (Number(card.getAttribute('data-vehicle-id')) === Number(vehicleId)) {
-            const b = card.querySelector('.favorite-btn, .product-favorite');
-            if (b) buttons.add(b);
-        }
-    });
-
-    document.querySelectorAll(`.product-favorite[data-id="${vehicleId}"]`).forEach(el => buttons.add(el));
-
-    buttons.forEach(b => {
-        const icon = b.querySelector('i');
-        if (isFavorite) {
-            if (icon) { icon.classList.remove('far'); icon.classList.add('fas'); }
-            b.classList.add('active');
-        } else {
-            if (icon) { icon.classList.remove('fas'); icon.classList.add('far'); }
-            b.classList.remove('active');
-        }
-    });
-}
-
-// js cho phan thong bao khi chua dang nhap
-//async function toggleFavorite(vehicleId, btn) {
-//    try {
-//        const res = await fetch('/Home/ToggleFavorite', {
-//            method: 'POST',
-//            headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-//            body: `vehicleId=${encodeURIComponent(vehicleId)}`
-//        });
-
-//        const json = await res.json();
-
-//        if (!json.success) {
-//            if (json.needLogin) {
-//                const returnUrl = encodeURIComponent(window.location.pathname + window.location.search);
-//                const loginUrl = `/Account/Login?returnUrl=${returnUrl}`;
-
-//                Swal.fire({
-//                    title: 'Cần đăng nhập',
-//                    text: 'Bạn cần đăng nhập tài khoản mới có thể thêm vào yêu thích',
-//                    icon: 'warning',
-//                    showCancelButton: true,
-//                    confirmButtonColor: '#ffba00',
-//                    cancelButtonColor: '#d33',
-//                    confirmButtonText: 'Đăng nhập',
-//                    cancelButtonText: 'Hủy'
-//                }).then((result) => {
-//                    if (result.isConfirmed) {
-//                        window.location.href = loginUrl;
-//                    }
-//                });
-
-//                return;
-//            }
-
-//            showNotification(json.message || 'Lỗi yêu thích', 'error');
-//            return;
-//        }
-
-//        const isAdded = json.action === 'added';
-//        updateFavoriteUI(vehicleId, isAdded, btn);
-
-//        showNotification(json.message || (isAdded ? 'Đã thêm vào yêu thích' : 'Đã xóa khỏi yêu thích'), isAdded ? 'success' : 'info');
-//    } catch (err) {
-//        console.error('toggleFavorite error:', err);
-//        showNotification('Lỗi khi thao tác yêu thích', 'error');
-//    }
-//}
+const swiper1 = new Swiper(".swiper-container1", {
+    autoplay: {
+        delay: 2000,
+    },
+    loop: false,
+    navigation: {
+        nextEl: ".swiper-button-next",
+        prevEl: ".swiper-button-prev",
+    },
+});

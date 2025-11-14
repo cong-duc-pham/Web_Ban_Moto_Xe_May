@@ -1,23 +1,20 @@
-﻿<header class="sticky-header">
+﻿<header class="sticky-header" data-header>
     <div class="header-container">
         <div class="header-left">
-            <button class="header-icon-btn hamburger-menu" aria-label="Menu">
-                <i class="fas fa-bars"></i>
-            </button>
-            <a href="#" class="header-logo">
-                Auto<span class="logo-xe">Wings</span>
+            <a href="/" class="header-logo">
+                Wings<span class="logo-xe">Motorbike</span>
             </a>
-            <button class="location-selector">
-                <span>Toàn quốc</span>
-                <i class="fas fa-chevron-down"></i>
-            </button>
         </div>
 
         <div class="header-center">
-            <form class="search-form" action="/search">
+            <form class="search-form" id="headerSearchForm">
                 <div class="search-bar">
                     <i class="fas fa-search search-icon"></i>
-                    <input type="text" placeholder="Tìm xe cộ..." name="query" class="search-input" />
+                    <input type="text" 
+                           placeholder="Tìm xe cộ..." 
+                           name="q" 
+                           id="headerSearchInput"
+                           class="search-input" />
                 </div>
                 <button type="submit" class="search-submit-btn" aria-label="Tìm kiếm">
                     <i class="fas fa-search"></i>
@@ -29,15 +26,31 @@
             <button class="header-icon-btn" aria-label="Tin đã lưu">
                 <i class="far fa-heart"></i>
             </button>
-            <button class="header-icon-btn" aria-label="Thông báo">
+            @* <button class="header-icon-btn" aria-label="Thông báo">
                 <i class="far fa-bell"></i>
-            </button>
-            <a href="#" class="manage-link">Quản lý tin</a>
-            <a href="#" class="post-ad-btn">Đăng xe</a>
+            </button>    *@
+            @* <a href="#" class="manage-link">Quản lý tin</a> *@
+            @* <a href="#" class="post-ad-btn">Đăng xe</a> *@
             <button class="user-profile-btn" aria-label="Tài khoản">
-                <span class="avatar-initial">B</span>
+                <span class="avatar-initial"></span>
                 <i class="fas fa-chevron-down"></i>
             </button>
+
         </div>
     </div>
 </header>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const form = document.getElementById('headerSearchForm');
+    if (form) {
+        form.addEventListener('submit', function(e) {
+            e.preventDefault();
+            const keyword = document.getElementById('headerSearchInput').value.trim();
+            if (keyword) {
+                window.location.href = `/Home/AllVehicles?q=${encodeURIComponent(keyword)}`;
+            }
+        });
+    }
+});
+</script>

@@ -1,0 +1,126 @@
+﻿@model BTL_LTWeb_Quan_Ly_Cua_Hang_Xe_May.Models.Entities.User
+
+<link rel="stylesheet" href="~/css/account-profile.css" asp-append-version="true">
+
+<div class="profile-container">
+    <!-- Profile Header -->
+    <div class="profile-header">
+        <img src="https://i.pravatar.cc/100?u=@Model.Email" alt="@Model.FullName" class="profile-avatar">
+        <div class="profile-info">
+            <h1>@Model.FullName</h1>
+            <p><i class="fas fa-phone"></i> @Model.PhoneNumber</p>
+            <p><i class="fas fa-envelope"></i> @(string.IsNullOrEmpty(Model.Email) ? "(Chưa cập nhật)" : Model.Email)</p>
+            <span class="profile-badge">
+                <i class="fas fa-shield-alt"></i> @Model.Role?.RoleName
+            </span>
+        </div>
+    </div>
+
+    <!-- Success Message -->
+    <div class="success-message" id="successMessage">
+        <i class="fas fa-check-circle"></i> <span id="successText"></span>
+    </div>
+
+    <!-- Thông tin cá nhân (View Mode) -->
+    <div class="profile-section view-mode" id="viewMode">
+        <h3>
+            <i class="fas fa-user-circle"></i> Thông tin cá nhân
+        </h3>
+
+        <div class="info-group">
+            <label>Họ và tên</label>
+            <div class="info-display">@Model.FullName</div>
+        </div>
+
+        <div class="info-group">
+            <label>Số điện thoại</label>
+            <div class="info-display">@Model.PhoneNumber</div>
+        </div>
+
+        <div class="info-group">
+            <label>Email</label>
+            <div class="info-display @(string.IsNullOrEmpty(Model.Email) ? "empty" : "")">
+                @(string.IsNullOrEmpty(Model.Email) ? "(Chưa cập nhật)" : Model.Email)
+            </div>
+        </div>
+
+        <div class="info-group">
+            <label>Trạng thái tài khoản</label>
+            <div class="info-display">
+                <span class="badge @(Model.Status == "Active" ? "bg-success" : "bg-danger")">
+                    @(Model.Status == "Active" ? "Hoạt động" : "Bị khóa")
+                </span>
+            </div>
+        </div>
+
+        <div class="info-group">
+            <label>Vai trò</label>
+            <div class="info-display">@Model.Role?.RoleName</div>
+        </div>
+
+        <button class="btn btn-primary btn-edit-profile" type="button" onclick="window.accountProfile?.toggleEditMode()">
+            <i class="fas fa-edit"></i> Chỉnh sửa thông tin
+        </button>
+    </div>
+
+    <!-- Biểu mẫu chỉnh sửa (Edit Mode) -->
+    <div class="profile-section edit-form" id="editForm">
+        <h3>
+            <i class="fas fa-edit"></i> Chỉnh sửa thông tin
+        </h3>
+
+        <div class="alert alert-info">
+            <i class="fas fa-info-circle"></i> 
+            <strong>Lưu ý:</strong> Chỉ có thể chỉnh sửa một số thông tin. Vai trò và trạng thái tài khoản được quản lý bởi quản trị viên.
+        </div>
+
+        <form id="editProfileForm">
+            <input type="hidden" id="userId" value="@Model.UserId">
+
+            <div class="info-group">
+                <label for="fullName" class="form-label">Họ và tên <span class="text-danger">*</span></label>
+                <input type="text" class="form-control" id="fullName" value="@Model.FullName" required>
+                <small class="text-muted">Tối thiểu 3 ký tự</small>
+            </div>
+
+            <div class="info-group">
+                <label for="phoneNumber" class="form-label">Số điện thoại <span class="text-danger">*</span></label>
+                <input type="tel" class="form-control" id="phoneNumber" value="@Model.PhoneNumber" readonly disabled>
+                <small class="text-muted">Không thể thay đổi số điện thoại</small>
+            </div>
+
+            <div class="info-group">
+                <label for="email" class="form-label">Email</label>
+                <input type="email" class="form-control" id="email" value="@(Model.Email ?? "")">
+                <small class="text-muted">Tùy chọn - Để trống nếu không muốn cập nhật</small>
+            </div>
+
+            <div class="form-divider"></div>
+
+            <div class="info-group">
+                <label for="password" class="form-label">Mật khẩu mới (tùy chọn)</label>
+                <input type="password" class="form-control" id="password" placeholder="Để trống nếu không muốn đổi">
+                <small class="text-muted">Tối thiểu 6 ký tự. Để trống để giữ mật khẩu hiện tại.</small>
+            </div>
+
+            <div class="info-group">
+                <label for="confirmPassword" class="form-label">Xác nhận mật khẩu mới</label>
+                <input type="password" class="form-control" id="confirmPassword" placeholder="Xác nhận lại mật khẩu">
+                <small class="text-muted">Nhập giống với mật khẩu mới</small>
+            </div>
+
+            <div class="d-grid gap-2">
+                <button type="submit" class="btn btn-success" id="submitBtn">
+                    <i class="fas fa-save"></i> Lưu thay đổi
+                </button>
+                <button type="button" class="btn btn-secondary" onclick="window.accountProfile?.toggleEditMode()">
+                    <i class="fas fa-times"></i> Hủy
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+
+@section Scripts {
+    <script src="~/js/account-profile.js" asp-append-version="true"></script>
+}
