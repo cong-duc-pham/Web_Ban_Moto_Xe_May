@@ -1,6 +1,8 @@
 ﻿@{
     Layout = "_Layout";
     ViewData["Title"] = "Mua bán xe - All Vehicles";
+    var searchKeyword = Context.Request.Query["q"].ToString(); 
+
 }
 <!DOCTYPE html>
 <html lang="vi">
@@ -39,6 +41,16 @@
                         <li class="breadcrumb-item"><a href="#">Chợ Tốt Xe</a></li>
                         <li class="breadcrumb-item active">Xe cộ</li>
                     </ol>
+                    <h1 class="page-title">
+                        @if (!string.IsNullOrEmpty(searchKeyword))
+                        {
+                            <span>Kết quả tìm kiếm: "<strong>@searchKeyword</strong>"</span>
+                        }
+                        else
+                        {
+                            <span>Mua bán xe giá rẻ cập nhật tháng 11/2025</span>
+                        }
+                    </h1>
                 </nav>
                 <h1 class="page-title">Mua bán xe giá rẻ cập nhật tháng 11/2025</h1>
             </div>
@@ -247,9 +259,32 @@
         <!-- Pagination -->
         <nav class="pagination-container" aria-label="Page navigation"></nav>
     </div>
-
+    <script>
+        window.SEARCH_KEYWORD = @Html.Raw(Json.Serialize(searchKeyword ?? ""));
+    </script>
     @await Html.PartialAsync("_Footer")
     <script src="~/js/main.js"></script>
-    <script src="/js/AllVehicles.js"></script>
+    <script src="/js/AllVehicles.js"></script>  
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            //  TRANG KHÁC - Header luôn hiển thị
+            const header = document.querySelector('.sticky-header');
+            if (header) {
+                header.classList.add('visible');
+            }
+
+            //  HEADER SEARCH
+            const headerSearchForm = document.getElementById('headerSearchForm');
+            if (headerSearchForm) {
+                headerSearchForm.addEventListener('submit', function(e) {
+                    e.preventDefault();
+                    const keyword = document.getElementById('headerSearchInput').value.trim();
+                    if (keyword) {
+                        window.location.href = `/Home/AllVehicles?q=${encodeURIComponent(keyword)}`;
+                    }
+                });
+            }
+        });
+    </script>
 </body>
 </html>

@@ -385,7 +385,10 @@
         eventsWired = true;
 
         document.querySelectorAll('#popup-filter .flt, #popup-brand .flt-brand')
-            .forEach(chk => chk.addEventListener('change', () => { syncFromPopupToSidebar(); updateSelectedFilters(); scheduleApplyFilters(); }));
+            .forEach(chk => chk.addEventListener('change', () => {
+                syncFromPopupToSidebar(); updateSelectedFilters(); schedule
+                    ();
+            }));
         document.querySelectorAll('.sidebar-section input')
             .forEach(chk => chk.addEventListener('change', () => { syncFromSidebarToPopup(); scheduleApplyFilters(); }));
 
@@ -452,7 +455,22 @@
         state.filtered = state.all.slice();
         const f = readDOMFilters();
 
+        // THÊM FILTER KEYWORD 
+        const keyword = window.SEARCH_KEYWORD ? window.SEARCH_KEYWORD.toLowerCase().trim() : '';
         state.filtered = state.filtered.filter(v => {
+            if (keyword) {
+                const title = toLower(v.title || '');
+                const model = toLower(v.model || '');
+                const brand = toLower(v.brand?.brandName || '');
+                const category = toLower(v.category?.categoryName || '');
+
+                const matchKeyword = title.includes(keyword) ||
+                    model.includes(keyword) ||
+                    brand.includes(keyword) ||
+                    category.includes(keyword);
+
+                if (!matchKeyword) return false;
+            }
             const price = v.salePrice || 0;
             if (price < f.min || price > f.max) return false;
 
@@ -509,6 +527,13 @@
         display.innerHTML = '';
         let has = false;
 
+        const keyword = window.SEARCH_KEYWORD ? window.SEARCH_KEYWORD.trim() : '';
+        if (keyword) {
+            display.insertAdjacentHTML('beforeend',
+                `<span class="filter-chip">Từ khóa: "${esc(keyword)}" <i class="fas fa-times" data-action="clear-keyword"></i></span>`);
+            has = true;
+        }
+
         const min = Number(document.getElementById('minPriceInput')?.value || 0);
         const max = Number(document.getElementById('maxPriceInput')?.value || 200000000);
         if (min > 0 || max < 200000000) {
@@ -552,6 +577,16 @@
         }
 
         container.style.display = has ? 'block' : 'none';
+
+        // XỬ LÝ XÓA KEYWORD
+        const clearKeywordBtn = display.querySelector('[data-action="clear-keyword"]');
+        if (clearKeywordBtn) {
+            clearKeywordBtn.addEventListener('click', () => {
+                window.SEARCH_KEYWORD = '';
+                window.history.replaceState({}, '', window.location.pathname); // Xóa ?q= khỏi URL
+                scheduleApplyFilters();
+            });
+        }
 
         // Remove brand/color/type chips
         display.querySelectorAll('[data-remove]').forEach(el => {

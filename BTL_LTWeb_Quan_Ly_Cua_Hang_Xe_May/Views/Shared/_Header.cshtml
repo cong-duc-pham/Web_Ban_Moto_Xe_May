@@ -41,16 +41,16 @@
 </header>
 
 <script>
-document.addEventListener('DOMContentLoaded', function() {
-    const form = document.getElementById('headerSearchForm');
-    if (form) {
-        form.addEventListener('submit', function(e) {
-            e.preventDefault();
-            const keyword = document.getElementById('headerSearchInput').value.trim();
-            if (keyword) {
-                window.location.href = `/Home/AllVehicles?q=${encodeURIComponent(keyword)}`;
-            }
-        });
-    }
-});
+// document.addEventListener('DOMContentLoaded', function() {
+//     const form = document.getElementById('headerSearchForm');
+//     if (form) {
+//         form.addEventListener('submit', function(e) {
+//             e.preventDefault();
+//             const keyword = document.getElementById('headerSearchInput').value.trim();
+//             if (keyword) {
+//                 window.location.href = `/Home/AllVehicles?q=${encodeURIComponent(keyword)}`;
+//             }
+//         });
+//     }
+// });
 </script>
