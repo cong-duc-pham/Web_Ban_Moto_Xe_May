@@ -62,6 +62,8 @@ else
 </head>
 
 <body class="bg-light overflow-x-hidden">
+
+    @await Html.PartialAsync("_Header")
     <!-- Header -->
     <!-- Header -->
     @* <header class="sticky-top bg-white shadow-sm">
@@ -887,6 +889,68 @@ else
             });
 
             console.log('Dropdowns initialized:', dropdownList.length);
+        });
+    </script>
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // ✅ ĐÁNH DẤU TRANG INDEX
+            document.body.classList.add('index-page');
+
+            // ✅ DETECT SCROLL - Hiện header khi scroll qua hero search
+            const heroSearch = document.querySelector('.search-section');
+            const header = document.querySelector('.sticky-header');
+
+            if (heroSearch && header) {
+                const heroSearchBottom = heroSearch.offsetTop + heroSearch.offsetHeight;
+
+                window.addEventListener('scroll', function() {
+                    const scrolled = window.scrollY > heroSearchBottom;
+
+                    // Toggle class
+                    document.body.classList.toggle('scrolled', scrolled);
+                    header.classList.toggle('visible', scrolled);
+                });
+            }
+
+            //  UNIFIED SEARCH FUNCTION
+            function performSearch(keyword) {
+                if (!keyword || keyword.trim() === '') {
+                    alert('Vui lòng nhập từ khóa tìm kiếm!');
+                    return;
+                }
+                window.location.href = `/Home/AllVehicles?q=${encodeURIComponent(keyword.trim())}`;
+            }
+
+            //  HERO SEARCH BAR (Index page)
+            const heroSearchBtn = document.getElementById('searchBtn');
+            const heroSearchInput = document.getElementById('searchInput');
+
+            if (heroSearchBtn && heroSearchInput) {
+                heroSearchBtn.addEventListener('click', function(e) {
+                    e.preventDefault();
+                    performSearch(heroSearchInput.value);
+                });
+
+                heroSearchInput.addEventListener('keypress', function(e) {
+                    if (e.key === 'Enter') {
+                        e.preventDefault();
+                        performSearch(this.value);
+                    }
+                });
+            }
+
+            //  HEADER SEARCH BAR (Sticky header)
+            const headerSearchForm = document.getElementById('headerSearchForm');
+            const headerSearchInput = document.getElementById('headerSearchInput');
+
+            if (headerSearchForm) {
+                headerSearchForm.addEventListener('submit', function(e) {
+                    e.preventDefault();
+                    performSearch(headerSearchInput.value);
+                });
+            }
+
+            console.log('✅ Index page search initialized');
         });
     </script>
 </body>

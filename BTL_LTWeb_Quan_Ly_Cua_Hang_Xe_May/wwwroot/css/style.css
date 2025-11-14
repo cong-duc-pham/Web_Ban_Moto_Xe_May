@@ -2022,3 +2022,73 @@ button.btn-outline-secondary:hover {
         font-size: 18px;
     }
 }
+/* ===== STICKY HEADER ANIMATION ===== */
+.sticky-header {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    z-index: 1000;
+    background: white;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+    transform: translateY(-100%);
+    transition: transform 0.3s ease-in-out;
+}
+
+    .sticky-header.visible {
+        transform: translateY(0);
+    }
+
+/* ===== INDEX PAGE - ẨN HEADER BAN ĐẦU ===== */
+body.index-page .sticky-header {
+    opacity: 0;
+    pointer-events: none;
+}
+
+body.index-page.scrolled .sticky-header {
+    opacity: 1;
+    pointer-events: auto;
+    transform: translateY(0);
+}
+
+/* ===== HERO SEARCH BAR ===== */
+.search-section {
+    position: relative;
+    z-index: 10;
+}
+
+/* ===== RESPONSIVE ===== */
+@media (max-width: 768px) {
+    .sticky-header {
+        padding: 8px 0;
+    }
+
+    .header-container {
+        flex-wrap: wrap;
+        gap: 8px;
+    }
+}
+//css cho muot
+/* ===== SMOOTH SCROLL BEHAVIOR ===== */
+html {
+    scroll-behavior: smooth;
+}
+
+/* ===== HEADER FADE IN ===== */
+.sticky-header {
+    opacity: 0;
+    transform: translateY(-100%);
+    transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+    .sticky-header.visible {
+        opacity: 1;
+        transform: translateY(0);
+    }
+
+/* ===== SEARCH BAR FOCUS EFFECT ===== */
+.search-input:focus {
+    outline: none;
+    border-color: #ffba00;
+    box-shadow: 0 0 0 3px rgba(255, 186, 0, 0.1);
+}
