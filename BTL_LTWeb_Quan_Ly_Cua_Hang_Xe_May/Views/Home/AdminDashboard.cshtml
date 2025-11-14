@@ -97,106 +97,53 @@
                 </tr>
             </thead>
             <tbody>
-                <tr>
-                    <td>
-                        <div class="user-cell">
-                            <div class="user-img">NV</div>
-                            <div>
-                                <div style="font-weight: 600; color: var(--dark);">Nguyễn Văn A</div>
-                                <div style="font-size: 12px;">ID: #KH001</div>
-                            </div>
-                        </div>
-                    </td>
-                    <td>nguyenvana@email.com</td>
-                    <td>0901234567</td>
-                    <td>06/11/2025</td>
-                    <td><span class="status-badge active">Hoạt động</span></td>
-                    <td>
-                        <button class="action-btn view"><i class="fas fa-eye"></i></button>
-                        <button class="action-btn edit"><i class="fas fa-edit"></i></button>
-                        <button class="action-btn delete"><i class="fas fa-trash"></i></button>
-                    </td>
-                </tr>
-                <tr>
-                    <td>
-                        <div class="user-cell">
-                            <div class="user-img">TT</div>
-                            <div>
-                                <div style="font-weight: 600; color: var(--dark);">Trần Thị B</div>
-                                <div style="font-size: 12px;">ID: #KH002</div>
-                            </div>
-                        </div>
-                    </td>
-                    <td>tranthib@email.com</td>
-                    <td>0912345678</td>
-                    <td>05/11/2025</td>
-                    <td><span class="status-badge pending">Chờ xác thực</span></td>
-                    <td>
-                        <button class="action-btn view"><i class="fas fa-eye"></i></button>
-                        <button class="action-btn edit"><i class="fas fa-edit"></i></button>
-                        <button class="action-btn delete"><i class="fas fa-trash"></i></button>
-                    </td>
-                </tr>
-                <tr>
-                    <td>
-                        <div class="user-cell">
-                            <div class="user-img">LV</div>
-                            <div>
-                                <div style="font-weight: 600; color: var(--dark);">Lê Văn C</div>
-                                <div style="font-size: 12px;">ID: #KH003</div>
-                            </div>
-                        </div>
-                    </td>
-                    <td>levanc@email.com</td>
-                    <td>0923456789</td>
-                    <td>04/11/2025</td>
-                    <td><span class="status-badge active">Hoạt động</span></td>
-                    <td>
-                        <button class="action-btn view"><i class="fas fa-eye"></i></button>
-                        <button class="action-btn edit"><i class="fas fa-edit"></i></button>
-                        <button class="action-btn delete"><i class="fas fa-trash"></i></button>
-                    </td>
-                </tr>
-                <tr>
-                    <td>
-                        <div class="user-cell">
-                            <div class="user-img">PH</div>
-                            <div>
-                                <div style="font-weight: 600; color: var(--dark);">Phạm Hoàng D</div>
-                                <div style="font-size: 12px;">ID: #KH004</div>
-                            </div>
-                        </div>
-                    </td>
-                    <td>phamhoangd@email.com</td>
-                    <td>0934567890</td>
-                    <td>03/11/2025</td>
-                    <td><span class="status-badge inactive">Tạm khóa</span></td>
-                    <td>
-                        <button class="action-btn view"><i class="fas fa-eye"></i></button>
-                        <button class="action-btn edit"><i class="fas fa-edit"></i></button>
-                        <button class="action-btn delete"><i class="fas fa-trash"></i></button>
-                    </td>
-                </tr>
-                <tr>
-                    <td>
-                        <div class="user-cell">
-                            <div class="user-img">VT</div>
-                            <div>
-                                <div style="font-weight: 600; color: var(--dark);">Vũ Thị E</div>
-                                <div style="font-size: 12px;">ID: #KH005</div>
-                            </div>
-                        </div>
-                    </td>
-                    <td>vuthie@email.com</td>
-                    <td>0945678901</td>
-                    <td>02/11/2025</td>
-                    <td><span class="status-badge active">Hoạt động</span></td>
-                    <td>
-                        <button class="action-btn view"><i class="fas fa-eye"></i></button>
-                        <button class="action-btn edit"><i class="fas fa-edit"></i></button>
-                        <button class="action-btn delete"><i class="fas fa-trash"></i></button>
-                    </td>
-                </tr>
+                @if (ViewBag.Customers != null && ((List<BTL_LTWeb_Quan_Ly_Cua_Hang_Xe_May.Models.Entities.User>)ViewBag.Customers).Any())
+                {
+                    foreach (var customer in (List<BTL_LTWeb_Quan_Ly_Cua_Hang_Xe_May.Models.Entities.User>)ViewBag.Customers)
+                    {
+                        var initials = customer.FullName?.Length >= 2 
+                            ? customer.FullName.Substring(0, 2).ToUpper() 
+                            : "KH";
+                        var statusClass = customer.Status == "Active" ? "active" : "inactive";
+                        var statusText = customer.Status == "Active" ? "Hoạt động" : "Tạm khóa";
+                        
+                        <tr>
+                            <td>
+                                <div class="user-cell">
+                                    <div class="user-img">@initials</div>
+                                    <div>
+                                        <div style="font-weight: 600; color: var(--dark);">@customer.FullName</div>
+                                        <div style="font-size: 12px;">ID: #KH@customer.UserId.ToString("D3")</div>
+                                    </div>
+                                </div>
+                            </td>
+                            <td>@(customer.Email ?? "Chưa cập nhật")</td>
+                            <td>@customer.PhoneNumber</td>
+                            <td>@DateTime.Now.AddDays(-customer.UserId).ToString("dd/MM/yyyy")</td>
+                            <td><span class="status-badge @statusClass">@statusText</span></td>
+                            <td>
+                                <button class="action-btn view" onclick="viewCustomer(@customer.UserId)">
+                                    <i class="fas fa-eye"></i>
+                                </button>
+                                <button class="action-btn edit" onclick="editCustomer(@customer.UserId)">
+                                    <i class="fas fa-edit"></i>
+                                </button>
+                                <button class="action-btn delete" onclick="deleteCustomer(@customer.UserId, '@customer.FullName')">
+                                    <i class="fas fa-trash"></i>
+                                </button>
+                            </td>
+                        </tr>
+                    }
+                }
+                else
+                {
+                    <tr>
+                        <td colspan="6" style="text-align: center; padding: 40px; color: var(--secondary);">
+                            <i class="fas fa-inbox fa-3x" style="opacity: 0.3; margin-bottom: 10px;"></i>
+                            <p>Chưa có khách hàng nào</p>
+                        </td>
+                    </tr>
+                }
             </tbody>
         </table>
     </div>
@@ -300,6 +247,40 @@
 </div>
 
 <script>
+    // Customer management functions
+    function viewCustomer(userId) {
+        alert('Xem chi tiết khách hàng ID: ' + userId + ' (Chức năng đang phát triển)');
+    }
+
+    function editCustomer(userId) {
+        alert('Chỉnh sửa khách hàng ID: ' + userId + ' (Chức năng đang phát triển)');
+    }
+
+    function deleteCustomer(userId, customerName) {
+        if (confirm(`Bạn có chắc chắn muốn xóa khách hàng "${customerName}"?\n\nLưu ý: Chỉ có thể xóa khách hàng chưa có đơn hàng.`)) {
+            fetch('/Home/DeleteCustomer', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/x-www-form-urlencoded',
+                },
+                body: `userId=${userId}`
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    alert(data.message);
+                    location.reload();
+                } else {
+                    alert('Lỗi: ' + data.message);
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                alert('Có lỗi xảy ra khi xóa khách hàng!');
+            });
+        }
+    }
+
     // Search and filter vehicles
     document.addEventListener('DOMContentLoaded', function() {
         const searchInput = document.getElementById('searchVehicle');
@@ -332,6 +313,40 @@
         searchInput.addEventListener('input', filterVehicles);
         filterStatus.addEventListener('change', filterVehicles);
     });
+    
+    // Customer management functions
+    function viewCustomer(userId) {
+        alert('Xem chi tiết khách hàng ID: ' + userId + ' (Chức năng đang phát triển)');
+    }
+
+    function editCustomer(userId) {
+        alert('Chỉnh sửa khách hàng ID: ' + userId + ' (Chức năng đang phát triển)');
+    }
+
+    function deleteCustomer(userId, customerName) {
+        if (confirm(`Bạn có chắc chắn muốn xóa khách hàng "${customerName}"?\n\nLưu ý: Chỉ có thể xóa khách hàng chưa có đơn hàng.`)) {
+            fetch('/Home/DeleteCustomer', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/x-www-form-urlencoded',
+                },
+                body: `userId=${userId}`
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    alert(data.message);
+                    location.reload();
+                } else {
+                    alert('Lỗi: ' + data.message);
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                alert('Có lỗi xảy ra khi xóa khách hàng!');
+            });
+        }
+    }
 </script>
 
 <script src="/js/AdminLayout.js"> </script>

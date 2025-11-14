@@ -31,14 +31,69 @@
             </button>    *@
             @* <a href="#" class="manage-link">Quản lý tin</a> *@
             @* <a href="#" class="post-ad-btn">Đăng xe</a> *@
-            <button class="user-profile-btn" aria-label="Tài khoản">
-                <span class="avatar-initial"></span>
-                <i class="fas fa-chevron-down"></i>
-            </button>
+            
+            @{
+                var fullName = Context.Session.GetString("FullName") ?? "Khách";
+                var roleName = Context.Session.GetString("RoleName") ?? "";
+                var isLoggedIn = !string.IsNullOrEmpty(Context.Session.GetString("UserId"));
+                var avatarInitial = fullName.Substring(0, 1).ToUpper();
+            }
+            
+            @if (isLoggedIn)
+            {
+                <div class="user-profile-wrapper">
+                    <button class="user-profile-btn" onclick="toggleUserMenu()" aria-label="Tài khoản">
+                        <span class="avatar-initial">@avatarInitial</span>
+                        <span class="user-name">@fullName</span>
+                        <i class="fas fa-chevron-down"></i>
+                    </button>
+                    
+                    <!-- Dropdown Menu -->
+                    <div class="user-dropdown-menu" id="userDropdownMenu">
+                        <a href="/QA/Index" class="dropdown-item">
+                            <i class="fas fa-question-circle"></i>
+                            <span>Trang hỏi đáp</span>
+                        </a>
+                        <a href="/Account/AccountProfile" class="dropdown-item">
+                            <i class="fas fa-user"></i>
+                            <span>Thông tin cá nhân</span>
+                        </a>
+                        <a href="/Home/MyOrders" class="dropdown-item">
+                            <i class="fas fa-shopping-bag"></i>
+                            <span>Đơn hàng của tôi</span>
+                        </a>
+                        <div class="dropdown-divider"></div>
+                        <a href="/Account/Logout" class="dropdown-item text-danger">
+                            <i class="fas fa-sign-out-alt"></i>
+                            <span>Đăng xuất</span>
+                        </a>
+                    </div>
+                </div>
+            }
+            else
+            {
+                <a href="/Account/Login" class="post-ad-btn">Đăng nhập</a>
+            }
 
         </div>
     </div>
 </header>
+
+<script>
+function toggleUserMenu() {
+    const menu = document.getElementById('userDropdownMenu');
+    menu.classList.toggle('show');
+}
+
+// Đóng menu khi click bên ngoài
+document.addEventListener('click', function(event) {
+    const wrapper = document.querySelector('.user-profile-wrapper');
+    const menu = document.getElementById('userDropdownMenu');
+    if (wrapper && menu && !wrapper.contains(event.target)) {
+        menu.classList.remove('show');
+    }
+});
+</script>
 
 <script>
 // document.addEventListener('DOMContentLoaded', function() {

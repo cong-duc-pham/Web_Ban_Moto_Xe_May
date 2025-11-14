@@ -1,5 +1,7 @@
 using BTL_LTWeb_Quan_Ly_Cua_Hang_Xe_May.Models.Entities;
 using BTL_LTWeb_Quan_Ly_Cua_Hang_Xe_May.Services;
+using BTL_LTWeb_Quan_Ly_Cua_Hang_Xe_May.Models.EF;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authentication.Cookies;
 using System.Text.RegularExpressions;
@@ -17,12 +19,14 @@ namespace BTL_LTWeb_Quan_Ly_Cua_Hang_Xe_May.Controllers
     {
         private readonly ILoginService _loginService;
         private readonly ILogger<AccountController> _logger;
+        private readonly ApplicationDbContext _context;
         private static Dictionary<string, string> OtpStore = new();
 
-        public AccountController(ILoginService loginService, ILogger<AccountController> logger)
+        public AccountController(ILoginService loginService, ILogger<AccountController> logger, ApplicationDbContext context)
         {
             _loginService = loginService;
             _logger = logger;
+            _context = context;
         }
 
         // ==== QUÊN MẬT KHẨU - EMAIL, OTP, RESET PASSWORD ====
@@ -191,13 +195,29 @@ namespace BTL_LTWeb_Quan_Ly_Cua_Hang_Xe_May.Controllers
                 // SET GIÁ TRỊ MẶC ĐỊNH
                 user.Status = "Active";
 
+                // Lấy RoleId từ database (kiểm tra cả RoleId và RoleName)
+                Role? role = null;
                 if (UserType == "Customer")
                 {
-                    user.RoleId = 3;
+                    // Tìm theo RoleName hoặc RoleId = 3
+                    role = await _context.Roles.FirstOrDefaultAsync(r => r.RoleName == "Customer" || r.RoleId == 3);
+                    if (role == null)
+                    {
+                        TempData["ErrorMessage"] = "Lỗi: Không tìm thấy Role 'Customer' (RoleId=3) trong hệ thống!";
+                        return View(user);
+                    }
+                    user.RoleId = role.RoleId;
                 }
                 else if (UserType == "Employee")
                 {
-                    user.RoleId = 2;
+                    // Tìm theo RoleName hoặc RoleId = 2
+                    role = await _context.Roles.FirstOrDefaultAsync(r => r.RoleName == "Saler" || r.RoleId == 2);
+                    if (role == null)
+                    {
+                        TempData["ErrorMessage"] = "Lỗi: Không tìm thấy Role 'Saler' (RoleId=2) trong hệ thống!";
+                        return View(user);
+                    }
+                    user.RoleId = role.RoleId;
                 }
                 else
                 {

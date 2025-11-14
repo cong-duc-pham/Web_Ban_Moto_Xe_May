@@ -55,6 +55,16 @@ namespace BTL_LTWeb_Quan_Ly_Cua_Hang_Xe_May.Controllers
                 .Include(v => v.VehicleImages)
                 .OrderByDescending(v => v.PostedAt)
                 .ToListAsync();
+            
+            // Lấy danh sách khách hàng (User với Role = Customer)
+            var customers = await _context.Users
+                .Include(u => u.Role)
+                .Where(u => u.Role.RoleName == "Customer")
+                .OrderByDescending(u => u.UserId)
+                .Take(5) // Lấy 5 khách hàng mới nhất
+                .ToListAsync();
+            
+            ViewBag.Customers = customers;
                 
             return View("AdminDashboard", vehicles);
         }
@@ -1589,6 +1599,48 @@ namespace BTL_LTWeb_Quan_Ly_Cua_Hang_Xe_May.Controllers
         {
             public int OrderId { get; set; }
             public string FailureReason { get; set; } = string.Empty;
+        }
+
+        // Xóa khách hàng (Admin only)
+        [HttpPost]
+        [Authorize(Roles = "Admin")]
+        public async Task<IActionResult> DeleteCustomer(int userId)
+        {
+            try
+            {
+                var user = await _context.Users
+                    .Include(u => u.Role)
+                    .FirstOrDefaultAsync(u => u.UserId == userId);
+                
+                if (user == null)
+                {
+                    return Json(new { success = false, message = "Không tìm thấy khách hàng!" });
+                }
+
+                // Kiểm tra không được xóa Admin hoặc Saler
+                if (user.Role.RoleName == "Admin" || user.Role.RoleName == "Saler")
+                {
+                    return Json(new { success = false, message = "Không thể xóa tài khoản Admin/Saler!" });
+                }
+
+                // Kiểm tra xem khách hàng có đơn hàng không
+                var hasOrders = await _context.OrderInfos.AnyAsync(o => o.CustomerId == userId);
+                if (hasOrders)
+                {
+                    return Json(new { success = false, message = "Không thể xóa khách hàng đã có đơn hàng! Hãy vô hiệu hóa thay vì xóa." });
+                }
+
+                _context.Users.Remove(user);
+                await _context.SaveChangesAsync();
+
+                _logger.LogInformation($"Admin đã xóa khách hàng UserId={userId}, Tên={user.FullName}");
+                return Json(new { success = true, message = "Xóa khách hàng thành công!" });
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, $"Lỗi khi xóa khách hàng UserId={userId}");
+                return Json(new { success = false, message = $"Lỗi: {ex.Message}" });
+            }
         }
 
         [ResponseCache(Duration = 0, Location = ResponseCacheLocation.None, NoStore = true)]
