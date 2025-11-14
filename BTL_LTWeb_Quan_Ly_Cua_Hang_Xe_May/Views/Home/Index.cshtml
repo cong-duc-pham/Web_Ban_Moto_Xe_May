@@ -1,5 +1,7 @@
 ﻿@model BTL_LTWeb_Quan_Ly_Cua_Hang_Xe_May.Controllers.HomePageViewModel
 @{
+
+    Layout = null;
     ViewData["Title"] = "Home Page";
 }
 @* DEBUG: Hiển thị thông tin Session
@@ -35,8 +37,8 @@ else
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta name="description" content="Chợ Tốt X  © 2025  - Mua bán xe ô tô, xe máy, xe điện uy tín hàng đầu Việt Nam">
-    <title>Chợ Tốt Xe - Mua Bán Xe Uy Tín Hàng Đầu Việt Nam</title>
+    <meta name="description" content="Wings Motorbike X  © 2025  - Mua bán xe ô tô, xe máy, xe điện uy tín hàng đầu Việt Nam">
+    <title>Wings Motorbike Xe - Mua Bán Xe Uy Tín Hàng Đầu Việt Nam</title>
 
     <!-- Bootstrap 5 CSS -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
@@ -50,6 +52,11 @@ else
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Roboto:wght@400;500;700;900&display=swap"
           rel="stylesheet">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/swiper@10/swiper-bundle.min.css" />
+
+    <!--  THÊM SweetAlert2 -->
+    <link href="https://cdn.jsdelivr.net/npm/sweetalert2@11/dist/sweetalert2.min.css" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
     <!-- Custom CSS (Minimal) -->
     <link rel="stylesheet" href="../css/style.css">
 </head>
@@ -87,7 +94,7 @@ else
                         <div class="container">
                             <div class="py-2">
                                 <a href="#" class="text-decoration-none text-dark">
-                                    Dành cho người bán <i class="fas fa-chevron-down ms-1"></i>
+                                    @* Dành cho người bán <i class="fas fa-chevron-down ms-1"></i> *@
                                 </a>
                             </div>
                         </div>
@@ -98,12 +105,12 @@ else
                     <button class="btn-icon d-none d-md-inline-flex" aria-label="Yêu thích">
                         <i class="far fa-heart"></i>
                     </button>
-                    <button class="btn-icon d-none d-md-inline-flex" aria-label="Tin nhắn">
+                    @* <button class="btn-icon d-none d-md-inline-flex" aria-label="Tin nhắn">
                         <i class="far fa-comment-dots"></i>
-                    </button>
-                    <button class="btn-icon d-none d-md-inline-flex" aria-label="Thông báo">
+                    </button> *@
+                    @* <button class="btn-icon d-none d-md-inline-flex" aria-label="Thông báo">
                         <i class="far fa-bell"></i>
-                    </button>
+                    </button> *@
 
                     @{
                         var fullName = Context.Session.GetString("FullName");
@@ -118,8 +125,9 @@ else
                                 <i class="fas fa-user-circle me-1"></i> @fullName
                             </button>
                             <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="userDropdown">
-                                <li><a class="dropdown-item" href="/Account/Profile"><i class="fas fa-user me-2"></i>Tài khoản</a></li>
+                                <li><a class="dropdown-item" href="/Account/AccountProfile"><i class="fas fa-user me-2"></i>Tài khoản</a></li>
 
+                                <li><a class="dropdown-item" href="/Account/Favorite"><i class="fas fa-user me-2"></i>Cái bài đăng yêu thích</a></li>
                                 @* Hiển thị menu quản lý đơn hàng theo vai trò *@
                                 @if (ViewBag.IsAdmin == true || ViewBag.IsSaler == true)
                                 {
@@ -145,7 +153,7 @@ else
                         </a>
                     }
 
-                    <button class="btn btn-primary">Bán xe</button>
+                    @* <button class="btn btn-primary">Bán xe</button> *@
                     <button class="btn-icon d-lg-none" id="mobileMenuToggle">
                         <i class="fas fa-bars"></i>
                     </button>
@@ -224,7 +232,7 @@ else
     <!-- Latest Listings -->
     <section class="py-5">
         <div class="container">
-            <h2 class="section-title">Tin đăng mới nhất</h2>
+            <h2 class="section-title">Bài đăng mới nhất</h2>
             <div class="position-relative">
                 <button class="carousel-nav carousel-nav-prev d-none d-lg-flex" id="latestListingsPrev" data-carousel="latestListings">
                     <i class="fas fa-chevron-left"></i>
@@ -382,7 +390,7 @@ else
             </div>
             <div class="text-center mt-4">
                 <a asp-controller="Home" asp-action="MotorbikeOnline" class="btn btn-info">
-                    Xem thêm cửa hàng
+                    Xem/ Mua các sản phẩm của cửa hàng
                 </a>
             </div>
         </div>
@@ -663,7 +671,7 @@ else
     </section>
 
     <!-- Q&A Articles -->
-    <section class="py-5">
+    @* <section class="py-5">
         <div class="container">
             <h2 class="section-title">Hỏi đáp mua xe</h2>
             <div class="d-flex flex-wrap gap-2 mb-4">
@@ -756,17 +764,17 @@ else
                 </a>
             </div>
         </div>
-    </section>
+    </section> *@
 
     <!-- Popular Keywords -->
-    <section class="py-5 bg-white">
+    @* <section class="py-5 bg-white">
         <div class="container">
             <h2 class="section-title">Các từ khóa phổ biến</h2>
             <div class="row g-4" id="keywordsGrid">
                 <!-- Keywords will be inserted by JavaScript -->
             </div>
         </div>
-    </section>
+    </section> *@
 
     <!-- Activity Detail Modal -->
     <div class="activity-modal" id="activityModal">
@@ -791,7 +799,7 @@ else
         <div class="container">
             <div class="row g-4">
                 <div class="col-lg-3 col-md-6">
-                    <h5 class="footer-title">Tải ứng dụng Chợ Tốt</h5>
+                    <h5 class="footer-title">Tải ứng dụng Wings Motorbike</h5>
                     <div class="mb-3">
                         <div class="qr-placeholder">
                             <i class="fas fa-qrcode fa-3x"></i>
@@ -816,7 +824,7 @@ else
                     </ul>
                 </div>
                 <div class="col-lg-3 col-md-6">
-                    <h5 class="footer-title">Về Chợ Tốt</h5>
+                    <h5 class="footer-title">Về Wings Motorbike</h5>
                     <ul class="footer-links">
                         <li><a href="#">Giới thiệu</a></li>
                         <li><a href="#">Quy chế hoạt động sàn</a></li>
@@ -847,7 +855,7 @@ else
             <div class="footer-bottom">
                 <div class="d-flex flex-column flex-md-row justify-content-between align-items-center gap-3">
                     <p class="mb-0 small text-secondary">
-                        CÔNG TY TNHH CHỢ TỐT - Người đại diện theo pháp luật: Nguyễn
+                        CÔNG TY TNHH Wings Motorbike - Người đại diện theo pháp luật: Nguyễn
                         Trọng Tấn; GPDKKD: 0312120782 do Sở KH & ĐT TPHCM cấp ngày 11/01/2013; GPMXH: 185/GP-BTTTT do Bộ
                         Thông tin và Truyền thông cấp ngày 09/07/2024 - Chịu trách nhiệm nội dung: Trần Hoàng Ly. <a href="#" class="text-decoration-none">Chính sách sử dụng</a>
                     </p>
@@ -866,7 +874,8 @@ else
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
 
     <!-- Custom JS -->
-    <script src="~/js/main.js"></script>
+    @* <script src="~/js/main.js"></script> *@
+    <script src="~/js/latestListings.js"></script>
 
 
    <script>
@@ -880,7 +889,6 @@ else
             console.log('Dropdowns initialized:', dropdownList.length);
         });
     </script>
-    <script src="~/js/latestListings.js"></script>
 </body>
 
 </html>

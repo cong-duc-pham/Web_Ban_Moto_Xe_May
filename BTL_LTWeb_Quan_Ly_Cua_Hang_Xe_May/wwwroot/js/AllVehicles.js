@@ -163,7 +163,31 @@
             ? `<div class="text-center py-5"><h5 class="text-muted">Không tìm thấy xe phù hợp</h5></div>`
             : items.map(createCard).join('');
         bindCardInteractions();
+
+        restoreFavoriteStates();
+
         updatePagination();
+    }
+    function restoreFavoriteStates() {
+        // Lấy danh sách yêu thích từ API (server state)
+        fetch('/Home/GetUserFavorites')
+            .then(res => res.json())
+            .then(json => {
+                if (json.success && Array.isArray(json.favoriteIds)) {
+                    json.favoriteIds.forEach(id => {
+                        const btn = document.querySelector(`.favorite-btn[data-id="${id}"]`);
+                        if (btn) {
+                            const icon = btn.querySelector('i');
+                            if (icon) {
+                                icon.classList.remove('far');
+                                icon.classList.add('fas');
+                            }
+                            btn.classList.add('active');
+                        }
+                    });
+                }
+            })
+            .catch(err => console.error('Error restoring favorites:', err));
     }
     function updatePagination() {
         const total = Math.max(1, Math.ceil(state.filtered.length / state.itemsPerPage));
@@ -192,8 +216,15 @@
             card.addEventListener('click', cardClickHandler);
         });
     }
-    function favHandler(e) { e.stopPropagation(); const id = this.dataset.id; if (id) toggleFavorite(Number(id), this); }
-    function cardClickHandler() { const id = this.dataset.vehicleId; if (id) location.href = `/Home/VehicleDetail/${id}`; }
+    function favHandler(e) {
+        e.stopPropagation();
+        const id = this.dataset.id;
+        if (id) toggleFavorite(Number(id), this);
+    }
+    function cardClickHandler() {
+        const id = this.dataset.vehicleId;
+        if (id) location.href = `/Home/VehicleDetail/${id}`;
+    }
 
     // ===== Data fetch =====
     async function fetchAllVehicles() {
@@ -592,6 +623,12 @@
         });
     }
     async function toggleFavorite(id, btn) {
+        // Gọi function từ main.js nếu tồn tại
+        if (typeof window.toggleFavorite === 'function' && window.toggleFavorite !== toggleFavorite) {
+            return window.toggleFavorite(Number(id), btn);
+        }
+
+        // Fallback: xử lý local
         try {
             const res = await fetch('/Home/ToggleFavorite', {
                 method: 'POST',
@@ -599,11 +636,34 @@
                 body: `vehicleId=${encodeURIComponent(id)}`
             });
             const json = await res.json();
+
             if (!json.success) {
-                if (json.needLogin) location.href = `/Account/Login?returnUrl=${encodeURIComponent(location.pathname)}`;
-                else alert(json.message || 'Lỗi');
+                if (json.needLogin) {
+                    const returnUrl = encodeURIComponent(location.pathname + location.search);
+                    if (typeof Swal !== 'undefined') {
+                        Swal.fire({
+                            title: 'Cần đăng nhập',
+                            text: 'Bạn cần đăng nhập để thêm vào yêu thích',
+                            icon: 'warning',
+                            showCancelButton: true,
+                            confirmButtonColor: '#ffba00',
+                            confirmButtonText: 'Đăng nhập',
+                            cancelButtonText: 'Đóng'
+                        }).then((result) => {
+                            if (result.isConfirmed) {
+                                location.href = `/Account/Login?returnUrl=${returnUrl}`;
+                            }
+                        });
+                    } else {
+                        alert('Vui lòng đăng nhập');
+                        location.href = `/Account/Login?returnUrl=${returnUrl}`;
+                    }
+                    return;
+                }
+                alert(json.message || 'Lỗi');
                 return;
             }
+
             const isAdded = json.action === 'added';
             const icon = btn.querySelector('i');
             if (icon) {
@@ -611,7 +671,33 @@
                 icon.classList.toggle('fas', isAdded);
             }
             btn.classList.toggle('active', isAdded);
-        } catch (err) { console.error('toggleFavorite', err); }
+
+            // ✅ THÊM THÔNG BÁO SWEETALERT2
+            if (typeof Swal !== 'undefined') {
+                Swal.mixin({
+                    toast: true,
+                    position: 'top-end',
+                    showConfirmButton: false,
+                    timer: 2000,
+                    timerProgressBar: true
+                }).fire({
+                    icon: 'success',
+                    title: isAdded ? '✅ Đã thêm yêu thích' : '❌ Đã xóa yêu thích'
+                });
+            }
+        } catch (err) {
+            console.error('Error:', err);
+            if (typeof Swal !== 'undefined') {
+                Swal.fire({
+                    title: 'Lỗi',
+                    text: 'Không thể kết nối đến máy chủ',
+                    icon: 'error',
+                    confirmButtonColor: '#dc3545'
+                });
+            } else {
+                alert('Lỗi kết nối');
+            }
+        }
     }
     function initPriceSlider() {
         const slider = document.getElementById('price-slider');

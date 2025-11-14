@@ -1,17 +1,21 @@
-﻿using Microsoft.EntityFrameworkCore;
-using BTL_LTWeb_Quan_Ly_Cua_Hang_Xe_May.Models.EF;
+﻿using BTL_LTWeb_Quan_Ly_Cua_Hang_Xe_May.Models.EF;
 using BTL_LTWeb_Quan_Ly_Cua_Hang_Xe_May.Models.Entities;
+using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Logging;
 
 namespace BTL_LTWeb_Quan_Ly_Cua_Hang_Xe_May.Services
 {
     public class Login : ILoginService
     {
         private readonly ApplicationDbContext _context;
+        private readonly ILogger<Login>? _logger;
 
-        public Login(ApplicationDbContext context)
+        public Login(ApplicationDbContext context, ILogger<Login>? logger = null)
         {
             _context = context;
+            _logger = logger;
         }
+
         // Lấy tài khoản theo email
         public async Task<User?> GetUserByEmailAsync(string email)
         {
@@ -189,6 +193,58 @@ namespace BTL_LTWeb_Quan_Ly_Cua_Hang_Xe_May.Services
             }
             catch
             {
+                return false;
+            }
+        }
+        public async Task<List<Favorite>> GetFavoritesAsync(int userId)
+        {
+            try
+            {
+                return await _context.Favorites
+                    .Where(f => f.UserId == userId)
+                    .Include(f => f.Vehicle)
+                        .ThenInclude(v => v.Brand)
+                    .Include(f => f.Vehicle)
+                        .ThenInclude(v => v.Category)
+                    .Include(f => f.Vehicle)
+                        .ThenInclude(v => v.Store)
+                    .Include(f => f.Vehicle)
+                        .ThenInclude(v => v.VehicleImages)
+                    .OrderByDescending(f => f.CreatedAt)
+                    .ToListAsync();
+            }
+            catch (Exception ex)
+            {
+                _logger?.LogError(ex, $"Lỗi khi lấy danh sách yêu thích của user {userId}");
+                return new List<Favorite>();
+            }
+        }
+
+        /// <summary>
+        /// Xóa bài đăng khỏi yêu thích
+        /// </summary>
+        public async Task<bool> RemoveFavoriteAsync(int userId, int vehicleId)
+        {
+            try
+            {
+                var favorite = await _context.Favorites
+                    .FirstOrDefaultAsync(f => f.UserId == userId && f.VehicleId == vehicleId);
+
+                if (favorite == null)
+                {
+                    _logger?.LogWarning($"Không tìm thấy yêu thích của user {userId} cho xe {vehicleId}");
+                    return false;
+                }
+
+                _context.Favorites.Remove(favorite);
+                await _context.SaveChangesAsync();
+
+                _logger?.LogInformation($"Xóa yêu thích của user {userId} cho xe {vehicleId} thành công");
+                return true;
+            }
+            catch (Exception ex)
+            {
+                _logger?.LogError(ex, $"Lỗi khi xóa yêu thích của user {userId} cho xe {vehicleId}");
                 return false;
             }
         }

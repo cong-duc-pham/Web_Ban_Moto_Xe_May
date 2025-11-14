@@ -1,5 +1,4 @@
-﻿
-:root {
+﻿:root {
     --primary: #FFD54F;
     --primary-dark: #FFC107;
     --accent: #FF3B3B;
@@ -118,6 +117,7 @@ button.btn-outline-secondary:hover {
 }
 
 .btn-outline-primary {
+    min-width: 150px;
     background: transparent;
     color: var(--text-primary);
     border: 2px solid var(--border);
@@ -1794,4 +1794,231 @@ button.btn-outline-secondary:hover {
     .product-favorite.active i {
         color: #fff;
     }
+/*css an hien heaeder*/
+/* Sticky Header xuất hiện sau cuộn */
+/* ==== Sticky Header (clean & fixed) ==== */
+/*css an hien header - CHỈ ÁP DỤNG CHO INDEX PAGE*/
+/* ==== Index Page Sticky Header ==== */
+.index-page-body .index-sticky-header {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    z-index: 1050;
+}
 
+.index-page-body .sticky-header {
+    width: 100%;
+    height: 68px;
+    display: flex;
+    align-items: center;
+    background: #fff;
+    border-bottom: 1px solid #e5e7eb;
+    box-shadow: 0 1px 3px rgba(0,0,0,.05);
+    transform: translateY(-100%);
+    opacity: 0;
+    /* Transition mượt hơn với cubic-bezier */
+    transition: transform 0.35s cubic-bezier(0.4, 0, 0.2, 1), opacity 0.35s cubic-bezier(0.4, 0, 0.2, 1);
+    /* Ngăn layout shift */
+    will-change: transform, opacity;
+}
+
+    .index-page-body .sticky-header.is-visible {
+        transform: translateY(0) !important;
+        opacity: 1 !important;
+        box-shadow: 0 2px 6px rgba(0,0,0,.15) !important;
+        display: flex !important;
+        visibility: visible !important;
+    }
+
+.index-page-body.has-sticky {
+    /* Thêm transition cho body padding */
+    padding-top: 68px;
+    transition: padding-top 0.35s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* Layout con (chỉ một lần) */
+.header-container {
+    width: 100%;
+    display: flex;
+    justify-content: space-between;
+    gap: 16px;
+    padding: 0 16px;
+    height: 50px;
+}
+.header-left, .header-right {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+}
+
+.header-center {
+    flex: 1;
+    max-width: 700px;
+}
+
+.header-icon-btn {
+    background: none;
+    border: none;
+    font-size: 20px;
+    cursor: pointer;
+    color: #333;
+}
+
+.header-logo {
+    font-size: 24px;
+    font-weight: 800;
+    color: #ff8800;
+    text-decoration: none;
+    letter-spacing: -1px;
+}
+
+    .header-logo .logo-xe {
+        color: #e50000;
+    }
+
+.location-selector {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    background: #f4f4f4;
+    border: none;
+    border-radius: 20px;
+    padding: 8px 12px;
+    font-size: 14px;
+    font-weight: 500;
+    cursor: pointer;
+}
+
+.search-form {
+    display: flex;
+    align-items: center;
+    background: #f4f4f4;
+    border-radius: 50px;
+    height: 40px;
+    overflow: hidden;
+    border: 1px solid #e0e0e0;
+    width: 100%;
+}
+
+.search-bar {
+    position: relative;
+    flex: 1;
+}
+
+    .search-bar .search-icon {
+        position: absolute;
+        left: 14px;
+        top: 50%;
+        transform: translateY(-50%);
+        font-size: 14px;
+        color: #777;
+    }
+
+    .search-bar .search-input {
+        width: 100%;
+        height: 38px;
+        padding: 10px 16px 0 40px;
+        background: transparent;
+        border: none;
+        outline: none;
+        font-size: 14px;
+        color: #222;
+    }
+
+.search-submit-btn {
+    background: #ffba00;
+    border: none;
+    color: #222;
+    width: 34px;
+    height: 34px;
+    border-radius: 50%;
+    margin: 3px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.post-ad-btn {
+    background: #ffba00;
+    color: #222;
+    font-weight: 600;
+    padding: 10px 16px;
+    border-radius: 8px;
+    font-size: 14px;
+    text-decoration: none;
+    border: none;
+    white-space: nowrap;
+}
+
+.manage-link {
+    font-size: 14px;
+    font-weight: 500;
+    color: #222;
+    text-decoration: none;
+    white-space: nowrap;
+}
+
+.user-profile-btn {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    background: none;
+    border: none;
+    cursor: pointer;
+}
+
+    .user-profile-btn .avatar-initial {
+        width: 36px;
+        height: 36px;
+        background: #FFC107;    
+        color: #FF3B3B;
+        font-weight: 700;
+        font-size: 16px;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+
+@media (max-width: 991px) {
+    .header-container {
+        flex-wrap: wrap;
+        height: auto;
+    }
+
+    .header-center {
+        order: 3;
+        flex-basis: 100%;
+    }
+
+    .header-left {
+        order: 1;
+    }
+
+    .header-right {
+        order: 2;
+        margin-left: auto;
+    }
+}
+
+@media (max-width: 576px) {
+    .location-selector span,
+    .user-profile-btn .fa-chevron-down {
+        display: none;
+    }
+
+    .post-ad-btn {
+        padding: 8px 10px;
+        font-size: 13px;
+    }
+
+    .manage-link {
+        font-size: 13px;
+    }
+
+    .header-icon-btn {
+        font-size: 18px;
+    }
+}

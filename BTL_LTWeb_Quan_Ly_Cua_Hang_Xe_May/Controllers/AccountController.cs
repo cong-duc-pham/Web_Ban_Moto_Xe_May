@@ -744,7 +744,216 @@ namespace BTL_LTWeb_Quan_Ly_Cua_Hang_Xe_May.Controllers
 
             return (true, string.Empty);
         }
+        // Thêm action này vào AccountController
+        public async Task<IActionResult> AccountProfile(int? id)
+        {
+            // Lấy UserId từ session
+            var sessionUserId = HttpContext.Session.GetInt32("UserId");
 
+            // Nếu có id parameter, kiểm tra quyền (chỉ Admin hoặc chính chủ)
+            int userId = id ?? sessionUserId ?? 0;
+
+            if (userId <= 0)
+            {
+                TempData["ErrorMessage"] = "Vui lòng đăng nhập để xem tài khoản!";
+                return RedirectToAction("Login", "Account");
+            }
+
+            var currentRoleId = HttpContext.Session.GetInt32("RoleId");
+            if (sessionUserId != userId && currentRoleId != 1)
+            {
+                TempData["ErrorMessage"] = "Bạn không có quyền xem tài khoản này!";
+                return RedirectToAction("Index", "Home");
+            }
+
+            var user = await _loginService.GetUserByIdAsync(userId);
+            if (user == null)
+            {
+                return NotFound("Không tìm thấy tài khoản!");
+            }
+
+            return View(user);
+        }
+
+        // API: Cập nhật thông tin tài khoản (chỉ chỉnh sửa được fields cho phép)
+        [HttpPost]
+        [Consumes("application/json")]
+        public async Task<JsonResult> UpdateProfile([FromBody] AccountController.UserDto dto)
+        {
+            var sessionUserId = HttpContext.Session.GetInt32("UserId");
+            var currentRoleId = HttpContext.Session.GetInt32("RoleId");
+
+            // Chỉ được sửa tài khoản của chính mình hoặc admin
+            if (sessionUserId != dto.UserId && currentRoleId != 1)
+            {
+                return Json(new { success = false, message = "Bạn không có quyền chỉnh sửa tài khoản này!" });
+            }
+
+            if (dto.UserId <= 0)
+            {
+                return Json(new { success = false, message = "Dữ liệu không hợp lệ" });
+            }
+
+            // Validate basic info
+            if (string.IsNullOrWhiteSpace(dto.FullName) || dto.FullName.Trim().Length < 3)
+            {
+                return Json(new { success = false, message = "Họ và tên phải có ít nhất 3 ký tự" });
+            }
+
+            if (!string.IsNullOrWhiteSpace(dto.Email))
+            {
+                var emailAttr = new System.ComponentModel.DataAnnotations.EmailAddressAttribute();
+                if (!emailAttr.IsValid(dto.Email.Trim()))
+                {
+                    return Json(new { success = false, message = "Email không hợp lệ" });
+                }
+            }
+
+            var user = await _loginService.GetUserByIdAsync(dto.UserId);
+            if (user == null)
+            {
+                return Json(new { success = false, message = "Không tìm thấy tài khoản" });
+            }
+
+            // Cập nhật fields cho phép
+            user.FullName = dto.FullName.Trim();
+            user.Email = string.IsNullOrWhiteSpace(dto.Email) ? null : dto.Email.Trim();
+            user.PhoneNumber = dto.PhoneNumber.Trim();
+
+            // Nếu có mật khẩu mới, validate và cập nhật
+            if (!string.IsNullOrWhiteSpace(dto.Password))
+            {
+                if (dto.Password.Length < 6)
+                {
+                    return Json(new { success = false, message = "Mật khẩu mới phải có ít nhất 6 ký tự" });
+                }
+                user.Password = dto.Password.Trim();
+            }
+
+            var updated = await _loginService.UpdateUserAsync(user);
+            if (updated)
+            {
+                // Cập nhật session nếu sửa tài khoản của chính mình
+                if (sessionUserId == dto.UserId)
+                {
+                    HttpContext.Session.SetString("FullName", user.FullName);
+                    if (!string.IsNullOrEmpty(user.Email))
+                    {
+                        HttpContext.Session.SetString("Email", user.Email);
+                    }
+                }
+
+                return Json(new
+                {
+                    success = true,
+                    message = "Cập nhật thông tin thành công!",
+                    user = new
+                    {
+                        user.UserId,
+                        user.FullName,
+                        user.PhoneNumber,
+                        user.Email,
+                        user.Status,
+                        RoleName = user.Role?.RoleName
+                    }
+                });
+            }
+
+            return Json(new { success = false, message = "Cập nhật thất bại, vui lòng thử lại" });
+        }
+        // Thêm action này vào AccountController (trước dòng dấu kết thúc class)
+
+        [HttpGet]
+        public async Task<IActionResult> Favorite()
+        {
+            var userId = HttpContext.Session.GetInt32("UserId");
+            if (!userId.HasValue)
+            {
+                TempData["ErrorMessage"] = "Vui lòng đăng nhập để xem yêu thích!";
+                return RedirectToAction("Login", "Account");
+            }
+
+            var user = await _loginService.GetUserByIdAsync(userId.Value);
+            if (user == null)
+            {
+                return NotFound();
+            }
+
+            ViewBag.UserId = userId.Value;
+            ViewBag.UserName = user.FullName;
+
+            return View();
+        }
+
+        [HttpGet]
+        [Produces("application/json")]
+        public async Task<IActionResult> GetUserFavorites()
+        {
+            var userId = HttpContext.Session.GetInt32("UserId");
+            if (!userId.HasValue)
+            {
+                return Json(new { success = false, message = "Vui lòng đăng nhập" });
+            }
+
+            try
+            {
+                var favorites = await _loginService.GetFavoritesAsync(userId.Value);
+
+                var result = favorites.Select(fav => new
+                {
+                    vehicleId = fav.Vehicle.VehicleId,
+                    title = fav.Vehicle.Title,
+                    model = fav.Vehicle.Model,
+                    condition = fav.Vehicle.Condition,
+                    salePrice = fav.Vehicle.SalePrice,
+                    originalPrice = fav.Vehicle.OriginalPrice,
+                    status = fav.Vehicle.Status,
+                    stockQuantity = fav.Vehicle.StockQuantity,
+                    soldCount = fav.Vehicle.SoldCount,
+                    brand = fav.Vehicle.Brand?.BrandName,
+                    category = fav.Vehicle.Category?.CategoryName,
+                    store = fav.Vehicle.Store?.StoreName,
+                    storeAddress = fav.Vehicle.Store?.Address,
+                    primaryImage = fav.Vehicle.VehicleImages?
+                        .FirstOrDefault(img => img.IsPrimary == true)?.ImagePath
+                        ?? fav.Vehicle.VehicleImages?.FirstOrDefault()?.ImagePath
+                        ?? "/images/default-vehicle.jpg",
+                    createdAt = fav.CreatedAt
+                }).OrderByDescending(x => x.createdAt).ToList();
+
+                return Json(new { success = true, data = result });
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Lỗi khi lấy danh sách yêu thích");
+                return Json(new { success = false, message = ex.Message });
+            }
+        }
+
+        [HttpPost]
+        public async Task<IActionResult> RemoveFavorite(int vehicleId)
+        {
+            var userId = HttpContext.Session.GetInt32("UserId");
+            if (!userId.HasValue)
+            {
+                return Json(new { success = false, message = "Vui lòng đăng nhập" });
+            }
+
+            try
+            {
+                var result = await _loginService.RemoveFavoriteAsync(userId.Value, vehicleId);
+                if (result)
+                {
+                    return Json(new { success = true, message = "Đã xóa khỏi yêu thích" });
+                }
+                return Json(new { success = false, message = "Không tìm thấy yêu thích" });
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Lỗi khi xóa yêu thích");
+                return Json(new { success = false, message = ex.Message });
+            }
+        }
         // DTO dùng cho AJAX create/edit
         public class UserDto
         {

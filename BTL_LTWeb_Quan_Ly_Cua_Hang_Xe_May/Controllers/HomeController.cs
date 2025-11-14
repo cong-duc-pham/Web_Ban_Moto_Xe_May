@@ -59,12 +59,16 @@ namespace BTL_LTWeb_Quan_Ly_Cua_Hang_Xe_May.Controllers
             return View("AdminDashboard", vehicles);
         }
         [Authorize(Roles = "Admin")] // Bảo vệ trang này, chỉ Admin được vào
+
+        [Route("/admin/ManagePosts")]
         public IActionResult ManagePosts()
         {
             // Chúng ta sẽ trả về file View có tên là "ManagePosts.cshtml"
             return View();
         }
         [Authorize(Roles = "Admin")]
+
+        [Route("/admin/ManageEmployee")]
         public IActionResult ManageEmployee()
         {
             var users = _context.Users
@@ -74,6 +78,10 @@ namespace BTL_LTWeb_Quan_Ly_Cua_Hang_Xe_May.Controllers
 
             return View(users);
         }
+
+        [Authorize(Roles = "Admin")] // Bảo vệ trang này, chỉ Admin được vào
+
+        [Route("/admin/ManageCustomers")]
         public async Task<IActionResult> ManageCustomers()
         {
             return View();
@@ -528,7 +536,53 @@ namespace BTL_LTWeb_Quan_Ly_Cua_Hang_Xe_May.Controllers
         public IActionResult News() => View();
         public IActionResult AllVehicles() => View();
 
+        [Authorize(Roles = "Admin")]
 
+        [Route("/admin/ManageVehicles")]
+        public async Task<IActionResult> ManageVehicles()
+        {
+            try
+            {
+                var vehicles = await _context.Vehicles
+                    .Include(v => v.Brand)
+                    .Include(v => v.Category)
+                    .Include(v => v.Store)
+                    .Include(v => v.VehicleImages)
+                    .OrderByDescending(v => v.PostedAt)
+                    .ToListAsync();
+
+                _logger.LogInformation($"ManageVehicles: Loaded {vehicles.Count} vehicles");
+
+                return View(vehicles);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error in ManageVehicles");
+                TempData["ErrorMessage"] = "Có lỗi xảy ra khi tải danh sách xe";
+                return RedirectToAction("AdminDashboard");
+            }
+        }
+        [Authorize(Roles = "Admin")]
+        public async Task<IActionResult> ManageStore()
+        {
+            try
+            {
+                var stores = await _context.Stores
+                    .Include(s => s.Owner)
+                    .OrderByDescending(s => s.CreatedAt)
+                    .ToListAsync();
+
+                _logger.LogInformation($"ManageStores: Loaded {stores.Count} stores");
+
+                return View(stores);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error in ManageStore");
+                TempData["ErrorMessage"] = "Có lỗi xảy ra khi tải danh sách cửa hàng";
+                return RedirectToAction("AdminDashboard");
+            }
+        }
         // ======= Helper Methods - Kiểm tra quyền =======
         private bool IsAdmin()
         {
@@ -1607,6 +1661,34 @@ namespace BTL_LTWeb_Quan_Ly_Cua_Hang_Xe_May.Controllers
             catch (Exception ex)
             {
                 _logger.LogError(ex, "Lỗi khi lấy danh sách xe");
+                return Json(new { success = false, message = ex.Message });
+            }
+        }
+        [HttpGet]
+        public async Task<IActionResult> GetUserFavorites()
+        {
+            try
+            {
+                // ✅ FIX: Dùng "UserId" (chữ i thường) - NHẤT QUÁN
+                var userIdSession = HttpContext.Session.GetInt32("UserId");
+
+                if (!userIdSession.HasValue)
+                {
+                    // Chưa đăng nhập - trả về danh sách rỗng
+                    return Json(new { success = true, favoriteIds = new List<int>() });
+                }
+
+                var userId = userIdSession.Value;
+                var favorites = await _context.Favorites
+                    .Where(f => f.UserId == userId)
+                    .Select(f => f.VehicleId)
+                    .ToListAsync();
+
+                return Json(new { success = true, favoriteIds = favorites });
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Error in GetUserFavorites: {ex.Message}");
                 return Json(new { success = false, message = ex.Message });
             }
         }

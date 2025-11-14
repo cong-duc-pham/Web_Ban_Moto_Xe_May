@@ -35,5 +35,11 @@ namespace BTL_LTWeb_Quan_Ly_Cua_Hang_Xe_May.Services
 
         // Thay đổi mật khẩu
         Task<bool> ChangePasswordAsync(int userId, string oldPassword, string newPassword);
+        /// Lấy danh sách yêu thích của người dùng
+        Task<List<Favorite>> GetFavoritesAsync(int userId);
+
+        /// Xóa bài đăng khỏi yêu thích
+        Task<bool> RemoveFavoriteAsync(int userId, int vehicleId);
+
     }
 }

@@ -1645,9 +1645,9 @@ body {
     display: inline-flex;
     align-items: center;
     gap: 6px;
-    padding: 4px 12px;
     background-color: #ff6b00;
     color: white;
+    padding: 6px 12px;
     border-radius: 16px;
     font-size: 14px;
     margin-right: 8px;
@@ -2511,4 +2511,85 @@ body {
         max-width: 95vw;
         width: 95vw;
     }
+}
+/* ==== Fix AllVehicles list-view image width (đồng bộ với Motorbikes/Electric) ==== */
+
+/* Tăng độ rộng ảnh trong chế độ list-view */
+#listings-container.list-view .listing-image {
+  width: 300px;       /* 280–320px tuỳ ý */
+  min-width: 300px;
+  height: 220px;      /* tăng nhẹ chiều cao */
+}
+
+/* Nếu markup dùng Bootstrap columns cho card: ép cột trái rộng hơn để ảnh hiển thị đẹp */
+.list-view .listing-card > .row > .col-md-4.position-relative,
+.list-view .listing-card > .row > .col-lg-3.position-relative {
+  flex: 0 0 300px !important;
+  max-width: 300px !important;
+}
+
+.list-view .listing-card > .row > .col-md-8,
+.list-view .listing-card > .row > .col-lg-9 {
+  flex: 1 1 auto !important;
+  max-width: calc(100% - 300px) !important;
+}
+
+/* Mobile: giữ ảnh full-width để không vỡ layout */
+@media (max-width: 767.98px) {
+  #listings-container.list-view .listing-image {
+    width: 100%;
+    min-width: 100%;
+    height: 200px;
+  }
+}
+
+/* ==== Sửa các selector bị sai cú pháp (trước đó có dấu cách quanh dấu '-') ==== */
+.list-view .card-img-wrapper {
+  box-sizing: border-box;
+  padding: 6px;
+  overflow: visible;
+}
+
+.list-view .card-img-wrapper .badge,
+.list-view .card-img-wrapper .favorite-btn,
+.list-view .card-img-wrapper .product-favorite {
+  z-index: 20;
+}
+
+/* Highlight keyword in results */
+mark {
+    background: #fff3cd;
+    padding: 2px 4px;
+    border-radius: 3px;
+    font-weight: 500;
+}
+
+/* Filter chips */
+.filter-chip {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    background: #ffba00;
+    color: #1f2937;
+    padding: 6px 12px;
+    border-radius: 16px;
+    font-size: 14px;
+    font-weight: 500;
+    margin: 4px 4px 4px 0;
+}
+
+.filter-chip i {
+    cursor: pointer;
+    font-size: 14px;
+    width: 16px;
+    height: 16px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 50%;
+    transition: all 0.2s;
+}
+
+.filter-chip i:hover {
+    background: rgba(0, 0, 0, 0.1);
 }

@@ -1,5 +1,5 @@
 ﻿@{
-    Layout = null;
+    Layout = "_Layout";
 }
 <!DOCTYPE html>
 <html lang="vi">
@@ -16,6 +16,15 @@
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/nouislider@15.7.0/dist/nouislider.min.css" />
     <script src="https://cdn.jsdelivr.net/npm/nouislider@15.7.0/dist/nouislider.min.js"></script>
     <link rel="stylesheet" href="/css/Motorbikes.css" />
+
+    <!-- ✅ Swiper -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/swiper@10/swiper-bundle.min.css" />
+    <script src="https://cdn.jsdelivr.net/npm/swiper@10/swiper-bundle.min.js"></script>
+
+    <!-- ✅ SweetAlert2 (LẦN 1 - VÀ CHỈ LẦN NÀY) -->
+    <link href="https://cdn.jsdelivr.net/npm/sweetalert2@11/dist/sweetalert2.min.css" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
 </head>
 <body>
     @await Html.PartialAsync("_Header")
@@ -198,6 +207,7 @@
     </div>
 
     @await Html.PartialAsync("_Footer")
+    <script src="~/js/main.js"></script>
     <script src="/js/CategoryVehicles.js"></script>
     <script src="/js/Motorbikes.js"></script>
 <script>
