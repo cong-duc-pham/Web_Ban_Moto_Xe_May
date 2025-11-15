@@ -37,6 +37,7 @@
                 var roleName = Context.Session.GetString("RoleName") ?? "";
                 var isLoggedIn = !string.IsNullOrEmpty(Context.Session.GetString("UserId"));
                 var avatarInitial = fullName.Substring(0, 1).ToUpper();
+                var isAdminOrSaler = roleName == "Admin" || roleName == "Saler";
             }
             
             @if (isLoggedIn)
@@ -58,10 +59,22 @@
                             <i class="fas fa-user"></i>
                             <span>Thông tin cá nhân</span>
                         </a>
-                        <a href="/Home/MyOrders" class="dropdown-item">
-                            <i class="fas fa-shopping-bag"></i>
-                            <span>Đơn hàng của tôi</span>
-                        </a>
+                        
+                        @if (isAdminOrSaler)
+                        {
+                            <a href="/Home/ManageOrders" class="dropdown-item">
+                                <i class="fas fa-tasks"></i>
+                                <span>Quản lý đơn hàng</span>
+                            </a>
+                        }
+                        else
+                        {
+                            <a href="/Home/MyOrders" class="dropdown-item">
+                                <i class="fas fa-shopping-bag"></i>
+                                <span>Đơn hàng của tôi</span>
+                            </a>
+                        }
+                        
                         <div class="dropdown-divider"></div>
                         <a href="/Account/Logout" class="dropdown-item text-danger">
                             <i class="fas fa-sign-out-alt"></i>
@@ -80,18 +93,23 @@
 </header>
 
 <script>
-function toggleUserMenu() {
-    const menu = document.getElementById('userDropdownMenu');
-    menu.classList.toggle('show');
-}
+document.addEventListener('DOMContentLoaded', function() {
+    // Toggle User Menu
+    window.toggleUserMenu = function() {
+        const menu = document.getElementById('userDropdownMenu');
+        if (menu) {
+            menu.classList.toggle('show');
+        }
+    };
 
-// Đóng menu khi click bên ngoài
-document.addEventListener('click', function(event) {
-    const wrapper = document.querySelector('.user-profile-wrapper');
-    const menu = document.getElementById('userDropdownMenu');
-    if (wrapper && menu && !wrapper.contains(event.target)) {
-        menu.classList.remove('show');
-    }
+    // Đóng menu khi click bên ngoài
+    document.addEventListener('click', function(event) {
+        const wrapper = document.querySelector('.user-profile-wrapper');
+        const menu = document.getElementById('userDropdownMenu');
+        if (wrapper && menu && !wrapper.contains(event.target)) {
+            menu.classList.remove('show');
+        }
+    });
 });
 </script>
 
