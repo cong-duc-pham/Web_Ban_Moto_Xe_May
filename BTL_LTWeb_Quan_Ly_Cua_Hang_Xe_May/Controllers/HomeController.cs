@@ -44,10 +44,18 @@ namespace BTL_LTWeb_Quan_Ly_Cua_Hang_Xe_May.Controllers
             _context = context;
             // Gán thêm các service khác nếu cần
         }
-        [Authorize(Roles = "Admin")]
         [Route("/admin")] // Định nghĩa đường dẫn là /admin
         public async Task<IActionResult> AdminDashboard()
         {
+            // Kiểm tra quyền Admin qua Session
+            var roleId = HttpContext.Session.GetInt32("RoleId");
+            var roleName = HttpContext.Session.GetString("RoleName");
+            
+            if (roleId != 1 && roleName != "Admin")
+            {
+                return RedirectToAction("AccessDenied");
+            }
+            
             var vehicles = await _context.Vehicles
                 .Include(v => v.Brand)
                 .Include(v => v.Category)
