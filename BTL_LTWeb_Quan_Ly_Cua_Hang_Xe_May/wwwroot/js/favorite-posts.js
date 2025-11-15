@@ -9,7 +9,7 @@ class FavoritePostsManager {
         this.filteredFavorites = [];
         this.currentSort = 'newest';
         this.currentSearch = '';
-        
+
         this.initializeElements();
         this.attachEventListeners();
         this.loadFavorites();
@@ -25,6 +25,15 @@ class FavoritePostsManager {
         this.searchInput = document.getElementById('searchInput');
         this.sortSelect = document.getElementById('sortSelect');
         this.favoriteCount = document.getElementById('favoriteCount');
+
+        console.log('🔧 Elements initialized:', {
+            loadingState: !!this.loadingState,
+            emptyState: !!this.emptyState,
+            favoritesGrid: !!this.favoritesGrid,
+            searchInput: !!this.searchInput,
+            sortSelect: !!this.sortSelect,
+            favoriteCount: !!this.favoriteCount
+        });
     }
 
     /**
@@ -34,7 +43,7 @@ class FavoritePostsManager {
         if (this.searchInput) {
             this.searchInput.addEventListener('input', (e) => this.handleSearch(e));
         }
-        
+
         if (this.sortSelect) {
             this.sortSelect.addEventListener('change', (e) => this.handleSort(e));
         }
@@ -45,8 +54,9 @@ class FavoritePostsManager {
      */
     async loadFavorites() {
         try {
+            console.log('📡 Loading favorites...');
             this.showLoading(true);
-            
+
             const response = await fetch('/Account/GetUserFavorites', {
                 method: 'GET',
                 headers: {
@@ -54,21 +64,28 @@ class FavoritePostsManager {
                 }
             });
 
+            console.log('📡 Response status:', response.status);
+
             if (!response.ok) {
                 throw new Error(`HTTP error! status: ${response.status}`);
             }
 
             const result = await response.json();
+            console.log('📡 API Response:', result);
 
-            if (result.success && result.data) {
-                this.favorites = result.data;
+            if (result.success) {
+                this.favorites = result.data || [];
                 this.filteredFavorites = [...this.favorites];
+
+                console.log(`✅ Loaded ${this.favorites.length} favorites`);
+
                 this.updateDisplay();
             } else {
+                console.error('❌ API returned error:', result.message);
                 this.showError(result.message || 'Lỗi khi tải dữ liệu');
             }
         } catch (error) {
-            console.error('Error loading favorites:', error);
+            console.error('❌ Error loading favorites:', error);
             this.showError('Có lỗi xảy ra khi tải dữ liệu yêu thích');
         } finally {
             this.showLoading(false);
@@ -80,6 +97,7 @@ class FavoritePostsManager {
      */
     handleSearch(event) {
         this.currentSearch = event.target.value.toLowerCase().trim();
+        console.log('🔍 Search:', this.currentSearch);
         this.applyFilters();
     }
 
@@ -88,6 +106,7 @@ class FavoritePostsManager {
      */
     handleSort(event) {
         this.currentSort = event.target.value;
+        console.log('🔄 Sort:', this.currentSort);
         this.applyFilters();
     }
 
@@ -100,7 +119,7 @@ class FavoritePostsManager {
 
         // Apply search filter
         if (this.currentSearch) {
-            this.filteredFavorites = this.filteredFavorites.filter(fav => 
+            this.filteredFavorites = this.filteredFavorites.filter(fav =>
                 (fav.title && fav.title.toLowerCase().includes(this.currentSearch)) ||
                 (fav.brand && fav.brand.toLowerCase().includes(this.currentSearch)) ||
                 (fav.category && fav.category.toLowerCase().includes(this.currentSearch)) ||
@@ -110,6 +129,8 @@ class FavoritePostsManager {
 
         // Apply sorting
         this.applySorting();
+
+        console.log(`📊 Filtered: ${this.filteredFavorites.length} / ${this.favorites.length}`);
 
         // Update display
         this.updateDisplay();
@@ -121,22 +142,22 @@ class FavoritePostsManager {
     applySorting() {
         switch (this.currentSort) {
             case 'newest':
-                this.filteredFavorites.sort((a, b) => 
+                this.filteredFavorites.sort((a, b) =>
                     new Date(b.createdAt) - new Date(a.createdAt)
                 );
                 break;
             case 'oldest':
-                this.filteredFavorites.sort((a, b) => 
+                this.filteredFavorites.sort((a, b) =>
                     new Date(a.createdAt) - new Date(b.createdAt)
                 );
                 break;
             case 'price-low':
-                this.filteredFavorites.sort((a, b) => 
+                this.filteredFavorites.sort((a, b) =>
                     (a.salePrice || 0) - (b.salePrice || 0)
                 );
                 break;
             case 'price-high':
-                this.filteredFavorites.sort((a, b) => 
+                this.filteredFavorites.sort((a, b) =>
                     (b.salePrice || 0) - (a.salePrice || 0)
                 );
                 break;
@@ -154,6 +175,8 @@ class FavoritePostsManager {
             this.favoriteCount.textContent = this.favorites.length;
         }
 
+        console.log('🎨 Updating display, filtered items:', this.filteredFavorites.length);
+
         if (this.filteredFavorites.length === 0) {
             this.showEmptyState();
         } else {
@@ -165,14 +188,29 @@ class FavoritePostsManager {
      * Render favorite cards
      */
     renderCards() {
-        if (!this.favoritesGrid) return;
+        if (!this.favoritesGrid) {
+            console.error('❌ favoritesGrid element not found!');
+            return;
+        }
 
+        console.log('🎨 Rendering cards...');
+
+        // Show grid, hide others
+        this.favoritesGrid.style.display = 'grid';
+        if (this.emptyState) this.emptyState.style.display = 'none';
+        if (this.loadingState) this.loadingState.style.display = 'none';
+
+        // Clear existing content
         this.favoritesGrid.innerHTML = '';
 
-        this.filteredFavorites.forEach(fav => {
+        // Render each card
+        this.filteredFavorites.forEach((fav, index) => {
+            console.log(`🎨 Rendering card ${index + 1}:`, fav.title);
             const card = this.createCard(fav);
             this.favoritesGrid.appendChild(card);
         });
+
+        console.log(`✅ Rendered ${this.filteredFavorites.length} cards`);
     }
 
     /**
@@ -197,28 +235,41 @@ class FavoritePostsManager {
 
         // Build store info
         let storeHTML = '';
-        if (fav.store) {
+        if (fav.store || fav.storeAddress) {
             storeHTML = `
-                <div class="favorite-card-meta" style="margin-top: 8px; padding-top: 8px; border-top: 1px solid #e5e7eb;">
-                    <div class="meta-item"><i class="fas fa-store"></i>${this.escapeHtml(fav.store)}</div>
+                <div class="favorite-card-store" style="margin-top: 8px; padding-top: 8px; border-top: 1px solid #e5e7eb;">
+                    ${fav.store ? `<div class="meta-item"><i class="fas fa-store"></i>${this.escapeHtml(fav.store)}</div>` : ''}
+                    ${fav.storeAddress ? `<div class="meta-item"><i class="fas fa-map-marker-alt"></i>${this.escapeHtml(fav.storeAddress)}</div>` : ''}
                 </div>
             `;
         }
 
         // Build price info
         let priceInfoHTML = '';
-        if (formattedOriginalPrice) {
+        if (formattedOriginalPrice && fav.originalPrice > fav.salePrice) {
+            const discount = Math.round(((fav.originalPrice - fav.salePrice) / fav.originalPrice) * 100);
             priceInfoHTML = `
-                <div class="price-info">
-                    <span class="original-price">${formattedOriginalPrice}</span>
-                    <span>Tiết kiệm: ${this.calculateSavings(fav.salePrice, fav.originalPrice)}</span>
+                <div class="price-info" style="display: flex; gap: 8px; align-items: center; margin-top: 4px;">
+                    <span class="original-price" style="text-decoration: line-through; color: #9ca3af; font-size: 0.875rem;">${formattedOriginalPrice}</span>
+                    <span class="discount-badge" style="background: #ef4444; color: white; padding: 2px 8px; border-radius: 4px; font-size: 0.75rem; font-weight: 600;">-${discount}%</span>
+                </div>
+            `;
+        }
+
+        // Build stock info
+        let stockHTML = '';
+        if (fav.stockQuantity !== undefined || fav.soldCount !== undefined) {
+            stockHTML = `
+                <div class="favorite-card-stock" style="display: flex; gap: 12px; margin-top: 8px; font-size: 0.875rem; color: #6b7280;">
+                    ${fav.stockQuantity !== undefined ? `<span><i class="fas fa-box"></i> Còn: ${fav.stockQuantity}</span>` : ''}
+                    ${fav.soldCount !== undefined ? `<span><i class="fas fa-shopping-cart"></i> Đã bán: ${fav.soldCount}</span>` : ''}
                 </div>
             `;
         }
 
         card.innerHTML = `
             <!-- Image Section -->
-            <div class="favorite-card-image">
+            <div class="favorite-card-image" onclick="window.favoriteManager.viewVehicle(${fav.vehicleId})" style="cursor: pointer;">
                 <img src="${this.escapeHtml(fav.primaryImage)}" alt="${this.escapeHtml(fav.title)}" onerror="this.src='/images/default-vehicle.jpg'">
                 
                 <div class="favorite-card-badges">
@@ -229,15 +280,17 @@ class FavoritePostsManager {
 
             <!-- Content Section -->
             <div class="favorite-card-content">
-                <h3 class="favorite-card-title">${this.escapeHtml(fav.title)}</h3>
+                <h3 class="favorite-card-title" onclick="window.favoriteManager.viewVehicle(${fav.vehicleId})" style="cursor: pointer;">
+                    ${this.escapeHtml(fav.title)}
+                </h3>
                 
-                <div class="favorite-card-meta">
-                    ${metaHTML}
-                </div>
+                ${metaHTML ? `<div class="favorite-card-meta">${metaHTML}</div>` : ''}
 
                 <div class="favorite-card-price">${formattedPrice}</div>
                 
                 ${priceInfoHTML}
+                
+                ${stockHTML}
                 
                 ${storeHTML}
 
@@ -267,12 +320,14 @@ class FavoritePostsManager {
         if (!status) return '';
 
         const statusMap = {
-            'Available': { text: 'Còn hàng', class: 'badge-status' },
-            'SoldOut': { text: 'Hết hàng', class: 'badge-status' },
-            'Inactive': { text: 'Không hoạt động', class: 'badge-status' }
+            'Available': { text: 'Còn hàng', class: 'badge-success' },
+            'Pending': { text: 'Chờ xác nhận', class: 'badge-warning' },
+            'Sold': { text: 'Đã bán', class: 'badge-danger' },
+            'SoldOut': { text: 'Hết hàng', class: 'badge-danger' },
+            'Inactive': { text: 'Không hoạt động', class: 'badge-secondary' }
         };
 
-        const statusInfo = statusMap[status] || { text: status, class: 'badge-status' };
+        const statusInfo = statusMap[status] || { text: status, class: 'badge-secondary' };
         return `<span class="badge ${statusInfo.class}">${this.escapeHtml(statusInfo.text)}</span>`;
     }
 
@@ -283,13 +338,15 @@ class FavoritePostsManager {
         if (!condition) return '';
 
         const conditionMap = {
-            'New': { text: 'Mới', class: 'badge-status' },
-            'Like New': { text: 'Như mới', class: 'badge-condition' },
-            'Good': { text: 'Tốt', class: 'badge-condition' },
-            'Used': { text: 'Đã sử dụng', class: 'badge-condition' }
+            'Mới': { text: 'Mới', class: 'badge-primary' },
+            'New': { text: 'Mới', class: 'badge-primary' },
+            'Đã sử dụng': { text: 'Đã sử dụng', class: 'badge-info' },
+            'Used': { text: 'Đã sử dụng', class: 'badge-info' },
+            'Like New': { text: 'Như mới', class: 'badge-success' },
+            'Good': { text: 'Tốt', class: 'badge-success' }
         };
 
-        const conditionInfo = conditionMap[condition] || { text: condition, class: 'badge-condition' };
+        const conditionInfo = conditionMap[condition] || { text: condition, class: 'badge-info' };
         return `<span class="badge ${conditionInfo.class}">${this.escapeHtml(conditionInfo.text)}</span>`;
     }
 
@@ -306,17 +363,8 @@ class FavoritePostsManager {
                 maximumFractionDigits: 0
             }).format(price);
         } catch (e) {
-            return `${price} đ`;
+            return price.toString().replace(/\B(?=(\d{3})+(?!\d))/g, '.') + ' đ';
         }
-    }
-
-    /**
-     * Calculate savings between original and sale price
-     */
-    calculateSavings(salePrice, originalPrice) {
-        if (!originalPrice || originalPrice <= 0) return '0 đ';
-        const savings = originalPrice - salePrice;
-        return savings > 0 ? `${this.formatPrice(savings)}` : '0 đ';
     }
 
     /**
@@ -328,12 +376,23 @@ class FavoritePostsManager {
             if (isNaN(date.getTime())) {
                 return 'Chưa xác định';
             }
-            const options = { 
-                year: 'numeric', 
-                month: 'long', 
-                day: 'numeric',
-                hour: '2-digit',
-                minute: '2-digit'
+
+            const now = new Date();
+            const diff = now - date;
+            const seconds = Math.floor(diff / 1000);
+            const minutes = Math.floor(seconds / 60);
+            const hours = Math.floor(minutes / 60);
+            const days = Math.floor(hours / 24);
+
+            if (seconds < 60) return `${seconds} giây trước`;
+            if (minutes < 60) return `${minutes} phút trước`;
+            if (hours < 24) return `${hours} giờ trước`;
+            if (days < 7) return `${days} ngày trước`;
+
+            const options = {
+                year: 'numeric',
+                month: 'long',
+                day: 'numeric'
             };
             return date.toLocaleDateString('vi-VN', options);
         } catch (e) {
@@ -347,7 +406,7 @@ class FavoritePostsManager {
     escapeHtml(text) {
         if (!text) return '';
         if (typeof text !== 'string') return text;
-        
+
         const map = {
             '&': '&amp;',
             '<': '&lt;',
@@ -363,7 +422,7 @@ class FavoritePostsManager {
      */
     showLoading(show) {
         if (!this.loadingState) return;
-        
+
         if (show) {
             this.loadingState.style.display = 'flex';
             if (this.favoritesGrid) this.favoritesGrid.style.display = 'none';
@@ -379,8 +438,10 @@ class FavoritePostsManager {
     showEmptyState() {
         if (!this.emptyState) return;
 
-        this.emptyState.style.display = 'block';
-        
+        console.log('📭 Showing empty state');
+
+        this.emptyState.style.display = 'flex';
+
         if (this.favoritesGrid) {
             this.favoritesGrid.style.display = 'none';
         }
@@ -404,7 +465,7 @@ class FavoritePostsManager {
     showError(message) {
         if (!this.emptyState) return;
 
-        this.emptyState.style.display = 'block';
+        this.emptyState.style.display = 'flex';
         if (this.favoritesGrid) this.favoritesGrid.style.display = 'none';
 
         const emptyIcon = this.emptyState.querySelector('.empty-icon');
@@ -422,25 +483,46 @@ class FavoritePostsManager {
      * Remove favorite post
      */
     async removeFavorite(vehicleId, buttonElement) {
-        if (!confirm('Bạn có chắc chắn muốn xóa bài đăng này khỏi danh sách yêu thích?')) {
-            return;
+        // Use SweetAlert2 if available, otherwise use confirm
+        let confirmResult = false;
+
+        if (typeof Swal !== 'undefined') {
+            const result = await Swal.fire({
+                title: 'Xác nhận xóa',
+                text: 'Bạn có chắc chắn muốn xóa bài đăng này khỏi danh sách yêu thích?',
+                icon: 'question',
+                showCancelButton: true,
+                confirmButtonColor: '#dc3545',
+                cancelButtonColor: '#6c757d',
+                confirmButtonText: '<i class="fas fa-trash"></i> Xóa',
+                cancelButtonText: '<i class="fas fa-times"></i> Hủy',
+                reverseButtons: true
+            });
+            confirmResult = result.isConfirmed;
+        } else {
+            confirmResult = confirm('Bạn có chắc chắn muốn xóa bài đăng này khỏi danh sách yêu thích?');
         }
+
+        if (!confirmResult) return;
 
         try {
             const button = buttonElement;
-            const originalText = button.innerHTML;
+            const originalHTML = button.innerHTML;
             button.disabled = true;
             button.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span>Đang xóa...';
+
+            console.log('🗑️ Removing favorite:', vehicleId);
 
             const response = await fetch('/Account/RemoveFavorite', {
                 method: 'POST',
                 headers: {
-                    'Content-Type': 'application/json'
+                    'Content-Type': 'application/x-www-form-urlencoded'
                 },
-                body: JSON.stringify({ vehicleId: vehicleId })
+                body: `vehicleId=${encodeURIComponent(vehicleId)}`
             });
 
             const result = await response.json();
+            console.log('🗑️ Remove response:', result);
 
             if (result.success) {
                 // Remove from local array
@@ -453,10 +535,10 @@ class FavoritePostsManager {
                 this.showToast(result.message || 'Lỗi khi xóa', 'error');
                 // Restore button
                 button.disabled = false;
-                button.innerHTML = originalText;
+                button.innerHTML = originalHTML;
             }
         } catch (error) {
-            console.error('Error removing favorite:', error);
+            console.error('❌ Error removing favorite:', error);
             this.showToast('Có lỗi xảy ra khi xóa', 'error');
             // Restore button
             if (buttonElement) {
@@ -470,7 +552,7 @@ class FavoritePostsManager {
      * View vehicle details
      */
     viewVehicle(vehicleId) {
-        // Redirect to vehicle detail page
+        console.log(' Viewing vehicle:', vehicleId);
         window.location.href = `/Home/VehicleDetail/${vehicleId}`;
     }
 
@@ -478,7 +560,22 @@ class FavoritePostsManager {
      * Show toast notification
      */
     showToast(message, type = 'info') {
-        // Create toast element
+        // Use SweetAlert2 Toast if available
+        if (typeof Swal !== 'undefined') {
+            Swal.mixin({
+                toast: true,
+                position: 'top-end',
+                showConfirmButton: false,
+                timer: 3000,
+                timerProgressBar: true
+            }).fire({
+                icon: type === 'error' ? 'error' : 'success',
+                title: message
+            });
+            return;
+        }
+
+        // Fallback to custom toast
         const toast = document.createElement('div');
         toast.className = `toast-notification toast-${type}`;
         toast.innerHTML = `
@@ -565,6 +662,7 @@ class FavoritePostsManager {
 
 // Initialize on DOM ready
 document.addEventListener('DOMContentLoaded', () => {
+    console.log('🚀 Initializing Favorite Posts Manager...');
     window.favoriteManager = new FavoritePostsManager();
-    console.log('Favorite Posts Manager initialized');
+    console.log('✅ Favorite Posts Manager initialized');
 });
