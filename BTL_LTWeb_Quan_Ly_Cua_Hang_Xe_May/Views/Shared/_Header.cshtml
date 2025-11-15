@@ -51,6 +51,14 @@
                     
                     <!-- Dropdown Menu -->
                     <div class="user-dropdown-menu" id="userDropdownMenu">
+                        @if (roleName == "Admin" || roleName == "admin")
+                        {
+                            <a href="/admin" class="dropdown-item">
+                                <i class="fas fa-chart-line"></i>
+                                <span>Dashboard</span>
+                            </a>
+                        }
+                        
                         <a href="/QA/Index" class="dropdown-item">
                             <i class="fas fa-question-circle"></i>
                             <span>Trang hỏi đáp</span>

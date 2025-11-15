@@ -127,6 +127,10 @@ else
                                 <i class="fas fa-user-circle me-1"></i> @fullName
                             </button>
                             <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="userDropdown">
+                                @if (ViewBag.IsAdmin == true || ViewBag.IsSaler == true)
+                                {
+                                    <li><a class="dropdown-item" href="/admin"><i class="fas fa-tasks me-2"></i>Dashboard</a></li>
+                                }
                                 <li><a class="dropdown-item" href="/QA/Index"><i class="fas fa-question-circle me-2"></i>Trang hỏi đáp</a></li>
                                 <li><a class="dropdown-item" href="/Account/AccountProfile"><i class="fas fa-user me-2"></i>Tài khoản</a></li>
 
