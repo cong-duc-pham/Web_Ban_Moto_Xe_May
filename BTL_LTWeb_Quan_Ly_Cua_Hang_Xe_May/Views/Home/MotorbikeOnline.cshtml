@@ -1,4 +1,7 @@
 ﻿@using BTL_LTWeb_Quan_Ly_Cua_Hang_Xe_May.Models.Entities;
+@{
+    Layout = null;
+}
 
 <!DOCTYPE html>
 <html lang="vi">
@@ -36,176 +39,23 @@
           rel="stylesheet">
 
     <!-- Custom CSS -->
-    <link rel="stylesheet" href="/css//MotorbikeOnline.css">
+    <link rel="stylesheet" href="/css/MotorBikeOnline.css">
+    <link rel="stylesheet" href="/css/style.css">
+    <style>
+        body {
+            padding-top: 0 !important;
+            margin-top: 0 !important;
+        }
+        .sticky-header {
+            position: relative !important;
+            transform: none !important;
+            opacity: 1 !important;
+        }
+    </style>
 </head>
 
 <body>
-    @* DEBUG PANEL - Kiểm tra Session và ViewBag
-    <div class="debug-panel">
-        <div class="card">
-            <div class="card-header bg-primary text-white">
-                <h6 class="mb-0">🔍 DEBUG INFO</h6>
-            </div>
-            <div class="card-body">
-                <h6 class="text-primary">📊 ViewBag.IsAdmin</h6>
-                <p class="mb-2">
-                    <strong>Giá trị:</strong> 
-                    <span class="badge @(ViewBag.IsAdmin == true ? "bg-success" : "bg-danger")">
-                        @(ViewBag.IsAdmin == true ? "TRUE ✓" : ViewBag.IsAdmin == false ? "FALSE ✗" : "NULL")
-                    </span>
-                </p>
-                
-                <hr>
-                
-                <h6 class="text-primary">🔐 Session Data</h6>
-                @if (!string.IsNullOrEmpty(Context.Session.GetString("TenDangNhap")))
-                {
-                    <p class="mb-1"><strong>Tên đăng nhập:</strong> @Context.Session.GetString("TenDangNhap")</p>
-                    <p class="mb-1"><strong>Họ và tên:</strong> @Context.Session.GetString("HoVaTen")</p>
-                    <p class="mb-1"><strong>Vai trò:</strong> <span class="badge bg-info">@Context.Session.GetString("VaiTro")</span></p>
-                    <p class="mb-1"><strong>User ID:</strong> @Context.Session.GetInt32("UserID")</p>
-                }
-                else
-                {
-                    <p class="text-danger mb-0">❌ Không có Session</p>
-                }
-                
-                <hr>
-                
-                <h6 class="text-primary">📝 Kết luận</h6>
-                @if (ViewBag.IsAdmin == true)
-                {
-                    <div class="alert alert-success mb-0 py-2">
-                        ✅ Đang ở chế độ Admin - Có thể thêm/sửa/xóa
-                    </div>
-                }
-                else
-                {
-                    <div class="alert alert-warning mb-0 py-2">
-                        ⚠️ Không phải Admin - Không thấy nút thêm/sửa/xóa
-                    </div>
-                }
-            </div>
-        </div>
-    </div> *@
-
-    <!-- Top Bar -->
-    <div class="top-bar">
-        <div class="container">
-            <div class="d-flex justify-content-between">
-                <div class="d-flex align-items-center">
-                    <a href="#">Chợ Tốt</a>
-                    <span>|</span>
-                    <a href="#">Nhà Tốt</a>
-                    <span>|</span>
-                    <a href="#">Chợ Tốt Xe</a>
-                    <span>|</span>
-                    <a href="#">Việc Làm Tốt</a>
-                </div>
-                <div class="d-flex align-items-center">
-                    <a href="#">Đóng góp ý kiến</a>
-                    <a href="#">Tải ứng dụng</a>
-                    <a href="#">Trợ giúp</a>
-                    <div class="dropdown">
-                        <a href="#" class="dropdown-toggle" data-bs-toggle="dropdown">
-                            <i class="fas fa-tag me-1"></i> Dành cho người mua
-                        </a>
-                        <ul class="dropdown-menu">
-                            <li><a class="dropdown-item" href="#">Hướng dẫn mua hàng</a></li>
-                            <li><a class="dropdown-item" href="#">Phương thức thanh toán</a></li>
-                            <li><a class="dropdown-item" href="#">Chính sách đổi trả</a></li>
-                        </ul>
-                    </div>
-                    <button class="btn btn-sm btn-light ms-2">
-                        <i class="fas fa-briefcase me-1"></i> Dành cho người bán
-                    </button>
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <!-- Main Header -->
-    <header class="main-header">
-        <div class="container">
-            <div class="row align-items-center">
-                <div class="col-md-3">
-                    <a href="#" class="logo d-flex align-items-center gap-0 ">
-                        <img src="/images/logo.png" alt="" class="logo-icon">
-                        <img src="/images/logo_word.png" alt="" class="logo-text">
-                    </a>
-                </div>
-                <div class="col-md-6">
-                    <div class="search-bar">
-                        <input type="text" class="search-input" placeholder="Tìm kiếm xe trên Chợ Tốt Xe">
-                        <button class="search-btn me-n2">
-                            <i class="fas fa-search"></i>
-                        </button>
-
-                    </div>
-                </div>
-                <div class="col-md-3">
-                    @{
-                        var fullName = Context.Session.GetString("FullName");
-                        var isLoggedIn = !string.IsNullOrEmpty(fullName);
-                    }
-                    
-                    <div class="d-flex align-items-center justify-content-end">
-                        <i class="fas fa-bell header-icon"></i>
-                        <i class="fas fa-comment-dots header-icon"></i>
-                        
-                        @if (isLoggedIn)
-                        {
-                            <!-- Hiển thị khi đã đăng nhập -->
-                            <div class="dropdown ms-2">
-                                <a href="#" class="d-flex align-items-center dropdown-toggle" data-bs-toggle="dropdown">
-                                    <img src="https://i.pravatar.cc/32" alt="User" class="user-avatar">
-                                    <span class="d-none d-md-inline ms-1">@fullName</span>
-                                    <i class="fas fa-chevron-down ms-1"></i>
-                                </a>
-                                <ul class="dropdown-menu dropdown-menu-end">
-                                    <li><a class="dropdown-item" href="/Account/Profile"><i class="fas fa-user me-2"></i>Tài khoản của tôi</a></li>
-                                    @if (ViewBag.IsAdmin == true || ViewBag.IsSaler == true)
-                                    {
-                                        <li><a class="dropdown-item" href="/Home/ManageOrders"><i class="fas fa-tasks me-2"></i>Quản lý đơn hàng</a></li>
-                                    }
-                                    else
-                                    {
-                                        <li><a class="dropdown-item" href="/Home/MyOrders"><i class="fas fa-shopping-bag me-2"></i>Đơn hàng của tôi</a></li>
-                                    }
-                                    <li><a class="dropdown-item" href="/QA"><i class="fas fa-question-circle me-2"></i>Hỏi đáp</a></li>
-                                    <li><a class="dropdown-item" href="#"><i class="fas fa-bookmark me-2"></i>Tin đã lưu</a></li>
-                                    <li><hr class="dropdown-divider"></li>
-                                    <li><a class="dropdown-item text-danger" href="/Account/Logout"><i class="fas fa-sign-out-alt me-2"></i>Đăng xuất</a></li>
-                                </ul>
-                            </div>
-                        }
-                        else
-                        {
-                            <!-- Hiển thị khi chưa đăng nhập -->
-                            <a href="/Account/Login" class="btn btn-outline-primary btn-sm ms-2">
-                                <i class="fas fa-sign-in-alt me-1"></i> Đăng nhập
-                            </a>
-                        }
-                        
-                        <a asp-controller="Home" asp-action="LiquidationCar" class="btn btn-info ms-2">
-                            BÁN XE
-                        </a>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </header>
-
-    <!-- Breadcrumb -->
-    <div class="container">
-        <nav aria-label="breadcrumb">
-            <ol class="breadcrumb">
-                <li class="breadcrumb-item"><a href="#">Chợ Tốt Xe</a></li>
-                <li class="breadcrumb-item"><a href="#">Cửa Hàng Chính Hãng</a></li>
-                <li class="breadcrumb-item active" aria-current="page">VinFast Official Store</li>
-            </ol>
-        </nav>
-    </div>
+    @await Html.PartialAsync("_Header")
 
     <!-- Store Header -->
     <section class="store-header">
@@ -413,7 +263,7 @@
                                             </span>
                                         </div>
                                     }
-                                    else if (isLoggedIn)
+                                    else if (!string.IsNullOrEmpty(Context.Session.GetString("FullName")))
                                     {
                                         <!-- Nút mua xe cho khách hàng đã đăng nhập -->
                                         <div class="product-actions">
